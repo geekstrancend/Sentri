@@ -13,6 +13,8 @@ pub mod types;
 pub mod type_checker;
 pub mod evaluator;
 pub mod threat_model;
+pub mod attack_patterns;
+pub mod security_validator;
 
 pub use error::{InvarError, Result};
 pub use model::{FunctionModel, Invariant, ProgramModel, StateVar};
@@ -24,3 +26,5 @@ pub use threat_model::{
     ThreatModelConfig, ThreatModelError, ThreatResult,
     InjectionVerifier, TamperDetector, DSLSandbox, StrictModeAnalyzer, SimulationIsolation,
 };
+pub use attack_patterns::AttackPatternDB;
+pub use security_validator::{SecurityValidator, SecurityReport, SecurityIssue, IssueSeverity};

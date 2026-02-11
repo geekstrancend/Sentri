@@ -188,6 +188,7 @@ tamper_detection = true
 /// Build invariant checks from source.
 fn build_invariants(source: &PathBuf, chain: &str, output: &PathBuf) -> anyhow::Result<()> {
     use std::fs;
+    use invar_core::SecurityValidator;
     
     // Validate chain
     match chain {
@@ -200,6 +201,53 @@ fn build_invariants(source: &PathBuf, chain: &str, output: &PathBuf) -> anyhow::
         return Err(anyhow::anyhow!("Source file not found: {}", source.display()));
     }
     
+    println!("Step 1: Security validation");
+    println!("  Scanning for known attack patterns ({} chain)...", chain);
+    
+    // SECURITY VALIDATION - Check for attack patterns BEFORE building
+    let validator = SecurityValidator::new();
+    let security_report = validator
+        .validate_file(source, chain)
+        .map_err(|e| anyhow::anyhow!("Security validation failed: {}", e))?;
+    
+    println!("  Risk Score: {}/100", security_report.risk_score);
+    
+    if !security_report.critical_issues.is_empty() {
+        println!("\n❌ BUILD BLOCKED - Critical security issues found:");
+        for issue in &security_report.critical_issues {
+            println!("  [CRITICAL] {} at {}", issue.attack_pattern, issue.location);
+            println!("    → {}", issue.description);
+            println!("    ✓ Fix: {}", issue.suggested_fix);
+        }
+        return Err(anyhow::anyhow!(
+            "Cannot proceed: {} critical vulnerabilities must be fixed first",
+            security_report.critical_issues.len()
+        ));
+    }
+    
+    if !security_report.high_issues.is_empty() {
+        println!("\n⚠️  High-risk issues detected:");
+        for issue in &security_report.high_issues {
+            println!("  [HIGH] {} at {}", issue.attack_pattern, issue.location);
+            println!("    → {}", issue.description);
+            println!("    ✓ Fix: {}", issue.suggested_fix);
+        }
+        println!("\nProceeding with caution. Recommend addressing these issues.");
+    }
+    
+    if !security_report.medium_issues.is_empty() {
+        println!("\n📋 Medium-risk issues found: {}", security_report.medium_issues.len());
+    }
+    
+    if !security_report.low_issues.is_empty() {
+        println!("ℹ️  Low-risk issues found: {}", security_report.low_issues.len());
+    }
+    
+    if security_report.passed {
+        println!("✓ Security validation passed!");
+    }
+    
+    println!("\nStep 2: Code generation");
     let content = fs::read_to_string(source)?;
     
     // Create output directory
@@ -220,6 +268,7 @@ fn build_invariants(source: &PathBuf, chain: &str, output: &PathBuf) -> anyhow::
     println!("✓ Built {} invariant checks", chain);
     println!("  - Generated: {}", output_file.display());
     println!("  - Lines: {}", generated_code.lines().count());
+    println!("\n✓ Build complete - All security checks passed!");
     
     Ok(())
 }
