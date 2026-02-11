@@ -8,6 +8,7 @@ members = [
     "crates/analyzer/evm",
     "crates/analyzer/move",
     "crates/generator/solana",
+    "crates/generator/solana_macro",
     "crates/generator/evm",
     "crates/generator/move",
     "crates/invariant_library",
