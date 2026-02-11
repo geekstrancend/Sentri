@@ -1,0 +1,69 @@
+# Invar Invariant Library - Token Contract Invariants
+# This file demonstrates how to define invariants for token contracts
+
+# Core token invariants
+[[invariant]]
+name = "BalanceNeverNegative"
+expression = "balance >= 0"
+severity = "critical"
+category = "core"
+description = "No account balance can be negative"
+
+[[invariant]]
+name = "TotalSupplyMonotonicity"
+expression = "total_supply >= 0"
+severity = "critical"
+category = "core"
+description = "Total supply cannot be negative"
+
+[[invariant]]
+name = "SumOfBalancesEqualsSupply"
+expression = "sum_of_all_balances == total_supply"
+severity = "high"
+category = "core"
+description = "Sum of all balances must equal total supply"
+
+# DeFi-specific invariants
+[[invariant]]
+name = "DelegationInvariant"
+expression = "delegated_amount <= total_balance"
+severity = "high"
+category = "defi"
+description = "Delegated tokens cannot exceed total balance"
+
+[[invariant]]
+name = "LiquidityPoolBalance"
+expression = "reserve_a > 0 && reserve_b > 0"
+severity = "critical"
+category = "defi"
+description = "Liquidity pool reserves must always be positive"
+
+# Governance invariants
+[[invariant]]
+name = "QuorumMaintenance"
+expression = "voting_power >= minimum_quorum"
+severity = "high"
+category = "governance"
+description = "Voting quorum must be maintained"
+
+[[invariant]]
+name = "ProposalStateTransition"
+expression = "valid_state_transition(old_state, new_state)"
+severity = "medium"
+category = "governance"
+description = "Proposal states must transition validly"
+
+# Bridge-specific invariants
+[[invariant]]
+name = "BridgeLockedFunds"
+expression = "locked_amount <= total_bridged_supply"
+severity = "critical"
+category = "bridge"
+description = "Locked bridge funds cannot exceed total supply"
+
+[[invariant]]
+name = "CrossChainMessageOrdering"
+expression = "sequence_number > previous_sequence_number"
+severity = "high"
+category = "bridge"
+description = "Cross-chain message sequences must be monotonically increasing"

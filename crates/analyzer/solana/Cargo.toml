@@ -1,0 +1,21 @@
+[package]
+name = "invar-analyzer-solana"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+invar-core = { path = "../../core" }
+invar-ir = { path = "../../ir" }
+invar-utils = { path = "../../utils" }
+syn = { version = "2.0", features = ["full"] }
+quote = "1.0"
+proc-macro2 = "1.0"
+
+[dev-dependencies]

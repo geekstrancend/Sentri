@@ -1,0 +1,18 @@
+[package]
+name = "invar-analyzer-move"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+invar-core = { path = "../../core" }
+invar-ir = { path = "../../ir" }
+invar-utils = { path = "../../utils" }
+
+[dev-dependencies]

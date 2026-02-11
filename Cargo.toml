@@ -1,0 +1,77 @@
+[workspace]
+members = [
+    "crates/cli",
+    "crates/core",
+    "crates/dsl_parser",
+    "crates/ir",
+    "crates/analyzer/solana",
+    "crates/analyzer/evm",
+    "crates/analyzer/move",
+    "crates/generator/solana",
+    "crates/generator/evm",
+    "crates/generator/move",
+    "crates/invariant_library",
+    "crates/report",
+    "crates/simulator",
+    "crates/utils",
+]
+
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Invar Contributors"]
+license = "MIT"
+repository = "https://github.com/invar/invar"
+
+[workspace.dependencies]
+# Core dependencies
+anyhow = "1.0"
+thiserror = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+toml = "0.8"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+
+# Parsing
+pest = "2.7"
+pest_derive = "2.7"
+nom = "7.1"
+
+# Solana
+solana-program = "1.18"
+solana-sdk = "1.18"
+
+# CLI
+clap = { version = "4.4", features = ["derive", "cargo"] }
+colored = "2.0"
+
+# Testing & fuzzing
+proptest = "1.4"
+quickcheck = "1.0"
+quickcheck_macros = "1.0"
+rand = { version = "0.8", features = ["small_rng"] }
+
+# Parallel processing
+rayon = "1.7"
+
+# Utilities
+regex = "1.10"
+log = "0.4"
+chrono = "0.4"
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+strip = true
+
+[profile.dev]
+opt-level = 0
+debug = true
+
+[profile.test]
+opt-level = 1
+debug = true

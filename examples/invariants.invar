@@ -1,0 +1,42 @@
+// Example Invar DSL file demonstrating invariant syntax
+// This shows how to write invariants using the Invar DSL
+
+invariant BalanceNeverNegative {
+    balance >= 0
+}
+
+invariant TokenConservation {
+    (balance_alice + balance_bob + balance_charlie) == total_supply
+}
+
+invariant MultipleConditions {
+    (total_supply >= 0) && (total_supply <= max_supply)
+}
+
+invariant AllowanceConstraint {
+    delegated_amount <= total_balance
+}
+
+invariant AuthorityCheck {
+    is_signer(msg_sender)
+}
+
+invariant ComplexExpression {
+    ((locked_tokens >= 0) && (locked_tokens <= total_supply)) && ((voting_power > 0) || (is_paused))
+}
+
+invariant FunctionCall {
+    validate_owner(account_owner)
+}
+
+invariant LiquidityPreservation {
+    (reserve_a > 0) && (reserve_b > 0) && ((reserve_a * reserve_b) >= constant_product)
+}
+
+invariant AccessControl {
+    (caller == owner) || (is_admin(caller))
+}
+
+invariant StateTransition {
+    valid_state_transition(previous_state, current_state)
+}

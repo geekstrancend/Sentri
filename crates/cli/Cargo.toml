@@ -1,0 +1,36 @@
+[package]
+name = "invar"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[[bin]]
+name = "invar"
+path = "src/main.rs"
+
+[dependencies]
+anyhow.workspace = true
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+toml.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+clap.workspace = true
+colored.workspace = true
+invar-core = { path = "../core" }
+invar-ir = { path = "../ir" }
+invar-dsl-parser = { path = "../dsl_parser" }
+invar-utils = { path = "../utils" }
+invar-library = { path = "../invariant_library" }
+invar-report = { path = "../report" }
+invar-analyzer-solana = { path = "../analyzer/solana" }
+invar-analyzer-evm = { path = "../analyzer/evm" }
+invar-analyzer-move = { path = "../analyzer/move" }
+invar-generator-solana = { path = "../generator/solana" }
+invar-generator-evm = { path = "../generator/evm" }
+invar-generator-move = { path = "../generator/move" }
+invar-simulator = { path = "../simulator" }
+
+[dev-dependencies]

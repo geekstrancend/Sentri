@@ -1,0 +1,17 @@
+[package]
+name = "invar-core"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+anyhow.workspace = true
+thiserror.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+regex.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
