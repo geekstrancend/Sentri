@@ -72,13 +72,13 @@ fi
 echo ""
 echo "Checking version history..."
 
-# Get all existing version tags
-EXISTING_VERSIONS=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' 2>/dev/null || echo "")
+# Get all existing version tags (excluding current tag)
+EXISTING_VERSIONS=$(git tag -l 'v[0-9]*.[0-9]*.[0-9]*' 2>/dev/null | grep -v "^v${TAG_VERSION}$" || echo "")
 
 if [ -z "$EXISTING_VERSIONS" ]; then
   echo "✓ First release: $TAG_VERSION"
 else
-  # Find the highest existing version
+  # Find the highest existing version (excluding current tag)
   LATEST_VERSION=$(echo "$EXISTING_VERSIONS" | sed 's/^v//' | sort -V | tail -1)
   LATEST_MAJOR=$(echo "$LATEST_VERSION" | cut -d. -f1)
   LATEST_MINOR=$(echo "$LATEST_VERSION" | cut -d. -f2)
