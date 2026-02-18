@@ -75,19 +75,10 @@ jobs:
       - name: Run clippy (debug)
         run: cargo clippy --all --all-targets -- -D warnings
 
-      - name: Run unit tests
-        run: cargo test --lib --all
-
-      - name: Run integration tests
-        run: cargo test --test '*' --all 2>/dev/null || true
+      - name: Run unit tests and integration tests
+        run: cargo test --all --all-targets
 
       - name: Run property-based tests
-        run: cargo test --release --all
-
-      - name: Run CLI tests
-        run: cargo test --test '*' --release --all 2>/dev/null || true
-
-      - name: Run all tests again (release mode)
         run: cargo test --release --all
 
       - name: Verify all tests pass
@@ -245,6 +236,9 @@ jobs:
         run: |
           cargo build --release --locked --target aarch64-unknown-linux-gnu
 
+      - name: Strip binary
+        run: aarch64-linux-gnu-strip target/aarch64-unknown-linux-gnu/release/invar
+
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
@@ -386,6 +380,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Install zip tool
+        run: sudo apt-get install -y zip
+
       - name: Download all artifacts
         uses: actions/download-artifact@v3
         with:
@@ -511,21 +508,43 @@ jobs:
           echo "Publishing release to crates.io..."
           VERSION="${{ needs.validate-version.outputs.version }}"
           
-          # Publish in dependency order
-          for crate in "invar-core" "invar-dsl-parser" "invar-cli"; do
+          # Publish in strict dependency order
+          # Layer 1: Core library (no internal dependencies)
+          for crate in "invar-core"; do
             echo ""
-            echo "Publishing $crate v$VERSION..."
+            echo "Publishing core: $crate v$VERSION..."
             cargo publish -p "$crate" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
-            
-            if grep -q "already uploaded" /tmp/publish.log; then
-              echo "✓ $crate v$VERSION already published"
-            else
-              echo "✓ Successfully published $crate v$VERSION"
-              # Wait for crates.io index update
+            if ! grep -q "already uploaded" /tmp/publish.log; then
+              sleep 30
+            fi
+          done
+          
+          # Layer 2: Intermediate libraries (depend on core)
+          for crate in "invar-ir" "invar-utils" "invar-library" "invar-report" "invar-dsl-parser"; do
+            echo ""
+            echo "Publishing intermediate: $crate v$VERSION..."
+            cargo publish -p "$crate" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
+            if ! grep -q "already uploaded" /tmp/publish.log; then
               sleep 15
             fi
           done
           
+          # Layer 3: Analyzers and generators (depend on core)
+          for crate in "invar-analyzer-evm" "invar-analyzer-move" "invar-analyzer-solana" "invar-solana-macro" "invar-generator-evm" "invar-generator-move" "invar-generator-solana" "invar-simulator"; do
+            echo ""
+            echo "Publishing analyzer/generator: $crate v$VERSION..."
+            cargo publish -p "$crate" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
+            if ! grep -q "already uploaded" /tmp/publish.log; then
+              sleep 10
+            fi
+          done
+          
+          # Layer 4: CLI (depends on multiple crates)
+          echo ""
+          echo "Publishing CLI: invar-cli v$VERSION..."
+          cargo publish -p "invar-cli" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
+          
+          echo ""
           echo "✓ crates.io publication complete"
 
   # Stage 9: GitHub Release
