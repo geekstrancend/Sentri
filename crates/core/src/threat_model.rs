@@ -60,11 +60,17 @@ pub enum ThreatModelError {
 impl std::fmt::Display for ThreatModelError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::ReParseVerificationFailed(msg) => write!(f, "re-parse verification failed: {}", msg),
+            Self::ReParseVerificationFailed(msg) => {
+                write!(f, "re-parse verification failed: {}", msg)
+            }
             Self::TamperDetected(msg) => write!(f, "macro tampering detected: {}", msg),
             Self::SandboxEscapeDetected(msg) => write!(f, "DSL sandbox escape: {}", msg),
-            Self::MutationUncertaintyDetected(msg) => write!(f, "mutation uncertainty in strict mode: {}", msg),
-            Self::IsolationViolationDetected(msg) => write!(f, "simulation isolation violation: {}", msg),
+            Self::MutationUncertaintyDetected(msg) => {
+                write!(f, "mutation uncertainty in strict mode: {}", msg)
+            }
+            Self::IsolationViolationDetected(msg) => {
+                write!(f, "simulation isolation violation: {}", msg)
+            }
             Self::Custom(msg) => write!(f, "{}", msg),
         }
     }
@@ -83,15 +89,13 @@ impl InjectionVerifier {
     ///
     /// # Security Property
     /// Ensures 100% coverage of mutating functions with invariant checks.
-    pub fn verify_coverage(
-        generated_code: &str,
-        expected_checks: &[String],
-    ) -> ThreatResult<()> {
+    pub fn verify_coverage(generated_code: &str, expected_checks: &[String]) -> ThreatResult<()> {
         for check in expected_checks {
             if !generated_code.contains(&format!("// Invariant: {}", check)) {
-                return Err(ThreatModelError::ReParseVerificationFailed(
-                    format!("invariant check not found in generated code: {}", check),
-                ));
+                return Err(ThreatModelError::ReParseVerificationFailed(format!(
+                    "invariant check not found in generated code: {}",
+                    check
+                )));
             }
         }
         Ok(())
@@ -114,9 +118,10 @@ impl InjectionVerifier {
 
         for pattern in &dangerous_patterns {
             if generated_code.contains(pattern) {
-                return Err(ThreatModelError::ReParseVerificationFailed(
-                    format!("dangerous pattern found in generated code: {}", pattern),
-                ));
+                return Err(ThreatModelError::ReParseVerificationFailed(format!(
+                    "dangerous pattern found in generated code: {}",
+                    pattern
+                )));
             }
         }
 
@@ -143,11 +148,11 @@ impl TamperDetector {
         let mut hasher = DefaultHasher::new();
         let mut sorted_checks = checks.to_vec();
         sorted_checks.sort();
-        
+
         for check in sorted_checks {
             check.hash(&mut hasher);
         }
-        
+
         format!("{:016x}", hasher.finish())
     }
 
@@ -155,15 +160,12 @@ impl TamperDetector {
     ///
     /// # Security Property
     /// Detects any tampering with invariant checks after macro expansion.
-    pub fn verify_tampering(
-        generated_code: &str,
-        expected_checks: &[String],
-    ) -> ThreatResult<()> {
+    pub fn verify_tampering(generated_code: &str, expected_checks: &[String]) -> ThreatResult<()> {
         let expected_hash = Self::compute_hash(expected_checks);
-        
+
         // Extract hash from generated code (look for INVAR_HASH: pattern)
         let hash_pattern = format!("INVAR_HASH: {}", expected_hash);
-        
+
         if !generated_code.contains(&hash_pattern) {
             return Err(ThreatModelError::TamperDetected(
                 "hash mismatch: generated code does not contain expected INVAR_HASH".to_string(),
@@ -192,7 +194,7 @@ impl DSLSandbox {
     pub fn validate_expression(expr: &Expression) -> ThreatResult<()> {
         // Check for dangerous patterns in variable names (common injection vectors)
         let forbidden_prefixes = ["file_", "io_", "extern_", "unsafe_"];
-        
+
         Self::check_expression_recursive(expr, &forbidden_prefixes)
     }
 
@@ -204,9 +206,10 @@ impl DSLSandbox {
             Expression::Var(name) => {
                 for prefix in forbidden_prefixes {
                     if name.to_lowercase().starts_with(prefix) {
-                        return Err(ThreatModelError::SandboxEscapeDetected(
-                            format!("forbidden variable name: {}", name),
-                        ));
+                        return Err(ThreatModelError::SandboxEscapeDetected(format!(
+                            "forbidden variable name: {}",
+                            name
+                        )));
                     }
                 }
                 Ok(())
@@ -215,10 +218,13 @@ impl DSLSandbox {
             Expression::LayerVar { layer, var } => {
                 // Check both layer and variable names against forbidden prefixes
                 for prefix in forbidden_prefixes {
-                    if layer.to_lowercase().starts_with(prefix) || var.to_lowercase().starts_with(prefix) {
-                        return Err(ThreatModelError::SandboxEscapeDetected(
-                            format!("forbidden layer/variable name: {}::{}", layer, var),
-                        ));
+                    if layer.to_lowercase().starts_with(prefix)
+                        || var.to_lowercase().starts_with(prefix)
+                    {
+                        return Err(ThreatModelError::SandboxEscapeDetected(format!(
+                            "forbidden layer/variable name: {}::{}",
+                            layer, var
+                        )));
                     }
                 }
                 Ok(())
@@ -227,14 +233,15 @@ impl DSLSandbox {
             Expression::FunctionCall { name, args } => {
                 // Whitelist of allowed functions (purely computational, no side effects)
                 let allowed_functions = [
-                    "sum", "len", "min", "max", "abs", "mod", "div",
-                    "add", "sub", "mul", "and", "or", "not",
+                    "sum", "len", "min", "max", "abs", "mod", "div", "add", "sub", "mul", "and",
+                    "or", "not",
                 ];
 
                 if !allowed_functions.contains(&name.as_str()) {
-                    return Err(ThreatModelError::SandboxEscapeDetected(
-                        format!("forbidden function call: {}", name),
-                    ));
+                    return Err(ThreatModelError::SandboxEscapeDetected(format!(
+                        "forbidden function call: {}",
+                        name
+                    )));
                 }
 
                 // Recursively check all arguments
@@ -302,13 +309,11 @@ impl StrictModeAnalyzer {
         }
 
         if !uncertainty_warnings.is_empty() {
-            return Err(ThreatModelError::MutationUncertaintyDetected(
-                format!(
-                    "strict mode detected {} uncertain mutations: {}",
-                    uncertainty_warnings.len(),
-                    uncertainty_warnings.join(", ")
-                ),
-            ));
+            return Err(ThreatModelError::MutationUncertaintyDetected(format!(
+                "strict mode detected {} uncertain mutations: {}",
+                uncertainty_warnings.len(),
+                uncertainty_warnings.join(", ")
+            )));
         }
 
         Ok(())
@@ -335,17 +340,15 @@ impl SimulationIsolation {
     ) -> ThreatResult<()> {
         for (name, type_str) in context_vars {
             // Validate that only allowed types are used in simulation
-            let is_allowed = allowed_types.iter().any(|&allowed| {
-                type_str.contains(allowed)
-            });
+            let is_allowed = allowed_types
+                .iter()
+                .any(|&allowed| type_str.contains(allowed));
 
             if !is_allowed {
-                return Err(ThreatModelError::IsolationViolationDetected(
-                    format!(
-                        "variable '{}' has disallowed type '{}' in simulation context",
-                        name, type_str
-                    ),
-                ));
+                return Err(ThreatModelError::IsolationViolationDetected(format!(
+                    "variable '{}' has disallowed type '{}' in simulation context",
+                    name, type_str
+                )));
             }
         }
 
@@ -435,7 +438,9 @@ mod tests {
         let mutations = vec!["balance -= amount".to_string()];
         let warnings = vec!["mutation from function pointer call (uncertain)".to_string()];
 
-        assert!(analyzer.verify_mutation_coverage(&mutations, &warnings).is_err());
+        assert!(analyzer
+            .verify_mutation_coverage(&mutations, &warnings)
+            .is_err());
     }
 
     #[test]
@@ -445,6 +450,8 @@ mod tests {
         let warnings = vec!["mutation from function pointer call (uncertain)".to_string()];
 
         // Strict mode off, so uncertainty is allowed
-        assert!(analyzer.verify_mutation_coverage(&mutations, &warnings).is_ok());
+        assert!(analyzer
+            .verify_mutation_coverage(&mutations, &warnings)
+            .is_ok());
     }
 }

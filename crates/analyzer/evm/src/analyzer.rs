@@ -13,8 +13,7 @@ impl ChainAnalyzer for EvmAnalyzer {
     fn analyze(&self, path: &Path) -> Result<ProgramModel> {
         info!("Analyzing EVM contract at {:?}", path);
 
-        let _source = std::fs::read_to_string(path)
-            .map_err(|e| invar_core::InvarError::IoError(e))?;
+        let _source = std::fs::read_to_string(path).map_err(invar_core::InvarError::IoError)?;
 
         // Create a basic program model
         let program = ProgramModel::new(

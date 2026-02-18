@@ -6,7 +6,7 @@
 //! - Checksum computation and verification
 //! - Installation manifest generation
 
-use crate::version::{SemanticVersion, ReleaseArtifact};
+use crate::version::{ReleaseArtifact, SemanticVersion};
 use std::path::{Path, PathBuf};
 
 /// Release operations manager.

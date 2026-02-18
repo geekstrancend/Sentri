@@ -14,13 +14,14 @@ impl InvariantParser {
         let parsed = Grammar::parse(Rule::invariant_def, input)
             .map_err(|e| invar_core::InvarError::ConfigError(e.to_string()))?;
 
-        let invariant_rule = parsed.into_iter().next().ok_or_else(|| {
-            invar_core::InvarError::ConfigError("No invariant found".to_string())
-        })?;
+        let invariant_rule = parsed
+            .into_iter()
+            .next()
+            .ok_or_else(|| invar_core::InvarError::ConfigError("No invariant found".to_string()))?;
 
         let inner = invariant_rule.into_inner();
         let inner_items: Vec<_> = inner.collect();
-        
+
         if inner_items.is_empty() {
             return Err(invar_core::InvarError::ConfigError(
                 "Expected invariant name and expression".to_string(),
@@ -28,17 +29,21 @@ impl InvariantParser {
         }
 
         let name = inner_items[0].as_str().to_string();
-        
+
         // Parse optional layer specifications and expression
         let (layers, expr_idx) = if inner_items.len() > 2 {
             // Check if second item is layer specification
             let second_item = &inner_items[1];
-            if second_item.as_rule() == Rule::layer_name || 
-               (second_item.as_str().starts_with('(') && second_item.as_str().contains(',')) {
+            if second_item.as_rule() == Rule::layer_name
+                || (second_item.as_str().starts_with('(') && second_item.as_str().contains(','))
+            {
                 // This is a layer specification, parse all layer names
                 let mut layer_specs = Vec::new();
-                for i in 1..inner_items.len() - 1 {
-                    let item_str = inner_items[i].as_str().trim_matches(|c| c == '(' || c == ')' || c == ',').trim();
+                for item in inner_items.iter().take(inner_items.len() - 1).skip(1) {
+                    let item_str = item
+                        .as_str()
+                        .trim_matches(|c| c == '(' || c == ')' || c == ',')
+                        .trim();
                     if !item_str.is_empty() {
                         layer_specs.push(item_str.to_string());
                     }
@@ -69,7 +74,11 @@ impl InvariantParser {
 
         fn parse_pair(pair: Pair<Rule>) -> Result<Expression> {
             match pair.as_rule() {
-                Rule::expr | Rule::logical_or | Rule::logical_and | Rule::comparison | Rule::unary => {
+                Rule::expr
+                | Rule::logical_or
+                | Rule::logical_and
+                | Rule::comparison
+                | Rule::unary => {
                     let items: Vec<_> = pair.into_inner().collect();
                     if items.is_empty() {
                         return Err(invar_core::InvarError::ConfigError(
@@ -175,21 +184,20 @@ impl InvariantParser {
                         ));
                     }
                     let name = items[0].as_str().to_string();
-                    let args: Result<Vec<_>> = items[1..].iter().map(|arg| parse_pair(arg.clone())).collect();
-                    Ok(Expression::FunctionCall {
-                        name,
-                        args: args?,
-                    })
+                    let args: Result<Vec<_>> = items[1..]
+                        .iter()
+                        .map(|arg| parse_pair(arg.clone()))
+                        .collect();
+                    Ok(Expression::FunctionCall { name, args: args? })
                 }
                 Rule::boolean => {
                     let val = pair.as_str() == "true";
                     Ok(Expression::Boolean(val))
                 }
                 Rule::integer => {
-                    let val = pair
-                        .as_str()
-                        .parse::<i128>()
-                        .map_err(|_| invar_core::InvarError::ConfigError("Invalid integer".to_string()))?;
+                    let val = pair.as_str().parse::<i128>().map_err(|_| {
+                        invar_core::InvarError::ConfigError("Invalid integer".to_string())
+                    })?;
                     Ok(Expression::Int(val))
                 }
                 Rule::identifier => Ok(Expression::Var(pair.as_str().to_string())),

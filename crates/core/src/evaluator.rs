@@ -140,12 +140,15 @@ impl std::fmt::Display for EvaluationError {
 /// Result type for evaluation operations.
 pub type EvalResult<T> = Result<T, EvaluationError>;
 
+/// Type alias for function implementations.
+pub type EvalFunction = fn(&[Value]) -> EvalResult<Value>;
+
 /// Execution context for invariant evaluation.
 pub struct ExecutionContext {
     /// Current state variable values.
     pub state_vars: BTreeMap<String, Value>,
     /// Function implementations.
-    pub functions: BTreeMap<String, fn(&[Value]) -> EvalResult<Value>>,
+    pub functions: BTreeMap<String, EvalFunction>,
 }
 
 impl ExecutionContext {
@@ -201,13 +204,12 @@ impl Evaluator {
                 }
             }
 
-            Expression::Var(name) => {
-                self.context
-                    .state_vars
-                    .get(name)
-                    .cloned()
-                    .ok_or_else(|| EvaluationError::UndefinedVariable(name.clone()))
-            }
+            Expression::Var(name) => self
+                .context
+                .state_vars
+                .get(name)
+                .cloned()
+                .ok_or_else(|| EvaluationError::UndefinedVariable(name.clone())),
 
             Expression::LayerVar { layer, var } => {
                 // Layer-qualified variables: look up by full qualified name
@@ -217,7 +219,7 @@ impl Evaluator {
                     .get(&qualified_name)
                     .cloned()
                     .or_else(|| self.context.state_vars.get(var).cloned())
-                    .ok_or_else(|| EvaluationError::UndefinedVariable(qualified_name))
+                    .ok_or(EvaluationError::UndefinedVariable(qualified_name))
             }
 
             Expression::BinaryOp { left, op, right } => {
@@ -289,49 +291,37 @@ impl Evaluator {
         use crate::model::BinaryOp;
 
         match op {
-            BinaryOp::Eq => {
-                Ok(Value::Bool(left == right))
-            }
+            BinaryOp::Eq => Ok(Value::Bool(left == right)),
 
-            BinaryOp::Neq => {
-                Ok(Value::Bool(left != right))
-            }
+            BinaryOp::Neq => Ok(Value::Bool(left != right)),
 
-            BinaryOp::Lt => {
-                match (left, right) {
-                    (Value::U64(l), Value::U64(r)) => Ok(Value::Bool(l < r)),
-                    (Value::I64(l), Value::I64(r)) => Ok(Value::Bool(l < r)),
-                    (Value::U128(l), Value::U128(r)) => Ok(Value::Bool(l < r)),
-                    _ => Err(EvaluationError::TypeError),
-                }
-            }
+            BinaryOp::Lt => match (left, right) {
+                (Value::U64(l), Value::U64(r)) => Ok(Value::Bool(l < r)),
+                (Value::I64(l), Value::I64(r)) => Ok(Value::Bool(l < r)),
+                (Value::U128(l), Value::U128(r)) => Ok(Value::Bool(l < r)),
+                _ => Err(EvaluationError::TypeError),
+            },
 
-            BinaryOp::Gt => {
-                match (left, right) {
-                    (Value::U64(l), Value::U64(r)) => Ok(Value::Bool(l > r)),
-                    (Value::I64(l), Value::I64(r)) => Ok(Value::Bool(l > r)),
-                    (Value::U128(l), Value::U128(r)) => Ok(Value::Bool(l > r)),
-                    _ => Err(EvaluationError::TypeError),
-                }
-            }
+            BinaryOp::Gt => match (left, right) {
+                (Value::U64(l), Value::U64(r)) => Ok(Value::Bool(l > r)),
+                (Value::I64(l), Value::I64(r)) => Ok(Value::Bool(l > r)),
+                (Value::U128(l), Value::U128(r)) => Ok(Value::Bool(l > r)),
+                _ => Err(EvaluationError::TypeError),
+            },
 
-            BinaryOp::Lte => {
-                match (left, right) {
-                    (Value::U64(l), Value::U64(r)) => Ok(Value::Bool(l <= r)),
-                    (Value::I64(l), Value::I64(r)) => Ok(Value::Bool(l <= r)),
-                    (Value::U128(l), Value::U128(r)) => Ok(Value::Bool(l <= r)),
-                    _ => Err(EvaluationError::TypeError),
-                }
-            }
+            BinaryOp::Lte => match (left, right) {
+                (Value::U64(l), Value::U64(r)) => Ok(Value::Bool(l <= r)),
+                (Value::I64(l), Value::I64(r)) => Ok(Value::Bool(l <= r)),
+                (Value::U128(l), Value::U128(r)) => Ok(Value::Bool(l <= r)),
+                _ => Err(EvaluationError::TypeError),
+            },
 
-            BinaryOp::Gte => {
-                match (left, right) {
-                    (Value::U64(l), Value::U64(r)) => Ok(Value::Bool(l >= r)),
-                    (Value::I64(l), Value::I64(r)) => Ok(Value::Bool(l >= r)),
-                    (Value::U128(l), Value::U128(r)) => Ok(Value::Bool(l >= r)),
-                    _ => Err(EvaluationError::TypeError),
-                }
-            }
+            BinaryOp::Gte => match (left, right) {
+                (Value::U64(l), Value::U64(r)) => Ok(Value::Bool(l >= r)),
+                (Value::I64(l), Value::I64(r)) => Ok(Value::Bool(l >= r)),
+                (Value::U128(l), Value::U128(r)) => Ok(Value::Bool(l >= r)),
+                _ => Err(EvaluationError::TypeError),
+            },
         }
     }
 }

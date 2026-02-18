@@ -76,8 +76,8 @@ impl SecurityValidator {
 
     /// Validate code from a file.
     pub fn validate_file(&self, path: &Path, chain: &str) -> Result<SecurityReport, String> {
-        let code = std::fs::read_to_string(path)
-            .map_err(|e| format!("Failed to read file: {}", e))?;
+        let code =
+            std::fs::read_to_string(path).map_err(|e| format!("Failed to read file: {}", e))?;
         self.validate_code(&code, path.to_string_lossy().as_ref(), chain)
     }
 
@@ -160,7 +160,10 @@ impl SecurityValidator {
                             ),
                             suggested_fix: format!(
                                 "Apply defensive invariant: {}",
-                                pattern.defensive_invariants.first().unwrap_or(&"Review code".to_string())
+                                pattern
+                                    .defensive_invariants
+                                    .first()
+                                    .unwrap_or(&"Review code".to_string())
                             ),
                             severity,
                         });
@@ -189,24 +192,22 @@ impl SecurityValidator {
             }
 
             // Check if line has external call
-            let has_external_call = line.contains("transfer(") 
-                || line.contains(".call(")
-                || line.contains(".send(");
-            
+            let has_external_call =
+                line.contains("transfer(") || line.contains(".call(") || line.contains(".send(");
+
             if !has_external_call {
                 continue;
             }
-            
+
             // Look back up to 50 lines to find state updates
             let mut has_state_update_before = false;
-            let search_start = if line_num > 50 { line_num - 50 } else { 0 };
-            
-            for prev_line_num in search_start..line_num {
-                let prev_line = lines[prev_line_num];
-                
+            let search_start = line_num.saturating_sub(50);
+
+            for prev_line in lines.iter().take(line_num).skip(search_start) {
                 // Look for state updates: balance[X] = Y or balance = Z patterns
                 if (prev_line.contains("balances[") && prev_line.contains("= 0"))
-                    || (prev_line.contains("balance =") && prev_line.contains("= 0")) {
+                    || (prev_line.contains("balance =") && prev_line.contains("= 0"))
+                {
                     has_state_update_before = true;
                     break;
                 }
@@ -215,7 +216,7 @@ impl SecurityValidator {
             // If NO state update before the external call, it's vulnerable
             if !has_state_update_before {
                 let severity = IssueSeverity::Critical;
-                
+
                 issues.push(SecurityIssue {
                     attack_pattern: pattern.name.clone(),
                     location: format!("{}:{}", file_path, line_num + 1),
@@ -223,9 +224,8 @@ impl SecurityValidator {
                         "Potential {} vulnerability detected. {}",
                         pattern.name, pattern.description
                     ),
-                    suggested_fix: format!(
-                        "Apply defensive invariant: state_update_before_external_call"
-                    ),
+                    suggested_fix: "Apply defensive invariant: state_update_before_external_call"
+                        .to_string(),
                     severity,
                 });
             }
@@ -280,10 +280,10 @@ mod tests {
     fn test_chain_specific_validation() {
         let validator = SecurityValidator::new();
         let code = "fn access() { require(is_owner()); }";
-        
+
         let evm_report = validator.validate_code(code, "test.sol", "evm").unwrap();
         let solana_report = validator.validate_code(code, "test.rs", "solana").unwrap();
-        
+
         // Both chains should detect access control patterns
         assert!(evm_report.passed || solana_report.passed);
     }

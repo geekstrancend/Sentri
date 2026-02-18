@@ -17,9 +17,10 @@ impl SimulationEngine {
     pub fn new(seed: u64) -> Self {
         Self { seed }
     }
+}
 
-    /// Create with default seed.
-    pub fn default() -> Self {
+impl Default for SimulationEngine {
+    fn default() -> Self {
         Self { seed: 42 }
     }
 }

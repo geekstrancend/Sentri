@@ -4,7 +4,7 @@
 //! Ensures all invariants are well-typed and cannot cause runtime type errors.
 
 use crate::model::Expression;
-use crate::types::{Type, TypedExpr, TypeError, TypeResult};
+use crate::types::{Type, TypeError, TypeResult, TypedExpr};
 use std::collections::BTreeMap;
 
 /// Static type checker for invariant expressions.
@@ -83,12 +83,11 @@ impl TypeChecker {
                 }
             }
 
-            Expression::Var(name) => {
-                self.state_vars
-                    .get(name)
-                    .copied()
-                    .ok_or_else(|| TypeError::UndefinedVariable(name.clone()))
-            }
+            Expression::Var(name) => self
+                .state_vars
+                .get(name)
+                .copied()
+                .ok_or_else(|| TypeError::UndefinedVariable(name.clone())),
 
             Expression::LayerVar { layer, var } => {
                 // Layer-qualified variables are treated as typed based on convention:
@@ -100,13 +99,9 @@ impl TypeChecker {
                     .ok_or_else(|| TypeError::UndefinedVariable(format!("{}::{}", layer, var)))
             }
 
-            Expression::BinaryOp { left, op, right } => {
-                self.check_binary_op(left, op, right)
-            }
+            Expression::BinaryOp { left, op, right } => self.check_binary_op(left, op, right),
 
-            Expression::Logical { left, op, right } => {
-                self.check_logical_op(left, op, right)
-            }
+            Expression::Logical { left, op, right } => self.check_logical_op(left, op, right),
 
             Expression::Not(expr) => {
                 let ty = self.infer_type(expr)?;
@@ -119,9 +114,7 @@ impl TypeChecker {
                 Ok(Type::Bool)
             }
 
-            Expression::FunctionCall { name, args } => {
-                self.check_function_call(name, args)
-            }
+            Expression::FunctionCall { name, args } => self.check_function_call(name, args),
 
             Expression::Tuple(exprs) => {
                 // For now, tuples return unit-like (we don't support them fully)

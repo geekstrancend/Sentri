@@ -14,9 +14,7 @@ impl ChainAnalyzer for SolanaAnalyzer {
         info!("Analyzing Solana program at {:?}", path);
 
         // Read the Rust source file
-        let source = std::fs::read_to_string(path).map_err(|e| {
-            invar_core::InvarError::IoError(e)
-        })?;
+        let source = std::fs::read_to_string(path).map_err(invar_core::InvarError::IoError)?;
 
         debug!("Source file size: {} bytes", source.len());
 
@@ -28,10 +26,9 @@ impl ChainAnalyzer for SolanaAnalyzer {
         );
 
         // Parse using syn
-        let file = syn::parse_file(&source)
-            .map_err(|e| {
-                invar_core::InvarError::AnalysisFailed(format!("Failed to parse Rust: {}", e))
-            })?;
+        let file = syn::parse_file(&source).map_err(|e| {
+            invar_core::InvarError::AnalysisFailed(format!("Failed to parse Rust: {}", e))
+        })?;
 
         // Extract structs (potential state)
         for item in &file.items {
@@ -50,12 +47,17 @@ impl ChainAnalyzer for SolanaAnalyzer {
         for item in &file.items {
             if let syn::Item::Fn(item_fn) = item {
                 let func_name = item_fn.sig.ident.to_string();
-                let is_entry = item_fn.attrs.iter()
+                let is_entry = item_fn
+                    .attrs
+                    .iter()
                     .any(|attr| attr.path().is_ident("solana_program::entrypoint"));
 
                 let func = FunctionModel {
                     name: func_name,
-                    parameters: item_fn.sig.inputs.iter()
+                    parameters: item_fn
+                        .sig
+                        .inputs
+                        .iter()
                         .map(|_inp| "param".to_string())
                         .collect(),
                     return_type: None,
@@ -68,7 +70,11 @@ impl ChainAnalyzer for SolanaAnalyzer {
             }
         }
 
-        info!("Extracted {} state vars and {} functions", program.state_vars.len(), program.functions.len());
+        info!(
+            "Extracted {} state vars and {} functions",
+            program.state_vars.len(),
+            program.functions.len()
+        );
         Ok(program)
     }
 

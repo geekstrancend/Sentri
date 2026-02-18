@@ -28,26 +28,20 @@ impl DependencyGraph {
 
     /// Add a call relationship: caller → callee.
     pub fn add_call(&mut self, caller: String, callee: String) {
-        self.call_graph
-            .entry(caller)
-            .or_insert_with(Vec::new)
-            .push(callee);
+        self.call_graph.entry(caller).or_default().push(callee);
     }
 
     /// Add a mutation: function mutates state_var.
     pub fn add_mutation(&mut self, state_var: String, function: String) {
         self.mutation_sources
             .entry(state_var)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(function);
     }
 
     /// Add a read dependency.
     pub fn add_read(&mut self, function: String, state_var: String) {
-        self.read_deps
-            .entry(function)
-            .or_insert_with(Vec::new)
-            .push(state_var);
+        self.read_deps.entry(function).or_default().push(state_var);
     }
 
     /// Get all transitive mutations caused by a function.

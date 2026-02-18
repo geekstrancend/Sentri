@@ -1,9 +1,10 @@
 //! Invariant DSL grammar definition using pest.
+#![allow(missing_docs)]
 
 use pest_derive::Parser;
 
 /// The Invar DSL grammar.
-#[allow(missing_docs, non_camel_case_types)]
+#[allow(non_camel_case_types)]
 #[derive(Parser)]
 #[grammar_inline = r#"
 WHITESPACE = _{ " " | "\t" | NEWLINE }

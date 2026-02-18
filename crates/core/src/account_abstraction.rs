@@ -19,18 +19,6 @@ pub enum AALayer {
 }
 
 impl AALayer {
-    /// Convert from string representation.
-    pub fn from_str(s: &str) -> Option<Self> {
-        match s {
-            "bundler" => Some(Self::Bundler),
-            "account" => Some(Self::Account),
-            "paymaster" => Some(Self::Paymaster),
-            "protocol" => Some(Self::Protocol),
-            "entrypoint" => Some(Self::EntryPoint),
-            _ => None,
-        }
-    }
-
     /// Get string representation.
     pub fn as_str(&self) -> &'static str {
         match self {
@@ -39,6 +27,21 @@ impl AALayer {
             Self::Paymaster => "paymaster",
             Self::Protocol => "protocol",
             Self::EntryPoint => "entrypoint",
+        }
+    }
+}
+
+impl std::str::FromStr for AALayer {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "bundler" => Ok(Self::Bundler),
+            "account" => Ok(Self::Account),
+            "paymaster" => Ok(Self::Paymaster),
+            "protocol" => Ok(Self::Protocol),
+            "entrypoint" => Ok(Self::EntryPoint),
+            _ => Err(()),
         }
     }
 }
@@ -78,7 +81,7 @@ impl AAContext {
     pub fn set_layer_var(&mut self, layer: String, var: String, value: serde_json::Value) {
         self.layer_state
             .entry(layer)
-            .or_insert_with(BTreeMap::new)
+            .or_default()
             .insert(var, value);
     }
 }
@@ -175,14 +178,15 @@ pub struct CrossLayerCheckResult {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::str::FromStr;
 
     #[test]
     fn test_aa_layer_from_str() {
-        assert_eq!(AALayer::from_str("bundler"), Some(AALayer::Bundler));
-        assert_eq!(AALayer::from_str("account"), Some(AALayer::Account));
-        assert_eq!(AALayer::from_str("paymaster"), Some(AALayer::Paymaster));
-        assert_eq!(AALayer::from_str("protocol"), Some(AALayer::Protocol));
-        assert_eq!(AALayer::from_str("invalid"), None);
+        assert_eq!(AALayer::from_str("bundler"), Ok(AALayer::Bundler));
+        assert_eq!(AALayer::from_str("account"), Ok(AALayer::Account));
+        assert_eq!(AALayer::from_str("paymaster"), Ok(AALayer::Paymaster));
+        assert_eq!(AALayer::from_str("protocol"), Ok(AALayer::Protocol));
+        assert_eq!(AALayer::from_str("invalid"), Err(()));
     }
 
     #[test]

@@ -4,7 +4,7 @@
 //! Invar CLI: Multi-chain invariant enforcement tool.
 
 use clap::{Parser, Subcommand};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 /// Invar: Production-grade multi-chain invariant analysis tool.
 #[derive(Parser)]
@@ -154,12 +154,12 @@ fn main() -> anyhow::Result<()> {
 /// Initialize a new Invar project with default structure.
 fn init_project(path: &PathBuf) -> anyhow::Result<()> {
     std::fs::create_dir_all(path)?;
-    
+
     // Create default directories
     std::fs::create_dir_all(path.join("invariants"))?;
     std::fs::create_dir_all(path.join("src"))?;
     std::fs::create_dir_all(path.join("output"))?;
-    
+
     // Create default config
     let config = r#"[project]
 name = "my_invariants"
@@ -174,49 +174,60 @@ strict_mode = true
 re_parse_verification = true
 tamper_detection = true
 "#;
-    
+
     std::fs::write(path.join("config.toml"), config)?;
-    
+
     println!("✓ Initialized Invar project at {}", path.display());
     println!("  - Created invariants/ directory");
     println!("  - Created src/ directory");
     println!("  - Created output/ directory");
     println!("  - Created config.toml");
-    
+
     Ok(())
 }
 
 /// Build invariant checks from source.
 fn build_invariants(source: &PathBuf, chain: &str, output: &PathBuf) -> anyhow::Result<()> {
-    use std::fs;
     use invar_core::SecurityValidator;
-    
+    use std::fs;
+
     // Validate chain
     match chain {
-        "solana" | "evm" | "move" => {},
-        _ => return Err(anyhow::anyhow!("Unknown chain: {}. Supported: solana, evm, move", chain)),
+        "solana" | "evm" | "move" => {}
+        _ => {
+            return Err(anyhow::anyhow!(
+                "Unknown chain: {}. Supported: solana, evm, move",
+                chain
+            ))
+        }
     }
-    
+
     // Read source file
     if !source.exists() {
-        return Err(anyhow::anyhow!("Source file not found: {}", source.display()));
+        return Err(anyhow::anyhow!(
+            "Source file not found: {}",
+            source.display()
+        ));
     }
-    
+
     println!("Step 1: Security validation");
     println!("  Scanning for known attack patterns ({} chain)...", chain);
-    
+
     // SECURITY VALIDATION - Check for attack patterns BEFORE building
     let validator = SecurityValidator::new();
     let security_report = validator
         .validate_file(source, chain)
         .map_err(|e| anyhow::anyhow!("Security validation failed: {}", e))?;
-    
+
     println!("  Risk Score: {}/100", security_report.risk_score);
-    
+
     if !security_report.critical_issues.is_empty() {
         println!("\n❌ BUILD BLOCKED - Critical security issues found:");
         for issue in &security_report.critical_issues {
-            println!("  [CRITICAL] {} at {}", issue.attack_pattern, issue.location);
+            println!(
+                "  [CRITICAL] {} at {}",
+                issue.attack_pattern, issue.location
+            );
             println!("    → {}", issue.description);
             println!("    ✓ Fix: {}", issue.suggested_fix);
         }
@@ -225,7 +236,7 @@ fn build_invariants(source: &PathBuf, chain: &str, output: &PathBuf) -> anyhow::
             security_report.critical_issues.len()
         ));
     }
-    
+
     if !security_report.high_issues.is_empty() {
         println!("\n⚠️  High-risk issues detected:");
         for issue in &security_report.high_issues {
@@ -235,25 +246,31 @@ fn build_invariants(source: &PathBuf, chain: &str, output: &PathBuf) -> anyhow::
         }
         println!("\nProceeding with caution. Recommend addressing these issues.");
     }
-    
+
     if !security_report.medium_issues.is_empty() {
-        println!("\n📋 Medium-risk issues found: {}", security_report.medium_issues.len());
+        println!(
+            "\n📋 Medium-risk issues found: {}",
+            security_report.medium_issues.len()
+        );
     }
-    
+
     if !security_report.low_issues.is_empty() {
-        println!("ℹ️  Low-risk issues found: {}", security_report.low_issues.len());
+        println!(
+            "ℹ️  Low-risk issues found: {}",
+            security_report.low_issues.len()
+        );
     }
-    
+
     if security_report.passed {
         println!("✓ Security validation passed!");
     }
-    
+
     println!("\nStep 2: Code generation");
     let content = fs::read_to_string(source)?;
-    
+
     // Create output directory
     fs::create_dir_all(output)?;
-    
+
     // Parse and generate
     let generated_code = match chain {
         "solana" => generate_solana_checks(&content),
@@ -261,104 +278,137 @@ fn build_invariants(source: &PathBuf, chain: &str, output: &PathBuf) -> anyhow::
         "move" => generate_move_checks(&content),
         _ => unreachable!(),
     };
-    
+
     // Write output
     let output_file = output.join(format!("generated_{}.rs", chain));
     fs::write(&output_file, &generated_code)?;
-    
+
     println!("✓ Built {} invariant checks", chain);
     println!("  - Generated: {}", output_file.display());
     println!("  - Lines: {}", generated_code.lines().count());
     println!("\n✓ Build complete - All security checks passed!");
-    
+
     Ok(())
 }
 
 /// Simulate program execution against invariants.
-fn simulate_program(program: &PathBuf, invariants: &PathBuf, seed: u64) -> anyhow::Result<()> {
+fn simulate_program(program: &Path, invariants: &Path, seed: u64) -> anyhow::Result<()> {
     if !program.exists() {
-        return Err(anyhow::anyhow!("Program file not found: {}", program.display()));
+        return Err(anyhow::anyhow!(
+            "Program file not found: {}",
+            program.display()
+        ));
     }
     if !invariants.exists() {
-        return Err(anyhow::anyhow!("Invariants file not found: {}", invariants.display()));
+        return Err(anyhow::anyhow!(
+            "Invariants file not found: {}",
+            invariants.display()
+        ));
     }
-    
+
     println!("Starting simulation with seed {}", seed);
     println!("  - Program: {}", program.display());
     println!("  - Invariants: {}", invariants.display());
-    
+
     // Simulate execution (placeholder)
     println!("Simulating 1000 execution paths...");
     println!("✓ Simulation complete");
     println!("  - Violations found: 0");
     println!("  - Coverage: 100%");
-    
+
     Ok(())
 }
 
 /// Check upgrade safety between versions.
-fn check_upgrade(old: &PathBuf, new: &PathBuf) -> anyhow::Result<()> {
+fn check_upgrade(old: &Path, new: &Path) -> anyhow::Result<()> {
     if !old.exists() {
-        return Err(anyhow::anyhow!("Old version file not found: {}", old.display()));
+        return Err(anyhow::anyhow!(
+            "Old version file not found: {}",
+            old.display()
+        ));
     }
     if !new.exists() {
-        return Err(anyhow::anyhow!("New version file not found: {}", new.display()));
+        return Err(anyhow::anyhow!(
+            "New version file not found: {}",
+            new.display()
+        ));
     }
-    
+
     println!("Checking upgrade safety...");
     println!("  - Old version: {}", old.display());
     println!("  - New version: {}", new.display());
-    
+
     // Compare (placeholder)
     println!("✓ Upgrade safety check passed");
     println!("  - State layout compatible");
     println!("  - No invariant violations");
-    
+
     Ok(())
 }
 
 /// Generate a report from analysis results.
-fn generate_report(input: &PathBuf, format: &str, output: Option<PathBuf>) -> anyhow::Result<()> {
+fn generate_report(input: &Path, format: &str, output: Option<PathBuf>) -> anyhow::Result<()> {
     if !input.exists() {
         return Err(anyhow::anyhow!("Input file not found: {}", input.display()));
     }
-    
+
     // Validate format
     match format {
-        "json" | "markdown" | "cli" => {},
-        _ => return Err(anyhow::anyhow!("Unknown format: {}. Supported: json, markdown, cli", format)),
+        "json" | "markdown" | "cli" => {}
+        _ => {
+            return Err(anyhow::anyhow!(
+                "Unknown format: {}. Supported: json, markdown, cli",
+                format
+            ))
+        }
     }
-    
+
     println!("Generating {} report from {}", format, input.display());
-    
+
     let report_content = match format {
         "json" => r#"{"invariants": 3, "protected": 3, "violations": 0, "coverage": 100}"#.to_string(),
         "markdown" => "# Invariant Report\n\n- **Invariants**: 3\n- **Protected**: 3\n- **Violations**: 0\n- **Coverage**: 100%\n".to_string(),
         "cli" => "Invariants: 3\nProtected: 3\nViolations: 0\nCoverage: 100%".to_string(),
         _ => unreachable!(),
     };
-    
+
     if let Some(out) = output {
         std::fs::write(&out, &report_content)?;
         println!("✓ Report written to {}", out.display());
     } else {
         println!("{}", report_content);
     }
-    
+
     Ok(())
 }
 
 /// List available invariants from library.
 fn list_invariants(category: Option<String>) -> anyhow::Result<()> {
     println!("Available invariants:");
-    
+
     let invariants = vec![
-        ("balance_conservation", "deFi", "Sum of balances equals total supply"),
-        ("no_negative_balance", "deFi", "No account can have negative balance"),
-        ("access_control", "security", "Only authorized users can perform actions"),
-        ("state_consistency", "general", "State variables remain internally consistent"),
+        (
+            "balance_conservation",
+            "deFi",
+            "Sum of balances equals total supply",
+        ),
+        (
+            "no_negative_balance",
+            "deFi",
+            "No account can have negative balance",
+        ),
+        (
+            "access_control",
+            "security",
+            "Only authorized users can perform actions",
+        ),
+        (
+            "state_consistency",
+            "general",
+            "State variables remain internally consistent",
+        ),
     ];
-    
+
     for (name, cat, desc) in invariants {
         if let Some(ref filter) = category {
             if cat != filter {
@@ -367,7 +417,7 @@ fn list_invariants(category: Option<String>) -> anyhow::Result<()> {
         }
         println!("  • {} ({}): {}", name, cat, desc);
     }
-    
+
     Ok(())
 }
 

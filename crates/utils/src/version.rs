@@ -22,13 +22,17 @@ pub struct SemanticVersion {
 impl SemanticVersion {
     /// Create a new semantic version.
     pub const fn new(major: u32, minor: u32, patch: u32) -> Self {
-        Self { major, minor, patch }
+        Self {
+            major,
+            minor,
+            patch,
+        }
     }
 
     /// Parse semantic version from string (e.g., "0.1.0").
     pub fn parse(s: &str) -> Result<Self, String> {
         let parts: Vec<&str> = s.split('.').collect();
-        
+
         if parts.len() != 3 {
             return Err("Invalid version format, expected MAJOR.MINOR.PATCH".to_string());
         }
@@ -43,7 +47,11 @@ impl SemanticVersion {
             .parse::<u32>()
             .map_err(|_| "Patch version must be a number")?;
 
-        Ok(Self { major, minor, patch })
+        Ok(Self {
+            major,
+            minor,
+            patch,
+        })
     }
 
     /// Check if this version is compatible with a minimum required version.
@@ -297,9 +305,18 @@ mod tests {
 
     #[test]
     fn test_platform_target_triples() {
-        assert_eq!(Platform::LinuxX86_64.target_triple(), "x86_64-unknown-linux-gnu");
-        assert_eq!(Platform::MacOSAarch64.target_triple(), "aarch64-apple-darwin");
-        assert_eq!(Platform::WindowsX86_64.target_triple(), "x86_64-pc-windows-msvc");
+        assert_eq!(
+            Platform::LinuxX86_64.target_triple(),
+            "x86_64-unknown-linux-gnu"
+        );
+        assert_eq!(
+            Platform::MacOSAarch64.target_triple(),
+            "aarch64-apple-darwin"
+        );
+        assert_eq!(
+            Platform::WindowsX86_64.target_triple(),
+            "x86_64-pc-windows-msvc"
+        );
     }
 
     #[test]

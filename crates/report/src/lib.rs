@@ -6,5 +6,5 @@
 pub mod formatter;
 pub mod report;
 
-pub use report::Report;
 pub use formatter::ReportFormatter;
+pub use report::Report;

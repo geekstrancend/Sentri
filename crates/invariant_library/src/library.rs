@@ -19,10 +19,7 @@ impl InvariantLibrary {
 
     /// Add an invariant to the library.
     pub fn add(&mut self, category: String, invariant: Invariant) {
-        self.categories
-            .entry(category)
-            .or_insert_with(Vec::new)
-            .push(invariant);
+        self.categories.entry(category).or_default().push(invariant);
     }
 
     /// Get all invariants in a category.
@@ -32,10 +29,7 @@ impl InvariantLibrary {
 
     /// Get all invariants.
     pub fn all(&self) -> Vec<&Invariant> {
-        self.categories
-            .values()
-            .flat_map(|v| v.iter())
-            .collect()
+        self.categories.values().flat_map(|v| v.iter()).collect()
     }
 
     /// Count total invariants.

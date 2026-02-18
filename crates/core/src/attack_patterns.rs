@@ -106,8 +106,9 @@ impl AttackPatternDB {
             AttackPattern {
                 id: "access_control_bypass".to_string(),
                 name: "Access Control Bypass".to_string(),
-                description: "Attacker circumvents permission checks to perform privileged operations"
-                    .to_string(),
+                description:
+                    "Attacker circumvents permission checks to perform privileged operations"
+                        .to_string(),
                 year: 2017,
                 incidents: vec!["Parity Wallet (2017) - $30M frozen".to_string()],
                 vulnerable_patterns: vec![
@@ -133,8 +134,9 @@ impl AttackPatternDB {
             AttackPattern {
                 id: "flash_loan".to_string(),
                 name: "Flash Loan Attack".to_string(),
-                description: "Attacker borrows large amount in single transaction to manipulate price"
-                    .to_string(),
+                description:
+                    "Attacker borrows large amount in single transaction to manipulate price"
+                        .to_string(),
                 year: 2020,
                 incidents: vec![
                     "bZx (2020) - $350K + $600K losses".to_string(),
@@ -328,10 +330,12 @@ mod tests {
     fn test_patterns_for_chain() {
         let db = AttackPatternDB::new();
         let evm_patterns = db.patterns_for_chain("evm");
-        assert!(evm_patterns.len() > 0);
+        assert!(!evm_patterns.is_empty());
 
         let solana_patterns = db.patterns_for_chain("solana");
-        assert!(solana_patterns.iter().any(|p| p.id == "access_control_bypass"));
+        assert!(solana_patterns
+            .iter()
+            .any(|p| p.id == "access_control_bypass"));
     }
 
     #[test]

@@ -8,12 +8,12 @@
 
 pub use invar_core::model::{
     BinaryOp, Expression, FunctionModel, GenerationOutput, Invariant, LogicalOp, ProgramModel,
-    StateVar, SimulationReport,
+    SimulationReport, StateVar,
 };
 pub use invar_core::{InvarError, Result};
 
-pub mod ast;
 pub mod analyzer_result;
+pub mod ast;
 
 pub use analyzer_result::AnalysisContext;
 pub use ast::DependencyGraph;

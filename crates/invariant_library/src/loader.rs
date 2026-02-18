@@ -13,8 +13,7 @@ impl LibraryLoader {
     pub fn load_from_toml(path: &Path) -> Result<Vec<Invariant>> {
         info!("Loading invariants from {:?}", path);
 
-        let content = std::fs::read_to_string(path)
-            .map_err(|e| invar_core::InvarError::IoError(e))?;
+        let content = std::fs::read_to_string(path).map_err(invar_core::InvarError::IoError)?;
 
         // Parse TOML
         let _table: toml::Table = toml::from_str(&content)
@@ -33,14 +32,13 @@ impl LibraryLoader {
         let mut all_invariants = Vec::new();
 
         // Read all .toml files in directory
-        let entries = std::fs::read_dir(dir)
-            .map_err(|e| invar_core::InvarError::IoError(e))?;
+        let entries = std::fs::read_dir(dir).map_err(invar_core::InvarError::IoError)?;
 
         for entry in entries {
-            let entry = entry.map_err(|e| invar_core::InvarError::IoError(e))?;
+            let entry = entry.map_err(invar_core::InvarError::IoError)?;
             let path = entry.path();
 
-            if path.extension().map_or(false, |ext| ext == "toml") {
+            if path.extension().is_some_and(|ext| ext == "toml") {
                 let invariants = Self::load_from_toml(&path)?;
                 all_invariants.extend(invariants);
             }

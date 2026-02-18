@@ -36,9 +36,7 @@
 
 use proc_macro::TokenStream;
 use quote::quote;
-use syn::{
-    parse_macro_input, ItemFn, FnArg, Pat,
-};
+use syn::{parse_macro_input, FnArg, ItemFn, Pat};
 
 /// Procedural attribute macro for enforcing invariants on Solana instruction handlers.
 ///
@@ -60,23 +58,21 @@ pub fn invariant_enforced(args: TokenStream, input: TokenStream) -> TokenStream 
 
     // Parse attribute arguments
     let args_str = args.to_string();
-    
+
     // Validate function signature
     match validate_function_signature(&input_fn) {
         Ok(state_vars) => {
             // Generate invariant checks
             let checks = parse_invariant_checks(&args_str);
             let check_stmts = generate_check_statements(&checks, &state_vars);
-            
+
             // Inject checks into function
             let modified_fn = inject_checks(&input_fn, check_stmts);
             quote! { #modified_fn }.into()
         }
-        Err(e) => {
-            return syn::Error::new_spanned(&input_fn, e)
-                .to_compile_error()
-                .into();
-        }
+        Err(e) => syn::Error::new_spanned(&input_fn, e)
+            .to_compile_error()
+            .into(),
     }
 }
 
@@ -89,7 +85,7 @@ fn validate_function_signature(func: &ItemFn) -> Result<Vec<String>, String> {
             FnArg::Typed(pat_type) => {
                 if let Pat::Ident(pat_ident) = &*pat_type.pat {
                     let var_name = pat_ident.ident.to_string();
-                    
+
                     // Check if it's a mutable reference (state parameter)
                     if pat_ident.mutability.is_some() {
                         state_vars.push(var_name);
@@ -121,18 +117,16 @@ fn parse_invariant_checks(args: &str) -> Vec<String> {
 /// Generate invariant check statements with tamper detection hash.
 fn generate_check_statements(checks: &[String], _state_vars: &[String]) -> Vec<syn::Stmt> {
     use quote::format_ident;
-    
+
     let mut stmts = Vec::new();
 
     // Add tamper detection header (hash embeds macro version and check list)
     let check_hash = compute_check_hash(checks);
     let _hash_comment = format!("// INVAR_HASH: {}", check_hash);
-    
-    stmts.push(
-        syn::parse_quote! {
-            // Invariant checks injected by #[invariant_enforced]
-        }
-    );
+
+    stmts.push(syn::parse_quote! {
+        // Invariant checks injected by #[invariant_enforced]
+    });
 
     // Generate a check for each invariant
     for (idx, check) in checks.iter().enumerate() {
@@ -140,20 +134,16 @@ fn generate_check_statements(checks: &[String], _state_vars: &[String]) -> Vec<s
         let _check_expr_str = check.clone();
 
         // Create assertion-like statement
-        stmts.push(
-            syn::parse_quote! {
-                // Invariant: #check
-                // This check is automatically enforced
-            }
-        );
+        stmts.push(syn::parse_quote! {
+            // Invariant: #check
+            // This check is automatically enforced
+        });
     }
 
-    stmts.push(
-        syn::parse_quote! {
-            // Tamper detection enabled
-            let _ = ();
-        }
-    );
+    stmts.push(syn::parse_quote! {
+        // Tamper detection enabled
+        let _ = ();
+    });
 
     stmts
 }
@@ -166,7 +156,10 @@ fn inject_checks(func: &ItemFn, checks: Vec<syn::Stmt>) -> ItemFn {
     match &mut modified_fn.block.stmts.last() {
         Some(_last_stmt) => {
             // Insert checks before the last statement if it's a return
-            modified_fn.block.stmts.splice(modified_fn.block.stmts.len() - 1..modified_fn.block.stmts.len(), checks);
+            modified_fn.block.stmts.splice(
+                modified_fn.block.stmts.len() - 1..modified_fn.block.stmts.len(),
+                checks,
+            );
         }
         None => {
             // Empty block, just add checks
@@ -184,15 +177,15 @@ fn compute_check_hash(checks: &[String]) -> String {
     use std::hash::{Hash, Hasher};
 
     let mut hasher = DefaultHasher::new();
-    
+
     // Sort checks for deterministic hashing
     let mut sorted_checks = checks.to_vec();
     sorted_checks.sort();
-    
+
     for check in sorted_checks {
         check.hash(&mut hasher);
     }
-    
+
     let hash = hasher.finish();
     format!("{:016x}", hash)
 }
@@ -205,11 +198,11 @@ mod tests {
     fn test_check_hash_deterministic() {
         let checks1 = vec!["balance >= 0".to_string(), "supply > 0".to_string()];
         let checks2 = vec!["supply > 0".to_string(), "balance >= 0".to_string()];
-        
+
         // Different order should produce same hash
         let hash1 = compute_check_hash(&checks1);
         let hash2 = compute_check_hash(&checks2);
-        
+
         assert_eq!(hash1, hash2);
     }
 
@@ -217,7 +210,7 @@ mod tests {
     fn test_parse_invariant_checks() {
         let args = r#""balance >= 0", "supply > 0""#;
         let checks = parse_invariant_checks(args);
-        
+
         assert_eq!(checks.len(), 2);
         assert_eq!(checks[0], "balance >= 0");
         assert_eq!(checks[1], "supply > 0");

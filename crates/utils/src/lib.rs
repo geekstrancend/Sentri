@@ -5,9 +5,9 @@
 
 pub mod logging;
 pub mod path_utils;
-pub mod version;
 pub mod release;
+pub mod version;
 
 pub use logging::setup_tracing;
-pub use version::{SemanticVersion, ReleaseArtifact, ReproducibleBuildConfig, Platform};
 pub use release::ReleaseManager;
+pub use version::{Platform, ReleaseArtifact, ReproducibleBuildConfig, SemanticVersion};
