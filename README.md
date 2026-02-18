@@ -136,8 +136,38 @@ invar analyze --strict-mode --file invariants.invar
 
 ## Documentation
 
+**Quick Start:** [ADOPT.md](ADOPT.md) - 5-minute introduction for new users
+
+### Core Guides
+- **[Getting Started Guide](docs/getting-started.md)**: Installation, quick start, first invariant
+- **[Writing Invariants](docs/writing-invariants.md)**: Complete DSL reference with examples
+- **[Example Invariants](docs/example-invariants.md)**: Real-world patterns (Solana, EVM, Move)
+
+### Deployment & Operations
+- **[Deployment Guide](docs/deployment.md)**: Installation, configuration, monitoring, troubleshooting
+- **[CI/CD Integration](docs/ci-integration.md)**: GitHub Actions, GitLab, Jenkins, pre-commit hooks
+- **[Testing Guide](docs/testing.md)**: Running tests, measuring coverage, debugging
+
+### Architecture & Security
+- **[Architecture Overview](docs/architecture-overview.md)**: System design, data flow, module structure
+- **[Security Model](docs/security-model.md)**: Threat model, security layers, guarantees
+- **[Error Design](docs/error-design.md)**: Error handling philosophy, exit codes, messages
+
+### Project Management
+- **[Versioning Policy](docs/versioning.md)**: Semantic versioning, deprecation timeline, support tiers
+- **[Migration Guide](docs/migration.md)**: Upgrading between versions, breaking changes
+- **[Release Readiness](docs/release-readiness.md)**: Pre-release checklist, sign-off procedures
+
+### Help & Reference
+- **[FAQ](docs/faq.md)**: Frequently asked questions with solutions
+- **[Full Documentation Index](docs/README.md)**: Complete guide by topic and role
+
+### Official Documentation
 - **[INSTALL.md](INSTALL.md)**: Installation and configuration
 - **[SECURITY.md](SECURITY.md)**: Responsible disclosure, security policy
+- **[CONTRIBUTING.md](CONTRIBUTING_EXTENDED.md)**: Contributing guide for developers
+- **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)**: Community standards and expectations
+- **[DOCS_MANIFEST.md](DOCS_MANIFEST.md)**: Complete documentation inventory
 - **[API Documentation](https://docs.rs/invar-core)**: Type system and evaluator
 - **[Examples](examples/)**: Sample invariants and contracts
 

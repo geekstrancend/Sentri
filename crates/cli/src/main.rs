@@ -12,6 +12,7 @@ use std::path::PathBuf;
 #[command(version = env!("CARGO_PKG_VERSION"))]
 #[command(about = "Enforce invariants on smart contracts across Solana, EVM, and Move")]
 #[command(author = "Invar Contributors")]
+#[allow(missing_docs)]
 struct Cli {
     /// Enable verbose logging.
     #[arg(short, long, global = true)]

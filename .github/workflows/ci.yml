@@ -1,4 +1,4 @@
-name: CI
+name: CI - Production Grade
 
 on:
   push:
@@ -8,36 +8,32 @@ on:
 
 env:
   CARGO_TERM_COLOR: always
-  RUST_BACKTRACE: 1
+  RUST_BACKTRACE: full
+  RUSTFLAGS: -D warnings
 
 jobs:
-  test:
-    name: Test Suite
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-        rust: [stable]
+  # Strict formatting check
+  format:
+    name: Format Check (Strict)
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: ${{ matrix.rust }}
+          components: rustfmt
       
       - uses: Swatinem/rust-cache@v2
       
-      - name: Run tests
-        run: cargo test --all --verbose
-      
-      - name: Run doc tests
-        run: cargo test --doc --all
-
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+        
+  # Strict linting with all warnings as errors
   clippy:
-    name: Clippy Lint
+    name: Clippy Lint (Strict)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -45,59 +41,113 @@ jobs:
       
       - uses: Swatinem/rust-cache@v2
       
-      - name: Run clippy
-        run: cargo clippy --all --all-targets -- -D warnings
-
-  fmt:
-    name: Format Check
+      - name: Run clippy strict
+        run: cargo clippy --all --all-targets --all-features -- -D warnings -D clippy::all
+        
+  # Security audit
+  audit:
+    name: Security Audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - uses: dtolnay/rust-toolchain@stable
-        with:
-          components: rustfmt
       
-      - name: Check formatting
-        run: cargo fmt --all -- --check
-
-  build-release:
-    name: Build Release
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
+        continue-on-error: true
+      
+      - name: Run security audit
+        run: cargo audit
+      
+  # Unit tests across all platforms
+  test:
+    name: Unit Tests
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        include:
-          - os: ubuntu-latest
-            artifact_name: invar
-            asset_name: invar-linux-amd64
-          - os: macos-latest
-            artifact_name: invar
-            asset_name: invar-macos-amd64
-          - os: windows-latest
-            artifact_name: invar.exe
-            asset_name: invar-windows-amd64.exe
+        rust: [stable, beta]
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: ${{ matrix.rust }}
+      
+      - uses: Swatinem/rust-cache@v2
+      
+      - name: Run unit tests
+        run: cargo test --lib --all --verbose
+        
+      - name: Run doc tests
+        run: cargo test --doc --all
+        
+  # Property-based tests
+  property-tests:
+    name: Property Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       
       - uses: dtolnay/rust-toolchain@stable
       
       - uses: Swatinem/rust-cache@v2
       
-      - name: Build release
-        run: cargo build --release --verbose
+      - name: Run property tests
+        run: cargo test --test '*/property/*' --verbose
+        
+  # Security-specific tests
+  security-tests:
+    name: Security Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       
-      - name: Upload artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: ${{ matrix.asset_name }}
-          path: target/release/${{ matrix.artifact_name }}
-
+      - uses: dtolnay/rust-toolchain@stable
+      
+      - uses: Swatinem/rust-cache@v2
+      
+      - name: Run security tests
+        run: cargo test --test '*/security/*' --verbose
+        
+  # Integration tests
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: dtolnay/rust-toolchain@stable
+      
+      - uses: Swatinem/rust-cache@v2
+      
+      - name: Run integration tests
+        run: cargo test --test integration --verbose
+        
+  # CLI behavior tests
+  cli-tests:
+    name: CLI Behavior Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: dtolnay/rust-toolchain@stable
+      
+      - uses: Swatinem/rust-cache@v2
+      
+      - name: Build CLI
+        run: cargo build --release --bin invar
+        
+      - name: Run CLI tests
+        run: cargo test --test cli --verbose
+        
+  # Code coverage
   coverage:
     name: Code Coverage
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       
       - uses: dtolnay/rust-toolchain@stable
       
@@ -105,12 +155,92 @@ jobs:
       
       - name: Install tarpaulin
         run: cargo install cargo-tarpaulin
-      
+        
       - name: Generate coverage
-        run: cargo tarpaulin --all --timeout 300 --out Xml
-      
+        run: cargo tarpaulin --all --out Xml --timeout 300
+        
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
           files: ./cobertura.xml
           fail_ci_if_error: true
+          
+  # Benchmark smoke test
+  benchmark:
+    name: Benchmark Smoke Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: dtolnay/rust-toolchain@stable
+      
+      - uses: Swatinem/rust-cache@v2
+      
+      - name: Run benchmark smoke test
+        run: cargo bench --no-run
+        
+  # Determinism check (run tests multiple times)
+  determinism:
+    name: Determinism Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: dtolnay/rust-toolchain@stable
+      
+      - uses: Swatinem/rust-cache@v2
+      
+      - name: Run tests multiple times (determinism)
+        run: |
+          for i in {1..3}; do
+            echo "Run $i"
+            cargo test --lib --all || exit 1
+          done
+        
+  # Release build
+  build-release:
+    name: Build Release Binary
+    runs-on: ${{ matrix.os }}
+    needs: [format, clippy, test, security-tests, audit]
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        include:
+          - os: ubuntu-latest
+            artifact_name: invar
+            asset_name: invar-linux-x86_64
+          - os: macos-latest
+            artifact_name: invar
+            asset_name: invar-macos-x86_64
+          - os: windows-latest
+            artifact_name: invar.exe
+            asset_name: invar-windows-x86_64.exe
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: dtolnay/rust-toolchain@stable
+      
+      - uses: Swatinem/rust-cache@v2
+      
+      - name: Build release
+        run: cargo build --release --bin invar --verbose
+      
+      - name: Strip binary (Unix)
+        if: runner.os != 'Windows'
+        run: strip target/release/${{ matrix.artifact_name }}
+        
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ matrix.asset_name }}
+          path: target/release/${{ matrix.artifact_name }}
+          retention-days: 30
+          
+  # Final status check
+  all-checks-pass:
+    name: All Checks Pass
+    runs-on: ubuntu-latest
+    needs: [format, clippy, test, property-tests, security-tests, integration-tests, cli-tests, coverage, benchmark, determinism, audit]
+    steps:
+      - name: Confirm all checks passed
+        run: echo "All production-grade checks have passed!"
