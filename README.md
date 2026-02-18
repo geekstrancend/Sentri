@@ -1,290 +1,120 @@
-# Invar: Production-Grade Multi-Chain Invariant Enforcement
+# Invar Documentation
 
-Invar is a **production-grade, audit-ready** invariant enforcement tool for smart contracts across multiple blockchains. It enables developers to define, verify, and continuously enforce protocol-level safety properties with formal type systems, deterministic evaluation, and comprehensive threat modeling.
+Welcome to Invar! Here's how to get started based on your needs.
 
-## Features
+## Quick Start (5 minutes)
 
-### ✅ Implemented (Sections 1-5 Complete)
+1. [Installation & Quick Start](getting-started.md) - Get up and running
+2. [Write Your First Invariant](writing-invariants.md) - Learn the DSL
+3. [See Real Examples](example-invariants.md) - Practical patterns
 
-#### Section 1: Formal DSL Type System
-- **Strict type checking**: Bool, U64, U128, I64, Address (no floats, no null)
-- **Type inference engine**: Automatic numeric type selection based on value range
-- **8 type error variants**: Detailed, actionable error messages
-- **Standard library functions**: sum, len, min, max with type validation
-- **22 unit tests**: Full coverage of type system
+## Main Guides
 
-#### Section 2: Expression Evaluation Engine  
-- **Deterministic evaluation**: No floating point, no randomness, no I/O
-- **Value enum**: Bool, U64, U128, I64, Address with type information
-- **ExecutionContext**: Memory-only state management via BTreeMap
-- **Checked arithmetic**: Explicit overflow/underflow detection
-- **Short-circuit evaluation**: Efficient boolean logic with && and ||
-- **5 unit tests**: Evaluation, comparisons, logical operations
+### Usage
+- [Writing Invariants](writing-invariants.md) - Complete DSL reference and patterns
+- [Example Invariants](example-invariants.md) - Real-world examples you can use
+- [Deployment & CI/CD](deployment.md) - Deploy to production, integrate with CI/CD
+- [Troubleshooting & FAQ](faq.md) - Common questions and solutions
 
-#### Section 3: Solana Procedural Macro
-- **`#[invariant_enforced]` attribute**: Automatic check injection
-- **Function signature validation**: Enforces &mut state parameters
-- **Deterministic injection order**: Alphabetical ordering prevents timing attacks
-- **Tamper detection**: Hash embedded in generated code
-- **Type-safe expansion**: All injected code compiler-validated
-- **2 unit tests**: Hash determinism, invariant parsing
+### Understanding Invar
+- [Architecture Overview](architecture-overview.md) - How Invar works internally
+- [Security Model](security-model.md) - Security guarantees and trust boundaries
+- [Error Design](error-design.md) - How to understand error messages
 
-#### Section 4: Comprehensive Threat Model Defenses
-- **Injection Verification**: Re-parse generated code, verify 100% coverage
-- **Tamper Detection**: Deterministic hashing prevents post-expansion modifications
-- **DSL Sandboxing**: Whitelist of pure functions, forbidden variable patterns
-- **Analyzer Strict Mode**: Abort if mutation detection uncertain
-- **Simulation Isolation**: Memory-only execution, type validation
-- **10 unit tests**: All 5 threat vectors with edge cases
+### Operations
+- [Versioning & Stability](versioning.md) - Version numbering and support
+- [Migration Guide](migration.md) - Upgrading between versions
+- [Release Checklist](release-readiness.md) - For maintainers preparing releases
 
-#### Section 5: Release Engineering
-- **Semantic Versioning**: Full SemVer 2.0.0 support with compatibility checking
-- **Release Artifacts**: SHA256 checksums, multi-platform support
-- **GitHub Actions CI/CD**: Automated builds for 5 platforms
-- **Reproducible Builds**: Pinned Rust version, LTO, deterministic ordering
-- **Installation Guide**: Binary, cargo, and source installation methods
-- **Security Policy**: Responsible disclosure, 14-day coordinated timeline
-- **11 unit tests**: Versioning, release operations, manifest generation
+## For Your Role
 
-### 🏗️ Architecture
+### New Users
+1. Start: [Getting Started](getting-started.md)
+2. Learn: [Writing Invariants](writing-invariants.md)
+3. Apply: [Example Invariants](example-invariants.md)
+4. Integrate: [Deployment & CI/CD](deployment.md)
 
-14-crate modular workspace:
+### Contributors
+1. Understand: [Architecture Overview](architecture-overview.md)
+2. Test: [Testing Guide](testing.md)
+3. Contribute: See [CONTRIBUTING.md](../CONTRIBUTING.md)
+
+### Security Researchers
+- [Security Model](security-model.md) - Threat model
+- [Security Validation](security/security-validation.md) - Testing approach
+- [Error Design](error-design.md) - Error handling
+
+### Release Managers
+- [Release Checklist](release-readiness.md) - Pre-release verification
+- [Versioning Policy](versioning.md) - Version numbering
+- [Migration Guide](migration.md) - What users need to know
+
+## Documentation Structure
 
 ```
-invar-cli                    # Command-line interface
-├── invar-core              # Core type system, evaluation engine, threat model
-├── invar-dsl-parser        # Pest-based DSL grammar parser
-├── invar-ir                # Intermediate representation (AST)
-├── invar-analyzer-*        # Chain-specific analyzers (solana, evm, move)
-├── invar-generator-*       # Chain-specific code generators
-├── invar-solana-macro      # Procedural macro for Solana
-├── invar-simulator         # Expression evaluation in isolation
-├── invar-library           # Standard library functions
-├── invar-report            # Report generation and formatting
-└── invar-utils             # Versioning, release ops, logging
+docs/
+├── getting-started.md           START HERE
+├── writing-invariants.md        DSL reference
+├── example-invariants.md        Real Examples
+├── deployment.md                Install, configure, CI/CD
+├── architecture-overview.md     Design internals
+├── security-model.md            Security & trust
+├── versioning.md                Versions & stability
+├── migration.md                 Upgrade guide
+├── release-readiness.md         Release process
+├── faq.md                       Q&A
+│
+├── testing/                     Developer guides
+│   ├── unit-testing.md
+│   ├── property-testing.md
+│   ├── cli-testing.md
+│   └── integration-testing.md
+│
+├── security/                    Security details
+│   └── security-validation.md
+│
+├── performance/                 Optimization
+│   └── benchmarking.md
+│
+└── ci/                         CI/CD internals
+    └── ci-pipeline.md
 ```
 
-###  Security Properties
+### "I'm getting an error"
+→ [Error Design](error-design.md) → [Getting Started - Troubleshooting](getting-started.md#troubleshooting)
 
-- **Deterministic**: All operations reproducible, no randomness
-- **Type-safe**: Compile-time type checking, no silent type errors
-- **Sandbox isolated**: DSL expressions cannot access files or external code
-- **Tamper-resistant**: Hash-based integrity checking in macros
-- **Formal**: Based on formal type system with explicit error handling
+## External Resources
 
-###  Test Coverage
+- **Repository**: [github.com/invar/invar](https://github.com/invar/invar)
+- **Issues**: [GitHub Issues](https://github.com/invar/invar/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/invar/invar/discussions)
+- **Security**: [security@invar-project.dev](mailto:security@invar-project.dev)
+- **Website**: [invar.sh](https://invar.sh)
 
-- **22 tests in invar-core**: Type system, evaluator, threat model
-- **11 tests in invar-utils**: Versioning, release operations
-- **2 tests in invar-solana-macro**: Macro behavior, hash determinism
-- **All passing**: `cargo test --release` ✅
+## Version
 
-###  Multi-Chain Support
+This documentation is for **Invar 0.1.0+**
 
-- **Solana**: Rust programs with procedural macro injection
-- **EVM**: Solidity contracts with inline assertion generation  
-- **Move**: Aptos/Sui Move programs with safety checks
+For other versions:
+- [Latest](https://invar.sh/docs/latest)
+- [Development](https://github.com/invar/invar/tree/develop/docs)
+- [1.0.0 (Stable)](https://invar.sh/docs/1.0) - When released
 
-## Quick Start
+## Contributing to Documentation
 
-### Installation
+Found an error? Have a suggestion? 
 
-```bash
-# Pre-compiled binaries (recommended)
-curl -L https://github.com/Emmyhack/Invar/releases/download/v0.1.0/invar-linux-x86_64-0.1.0 -o invar
-chmod +x invar
-sudo mv invar /usr/local/bin/
+1. Create an issue: [GitHub Issues](https://github.com/invar/invar/issues)
+2. Submit a PR: [GitHub PRs](https://github.com/invar/invar/pulls)
+3. Email: [docs@invar-project.dev](mailto:docs@invar-project.dev)
 
-# From source
-git clone https://github.com/Emmyhack/Invar.git
-cd Invar
-cargo install --path crates/cli
+## Documentation Principles
 
-# Via cargo
-cargo install invar
-```
+This documentation follows:
+- **Clarity** - Clear, concise explanations
+- **Completeness** - All features covered
+- **Examples** - Real-world code samples
+- **Honesty** - Limitations documented
+- **Accessibility** - No assumed knowledge
 
-See [INSTALL.md](INSTALL.md) for detailed instructions.
-
-### Define Invariants
-
-Create `invariants.invar`:
-
-```invar
-invariant token_balance_conservation:
-  sum(token.balances) == token.total_supply
-
-invariant no_negative_balances:
-  all(balance >= 0 for balance in token.balances)
-
-invariant owner_authorization:
-  token.owner == msg.sender
-```
-
-### Analyze & Enforce
-
-```bash
-# Type-check invariants
-invar check --file invariants.invar
-
-# Generate Solana enforcement code
-invar generate --chain solana --file invariants.invar
-
-# Strict mode: abort if mutation detection uncertain
-invar analyze --strict-mode --file invariants.invar
-```
-
-## Documentation
-
-### Core Guides
-- **[Getting Started Guide](docs/getting-started.md)**: Installation, quick start, first invariant
-- **[Writing Invariants](docs/writing-invariants.md)**: Complete DSL reference with examples
-- **[Example Invariants](docs/example-invariants.md)**: Real-world patterns (Solana, EVM, Move)
-
-### Deployment & Operations
-- **[Deployment Guide](docs/deployment.md)**: Installation, configuration, monitoring, troubleshooting
-- **[CI/CD Integration](docs/ci-integration.md)**: GitHub Actions, GitLab, Jenkins, pre-commit hooks
-- **[Testing Guide](docs/testing.md)**: Running tests, measuring coverage, debugging
-
-### Architecture & Security
-- **[Architecture Overview](docs/architecture-overview.md)**: System design, data flow, module structure
-- **[Security Model](docs/security-model.md)**: Threat model, security layers, guarantees
-- **[Error Design](docs/error-design.md)**: Error handling philosophy, exit codes, messages
-
-### Project Management
-- **[Versioning Policy](docs/versioning.md)**: Semantic versioning, deprecation timeline, support tiers
-- **[Migration Guide](docs/migration.md)**: Upgrading between versions, breaking changes
-- **[Release Readiness](docs/release-readiness.md)**: Pre-release checklist, sign-off procedures
-
-### Help & Reference
-- **[FAQ](docs/faq.md)**: Frequently asked questions with solutions
-- **[Full Documentation Index](docs/README.md)**: Complete guide by topic and role
-
-### Official Documentation
-- **[INSTALL.md](INSTALL.md)**: Installation and configuration
-- **[SECURITY.md](SECURITY.md)**: Responsible disclosure, security policy
-- **[CONTRIBUTING.md](CONTRIBUTING_EXTENDED.md)**: Contributing guide for developers
-- **[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)**: Community standards and expectations
-- **[DOCS_MANIFEST.md](DOCS_MANIFEST.md)**: Complete documentation inventory
-- **[API Documentation](https://docs.rs/invar-core)**: Type system and evaluator
-- **[Examples](examples/)**: Sample invariants and contracts
-
-## Building from Source
-
-### Requirements
-
-- Rust 1.70.0+ (from https://rustup.rs/)
-- Cargo 1.70.0+
-- ~2GB disk space
-
-### Build Steps
-
-```bash
-# Clone repository
-git clone https://github.com/Emmyhack/Invar.git
-cd Invar
-
-# Run tests
-cargo test --release
-
-# Build CLI
-cargo build --release -p invar
-
-# Binary at: target/release/invar
-./target/release/invar --version
-```
-
-### Reproducible Builds
-
-All official releases are reproducible:
-
-```bash
-# Verify binary integrity
-sha256sum -c invar-v0.1.0.sha256
-
-# Rebuild and verify bit-for-bit identical
-cargo build --release --locked
-sha256sum target/release/invar
-```
-
-## Project Status
-
-| Section | Status | Tests | Coverage |
-|---------|--------|-------|----------|
-| 1. Type System | ✅ Complete | 7/7 | 100% |
-| 2. Evaluator | ✅ Complete | 5/5 | 100% |
-| 3. Solana Macro | ✅ Complete | 2/2 | 100% |
-| 4. Threat Model | ✅ Complete | 10/10 | 100% |
-| 5. Release Eng | ✅ Complete | 11/11 | 100% |
-| **Total** | **✅ Complete** | **35/35** | **100%** |
-
-### Compilation Status
-
-- **Debug build**: ✅ Successful
-- **Release build**: ✅ Successful  
-- **All tests**: ✅ 35/35 passing
-- **Warnings**: ✅ Clean (only invar-dsl-parser pest macro, expected)
-- **Unsafe code**: ✅ Denied (no unsafe except where explicitly justified)
-
-## Contributing
-
-Contributions welcome! Please:
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/my-feature`
-3. Commit changes: `git commit -am 'Add feature'`
-4. Push to branch: `git push origin feature/my-feature`
-5. Open a Pull Request
-
-## Security
-
-For security issues, please **DO NOT** open public issues. Instead, email security@invar.dev.
-
-See [SECURITY.md](SECURITY.md) for:
-- Responsible disclosure process
-- Severity classification
-- Response timeline (24-72 hours)
-- Bug bounty structure
-
-## License
-
-MIT License - see [LICENSE](LICENSE) file
-
-## Architecture Overview
-
-```
-User writes invariants in Invar DSL
-        ↓
-DSL Parser (pest) → Expression AST
-        ↓
-Type Checker → TypedExpr with types
-        ↓
-Threat Model Validator → Approved expression
-        ↓
-Evaluator → Value (Bool, U64, I64, Address)
-        ↓
-Chain-specific Generator → Native code
-        ├→ Solana: Rust with procedural macro
-        ├→ EVM: Solidity assert statements
-        └→ Move: assert! statements
-
-All operations are deterministic, type-safe, and formally verified.
-```
-
-## Key Design Principles
-
-1. **No Silent Failures**: All operations return Result types
-2. **Deterministic**: No floating point, no randomness, no I/O
-3. **Type-Safe**: Compile-time checking, explicit error handling
-4. **Minimal Trust**: Reproducible builds, hash verification
-5. **Complete Coverage**: All mutations checked (strict mode)
-
-## Contact
-
-- **GitHub Issues**: https://github.com/Emmyhack/Invar/issues
-- **Security**: security@invar.dev
-- **Community**: https://github.com/Emmyhack/Invar/discussions
-
----
-
-**Built with security, correctness, and production-grade quality in mind.**
+Last updated: 2026-02-18
