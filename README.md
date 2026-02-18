@@ -64,7 +64,7 @@ invar-cli                    # Command-line interface
 └── invar-utils             # Versioning, release ops, logging
 ```
 
-### 🔒 Security Properties
+###  Security Properties
 
 - **Deterministic**: All operations reproducible, no randomness
 - **Type-safe**: Compile-time type checking, no silent type errors
@@ -72,14 +72,14 @@ invar-cli                    # Command-line interface
 - **Tamper-resistant**: Hash-based integrity checking in macros
 - **Formal**: Based on formal type system with explicit error handling
 
-### 📊 Test Coverage
+###  Test Coverage
 
 - **22 tests in invar-core**: Type system, evaluator, threat model
 - **11 tests in invar-utils**: Versioning, release operations
 - **2 tests in invar-solana-macro**: Macro behavior, hash determinism
 - **All passing**: `cargo test --release` ✅
 
-### 🚀 Multi-Chain Support
+###  Multi-Chain Support
 
 - **Solana**: Rust programs with procedural macro injection
 - **EVM**: Solidity contracts with inline assertion generation  
@@ -135,8 +135,6 @@ invar analyze --strict-mode --file invariants.invar
 ```
 
 ## Documentation
-
-**Quick Start:** [ADOPT.md](ADOPT.md) - 5-minute introduction for new users
 
 ### Core Guides
 - **[Getting Started Guide](docs/getting-started.md)**: Installation, quick start, first invariant
