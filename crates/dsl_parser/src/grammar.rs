@@ -11,6 +11,7 @@ NEWLINE = @{ "\r\n" | "\n" }
 
 // Identifiers and literals
 identifier = @{ (ASCII_ALPHA | "_") ~ (ASCII_ALPHANUMERIC | "_")* }
+layer_name = @{ "bundler" | "account" | "paymaster" | "protocol" | "entrypoint" }
 integer = @{ "-"? ~ ASCII_DIGIT+ }
 
 // Operators (ordered by precedence)
@@ -27,11 +28,16 @@ not = { "!" }
 // Literals
 boolean = @{ "true" | "false" }
 
+// Qualified identifiers with optional layer scope (layer::identifier)
+qualified_id = { layer_name ~ "::" ~ identifier }
+simple_id = { identifier }
+var_id = { qualified_id | simple_id }
+
 // Function call - must be tried before identifier
 function_call = { identifier ~ "(" ~ (expr ~ ("," ~ expr)*)? ~ ")" }
 
 // Atoms: function calls, literals, or identifiers (in order of specificity)
-atom = _{ function_call | boolean | integer | identifier }
+atom = _{ function_call | boolean | integer | var_id }
 
 // Primary expressions with parentheses
 primary = { "(" ~ expr ~ ")" | atom }
@@ -53,7 +59,7 @@ expr = { logical_or }
 
 // Top-level invariant
 invariant_def = {
-    "invariant" ~ identifier ~ "{" ~ expr ~ "}"
+    "invariant" ~ identifier ~ ("(" ~ layer_name ~ ("," ~ layer_name)* ~ ")")? ~ "{" ~ expr ~ "}"
 }
 
 file = { SOI ~ invariant_def+ ~ EOI }

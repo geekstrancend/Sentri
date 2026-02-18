@@ -212,6 +212,18 @@ impl DSLSandbox {
                 Ok(())
             }
 
+            Expression::LayerVar { layer, var } => {
+                // Check both layer and variable names against forbidden prefixes
+                for prefix in forbidden_prefixes {
+                    if layer.to_lowercase().starts_with(prefix) || var.to_lowercase().starts_with(prefix) {
+                        return Err(ThreatModelError::SandboxEscapeDetected(
+                            format!("forbidden layer/variable name: {}::{}", layer, var),
+                        ));
+                    }
+                }
+                Ok(())
+            }
+
             Expression::FunctionCall { name, args } => {
                 // Whitelist of allowed functions (purely computational, no side effects)
                 let allowed_functions = [

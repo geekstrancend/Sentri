@@ -90,6 +90,16 @@ impl TypeChecker {
                     .ok_or_else(|| TypeError::UndefinedVariable(name.clone()))
             }
 
+            Expression::LayerVar { layer, var } => {
+                // Layer-qualified variables are treated as typed based on convention:
+                // typically they're either numeric or boolean based on context
+                // For now, assume they could be any type and require explicit validation
+                self.state_vars
+                    .get(var)
+                    .copied()
+                    .ok_or_else(|| TypeError::UndefinedVariable(format!("{}::{}", layer, var)))
+            }
+
             Expression::BinaryOp { left, op, right } => {
                 self.check_binary_op(left, op, right)
             }

@@ -15,6 +15,7 @@ pub mod evaluator;
 pub mod threat_model;
 pub mod attack_patterns;
 pub mod security_validator;
+pub mod account_abstraction;
 
 pub use error::{InvarError, Result};
 pub use model::{FunctionModel, Invariant, ProgramModel, StateVar};
@@ -28,3 +29,4 @@ pub use threat_model::{
 };
 pub use attack_patterns::AttackPatternDB;
 pub use security_validator::{SecurityValidator, SecurityReport, SecurityIssue, IssueSeverity};
+pub use account_abstraction::{AALayer, AAContext, UserOpData, AccountState, PaymasterState, EntryPointState, CrossLayerCheckResult};

@@ -209,6 +209,17 @@ impl Evaluator {
                     .ok_or_else(|| EvaluationError::UndefinedVariable(name.clone()))
             }
 
+            Expression::LayerVar { layer, var } => {
+                // Layer-qualified variables: look up by full qualified name
+                let qualified_name = format!("{}::{}", layer, var);
+                self.context
+                    .state_vars
+                    .get(&qualified_name)
+                    .cloned()
+                    .or_else(|| self.context.state_vars.get(var).cloned())
+                    .ok_or_else(|| EvaluationError::UndefinedVariable(qualified_name))
+            }
+
             Expression::BinaryOp { left, op, right } => {
                 let left_val = self.evaluate(left)?;
                 let right_val = self.evaluate(right)?;

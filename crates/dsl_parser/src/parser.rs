@@ -21,14 +21,37 @@ impl InvariantParser {
         let inner = invariant_rule.into_inner();
         let inner_items: Vec<_> = inner.collect();
         
-        if inner_items.len() < 2 {
+        if inner_items.is_empty() {
             return Err(invar_core::InvarError::ConfigError(
                 "Expected invariant name and expression".to_string(),
             ));
         }
 
         let name = inner_items[0].as_str().to_string();
-        let expression = Self::parse_expr(inner_items[1].clone())?;
+        
+        // Parse optional layer specifications and expression
+        let (layers, expr_idx) = if inner_items.len() > 2 {
+            // Check if second item is layer specification
+            let second_item = &inner_items[1];
+            if second_item.as_rule() == Rule::layer_name || 
+               (second_item.as_str().starts_with('(') && second_item.as_str().contains(',')) {
+                // This is a layer specification, parse all layer names
+                let mut layer_specs = Vec::new();
+                for i in 1..inner_items.len() - 1 {
+                    let item_str = inner_items[i].as_str().trim_matches(|c| c == '(' || c == ')' || c == ',').trim();
+                    if !item_str.is_empty() {
+                        layer_specs.push(item_str.to_string());
+                    }
+                }
+                (layer_specs, inner_items.len() - 1)
+            } else {
+                (vec![], 1)
+            }
+        } else {
+            (vec![], 1)
+        };
+
+        let expression = Self::parse_expr(inner_items[expr_idx].clone())?;
 
         Ok(Invariant {
             name,
@@ -37,6 +60,7 @@ impl InvariantParser {
             severity: "medium".to_string(),
             category: "general".to_string(),
             is_always_true: true,
+            layers,
         })
     }
 
@@ -169,6 +193,37 @@ impl InvariantParser {
                     Ok(Expression::Int(val))
                 }
                 Rule::identifier => Ok(Expression::Var(pair.as_str().to_string())),
+                Rule::qualified_id => {
+                    let items: Vec<_> = pair.into_inner().collect();
+                    if items.len() != 2 {
+                        return Err(invar_core::InvarError::ConfigError(
+                            "Expected layer::identifier".to_string(),
+                        ));
+                    }
+                    let layer = items[0].as_str().to_string();
+                    let var = items[1].as_str().to_string();
+                    Ok(Expression::LayerVar { layer, var })
+                }
+                Rule::var_id => {
+                    let mut inner = pair.into_inner();
+                    if let Some(first) = inner.next() {
+                        if first.as_rule() == Rule::qualified_id {
+                            let items: Vec<_> = first.into_inner().collect();
+                            if items.len() == 2 {
+                                let layer = items[0].as_str().to_string();
+                                let var = items[1].as_str().to_string();
+                                return Ok(Expression::LayerVar { layer, var });
+                            }
+                        } else if first.as_rule() == Rule::simple_id {
+                            return Ok(Expression::Var(first.as_str().to_string()));
+                        } else {
+                            return parse_pair(first);
+                        }
+                    }
+                    Err(invar_core::InvarError::ConfigError(
+                        "Expected identifier or layer::identifier".to_string(),
+                    ))
+                }
                 _ => Err(invar_core::InvarError::ConfigError(format!(
                     "Unexpected rule: {:?}",
                     pair.as_rule()

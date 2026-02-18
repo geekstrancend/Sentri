@@ -116,6 +116,13 @@ impl ExpressionContext {
                     Err(format!("Undefined variable: {}", name))
                 }
             }
+            Expression::LayerVar { layer: _, var } => {
+                if self.available_vars.contains_key(var) {
+                    Ok(())
+                } else {
+                    Err(format!("Undefined layer variable: {}", var))
+                }
+            }
             Expression::BinaryOp { left, right, .. } => {
                 self.validate_expression(left)?;
                 self.validate_expression(right)

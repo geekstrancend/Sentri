@@ -18,11 +18,15 @@ pub struct Invariant {
     /// Severity level: "critical", "high", "medium", "low".
     pub severity: String,
 
-    /// Category: "core", "defi", "bridge", "governance", etc.
+    /// Category: "core", "defi", "bridge", "governance", "account-abstraction", etc.
     pub category: String,
 
     /// Whether this invariant should always hold.
     pub is_always_true: bool,
+
+    /// Layer scopes for cross-layer analysis (e.g., ["bundler", "account", "paymaster"]).
+    /// If empty, applies to all layers.
+    pub layers: Vec<String>,
 }
 
 /// An expression tree representing invariant conditions.
@@ -33,6 +37,14 @@ pub enum Expression {
 
     /// Variable reference.
     Var(String),
+
+    /// Layer-qualified variable reference (e.g., bundler::nonce).
+    LayerVar {
+        /// Layer name (bundler, account, paymaster, protocol, entrypoint).
+        layer: String,
+        /// Variable name within the layer.
+        var: String,
+    },
 
     /// Integer constant.
     Int(i128),
@@ -77,6 +89,7 @@ impl std::fmt::Display for Expression {
         match self {
             Self::Boolean(b) => write!(f, "{}", b),
             Self::Var(v) => write!(f, "{}", v),
+            Self::LayerVar { layer, var } => write!(f, "{}::{}", layer, var),
             Self::Int(i) => write!(f, "{}", i),
             Self::BinaryOp { left, op, right } => {
                 write!(f, "({} {} {})", left, op, right)

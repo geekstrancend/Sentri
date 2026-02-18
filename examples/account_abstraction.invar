@@ -1,0 +1,108 @@
+// Account Abstraction (ERC-4337) Cross-Layer Invariants
+// These invariants check properties that span multiple layers: bundler, account, paymaster, and protocol
+
+// Layer 1: Bundler Layer
+// The bundler orchestrates UserOperations and manages gas payments
+
+invariant NonceConsistency(bundler, account) {
+    bundler::userop_nonce == account::nonce
+}
+
+invariant GasPriceAlignment(bundler, account) {
+    bundler::gas_price <= account::max_gas_price
+}
+
+invariant SenderValidation(account) {
+    account::sender_verified == true
+}
+
+// Layer 2: Account Layer
+// The account contract validates and executes UserOperations
+
+invariant InitCodeValidity(account) {
+    (account::init_code_length == 0) || (account::deployment_valid == true)
+}
+
+invariant CallDataIntegrity(account) {
+    account::call_data_hash_matches == true
+}
+
+// Layer 3: Cross-Layer Gas Accounting
+// Gas must be properly accounted across bundler, account, and optional paymaster
+
+invariant GasLimitConsistency(bundler, account) {
+    bundler::pre_op_gas + bundler::call_gas_limit + bundler::post_op_gas == account::total_gas_limit
+}
+
+invariant GasPaymentCoverage(account) {
+    (account::call_gas_used <= account::call_gas_limit) && (account::verification_gas_used <= account::verification_gas_limit)
+}
+
+// Layer 4: Signature Validation Across Layers
+// Signature must be valid from bundler perspective through account execution
+
+invariant SignatureValid(bundler, account) {
+    bundler::signature_valid && account::signature_recovered == account::expected_signer
+}
+
+// Layer 5: Paymaster Integration (Optional)
+// If paymaster is involved, additional invariants must hold
+
+invariant PaymasterDepositCoverage(account, paymaster) {
+    paymaster::deposit >= (account::call_gas_limit * account::gas_price)
+}
+
+invariant PaymasterValidation(bundler, paymaster) {
+    (paymaster::status == "verified") && (paymaster::nonce == bundler::paymaster_nonce)
+}
+
+// Layer 6: Atomicity and Reentrancy Protection
+// State changes must be atomic and protected from reentrancy
+
+invariant NoReentrancy(account) {
+    account::reentrancy_guard_locked == false
+}
+
+invariant StateTransitionAtomicity(account) {
+    (account::state_before == account::state_after) || (account::state_transition_valid == true)
+}
+
+// Layer 7: Cross-Layer Invariant: Complete Execution
+// After execution, all layers must be in consistent state
+
+invariant ExecutionCompletion(bundler, account) {
+    (account::execution_failed == false) || (bundler::operation_status == "failed")
+}
+
+invariant FundsTransferred(bundler, account) {
+    (account::beneficiary_balance_change >= 0) && (bundler::refund_received >= 0)
+}
+
+// Layer 8: Protocol-Level Consistency
+// EntryPoint/protocol layer must enforce invariants
+
+invariant EntryPointAuthorization(account) {
+    account::caller == account::entry_point_address
+}
+
+invariant OpHashIntegrity(bundler) {
+    bundler::op_hash == calculate_op_hash(bundler::user_op)
+}
+
+// Layer 9: Bundle-Level Properties
+// Multiple operations in a bundle must maintain consistency
+
+invariant BundleNonceOrdering(bundler) {
+    bundler::all_nonces_increasing == true
+}
+
+invariant BundleGasAccounting(bundler) {
+    bundler::total_gas_used == sum_of_individual_gas_used
+}
+
+// Layer 10: Account Deployment Safety
+// If deploying new account, factory must be authorized
+
+invariant SafeAccountDeployment(account) {
+    (account::init_code_length == 0) || (account::factory_authorized == true)
+}
