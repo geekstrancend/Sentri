@@ -66,6 +66,7 @@ impl InvariantParser {
             category: "general".to_string(),
             is_always_true: true,
             layers,
+            phases: vec![],
         })
     }
 

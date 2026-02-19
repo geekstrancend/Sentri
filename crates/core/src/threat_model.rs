@@ -275,6 +275,43 @@ impl DSLSandbox {
                 Ok(())
             }
 
+            Expression::PhaseQualifiedVar { phase, layer, var } => {
+                // Check phase, layer, and variable names against forbidden prefixes
+                for prefix in forbidden_prefixes {
+                    if phase.to_lowercase().starts_with(prefix)
+                        || layer.to_lowercase().starts_with(prefix)
+                        || var.to_lowercase().starts_with(prefix)
+                    {
+                        return Err(ThreatModelError::SandboxEscapeDetected(format!(
+                            "forbidden phase/layer/variable name: {}::{}::{}",
+                            phase, layer, var
+                        )));
+                    }
+                }
+                Ok(())
+            }
+
+            Expression::PhaseConstraint {
+                phase: _,
+                constraint,
+            } => {
+                // Check the constraint expression recursively
+                Self::check_expression_recursive(constraint, forbidden_prefixes)
+            }
+
+            Expression::CrossPhaseRelation {
+                phase1: _,
+                expr1,
+                phase2: _,
+                expr2,
+                op: _,
+            } => {
+                // Check both phase expressions
+                Self::check_expression_recursive(expr1, forbidden_prefixes)?;
+                Self::check_expression_recursive(expr2, forbidden_prefixes)?;
+                Ok(())
+            }
+
             Expression::Boolean(_) | Expression::Int(_) => Ok(()),
         }
     }

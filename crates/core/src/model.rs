@@ -27,6 +27,10 @@ pub struct Invariant {
     /// Layer scopes for cross-layer analysis (e.g., ["bundler", "account", "paymaster"]).
     /// If empty, applies to all layers.
     pub layers: Vec<String>,
+
+    /// Execution phases (e.g., ["validation", "execution", "settlement"]).
+    /// For AA invariants that must hold at specific phases. Empty means all phases.
+    pub phases: Vec<String>,
 }
 
 /// An expression tree representing invariant conditions.
@@ -44,6 +48,42 @@ pub enum Expression {
         layer: String,
         /// Variable name within the layer.
         var: String,
+    },
+
+    /// Phase-qualified variable reference (e.g., validation::account::balance).
+    /// Checks state at a specific execution phase (validation, execution, settlement).
+    PhaseQualifiedVar {
+        /// Execution phase: "validation", "execution", or "settlement".
+        phase: String,
+        /// Layer name within that phase.
+        layer: String,
+        /// Variable name within the layer.
+        var: String,
+    },
+
+    /// Phase constraint: ensures a condition holds during a specific phase.
+    /// Example: ensure `account::balance >= min_required` during validation phase.
+    PhaseConstraint {
+        /// Phase to enforce the constraint in.
+        phase: String,
+        /// The constraint expression to hold in this phase.
+        constraint: Box<Expression>,
+    },
+
+    /// Cross-phase relation: relates variable values across two phases.
+    /// Example: `validation::account::balance >= execution::account::balance`
+    /// used to track state changes across phases.
+    CrossPhaseRelation {
+        /// First phase.
+        phase1: String,
+        /// First phase expression.
+        expr1: Box<Expression>,
+        /// Second phase.
+        phase2: String,
+        /// Second phase expression.
+        expr2: Box<Expression>,
+        /// Relation operator.
+        op: BinaryOp,
     },
 
     /// Integer constant.
@@ -90,6 +130,21 @@ impl std::fmt::Display for Expression {
             Self::Boolean(b) => write!(f, "{}", b),
             Self::Var(v) => write!(f, "{}", v),
             Self::LayerVar { layer, var } => write!(f, "{}::{}", layer, var),
+            Self::PhaseQualifiedVar { phase, layer, var } => {
+                write!(f, "{}::{}::{}", phase, layer, var)
+            }
+            Self::PhaseConstraint { phase, constraint } => {
+                write!(f, "({} @ {})", constraint, phase)
+            }
+            Self::CrossPhaseRelation {
+                phase1,
+                expr1,
+                phase2,
+                expr2,
+                op,
+            } => {
+                write!(f, "({}[{}] {} {}[{}])", expr1, phase1, op, expr2, phase2)
+            }
             Self::Int(i) => write!(f, "{}", i),
             Self::BinaryOp { left, op, right } => {
                 write!(f, "({} {} {})", left, op, right)

@@ -117,6 +117,31 @@ impl ExpressionContext {
                     Err(format!("Undefined layer variable: {}", var))
                 }
             }
+            Expression::PhaseQualifiedVar {
+                phase: _,
+                layer: _,
+                var,
+            } => {
+                if self.available_vars.contains_key(var) {
+                    Ok(())
+                } else {
+                    Err(format!("Undefined phase-qualified variable: {}", var))
+                }
+            }
+            Expression::PhaseConstraint {
+                phase: _,
+                constraint,
+            } => self.validate_expression(constraint),
+            Expression::CrossPhaseRelation {
+                phase1: _,
+                expr1,
+                phase2: _,
+                expr2,
+                op: _,
+            } => {
+                self.validate_expression(expr1)?;
+                self.validate_expression(expr2)
+            }
             Expression::BinaryOp { left, right, .. } => {
                 self.validate_expression(left)?;
                 self.validate_expression(right)

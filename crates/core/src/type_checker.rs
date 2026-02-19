@@ -99,6 +99,40 @@ impl TypeChecker {
                     .ok_or_else(|| TypeError::UndefinedVariable(format!("{}::{}", layer, var)))
             }
 
+            Expression::PhaseQualifiedVar {
+                phase: _,
+                layer,
+                var,
+            } => {
+                // Phase-qualified variables: phase::layer::var
+                // Type inferred from the variable name
+                self.state_vars
+                    .get(var)
+                    .copied()
+                    .ok_or_else(|| TypeError::UndefinedVariable(format!("{}::{}", layer, var)))
+            }
+
+            Expression::PhaseConstraint {
+                phase: _,
+                constraint,
+            } => {
+                // A phase constraint evaluates to the type of its constraint
+                // Typically constraints evaluate to Bool
+                self.infer_type(constraint)
+            }
+
+            Expression::CrossPhaseRelation {
+                phase1: _,
+                expr1,
+                phase2: _,
+                expr2,
+                op: _,
+            } => {
+                // Cross-phase relations are comparisons that return bool
+                self.check_binary_op(expr1, &crate::model::BinaryOp::Eq, expr2)?;
+                Ok(Type::Bool)
+            }
+
             Expression::BinaryOp { left, op, right } => self.check_binary_op(left, op, right),
 
             Expression::Logical { left, op, right } => self.check_logical_op(left, op, right),

@@ -1,0 +1,90 @@
+// Example: Account Abstraction Invariants with Execution Phases
+// Demonstrates phase-qualified and cross-phase invariant expressions
+// for ERC-4337 UserOp execution tracking
+
+// VALIDATION PHASE: Checks that occur before account code execution
+invariant ValidateAccountHasBalance {
+    description: "During validation phase, account must have minimum balance for gas"
+    severity: "critical"
+    category: "account-abstraction"
+    phases: ["validation"]
+    layers: ["account"]
+    expression: validation::account::balance >= validation::account::min_gas_cost
+}
+
+invariant ValidatePaymasterDeposit {
+    description: "Paymaster must have sufficient deposit during validation"
+    severity: "high"
+    category: "account-abstraction"
+    phases: ["validation"]
+    layers: ["paymaster"]
+    expression: validation::paymaster::deposit >= validation::paymaster::required_sponsor
+}
+
+// EXECUTION PHASE: Checks during account code execution
+invariant ExecutionNonceIncrement {
+    description: "Account nonce must be incremented during execution"
+    severity: "medium"
+    category: "account-abstraction"
+    phases: ["execution"]
+    layers: ["account"]
+    expression: execution::account::nonce > 0
+}
+
+// SETTLEMENT PHASE: Checks after bundling with other ops
+invariant SettlementBalanceMatch {
+    description: "Paymaster balance should match after settlement"
+    severity: "high"
+    category: "account-abstraction"
+    phases: ["settlement"]
+    layers: ["paymaster"]
+    expression: settlement::paymaster::balance >= 0
+}
+
+// CROSS-PHASE INVARIANT: Relates state across execution phases
+invariant BalanceDecreaseOnly {
+    description: "Account balance can only decrease (never increase) across phases"
+    severity: "critical"
+    category: "account-abstraction"
+    expression: (
+        validation::account::balance >= execution::account::balance &&
+        execution::account::balance >= settlement::account::balance
+    )
+    phases: ["validation", "execution", "settlement"]
+}
+
+invariant NonceMonotonic {
+    description: "Nonce must monotonically increase: validation < execution <= settlement"
+    severity: "high"
+    category: "account-abstraction"
+    expression: (
+        validation::account::nonce < execution::account::nonce &&
+        execution::account::nonce <= settlement::account::nonce
+    )
+    phases: ["validation", "execution", "settlement"]
+}
+
+// PHASE CONSTRAINT: Condition must hold during a specific phase
+invariant ValidateNoReentrancy {
+    description: "Reentrancy guard must be locked during validation phase"
+    severity: "critical"
+    category: "account-abstraction"
+    expression: (validation::account::reentrancy_locked == true) @ validation
+    phases: ["validation"]
+}
+
+// COMPLEX CROSS-PHASE: Account state stability check
+invariant ExecutionStateStability {
+    description: "Account state hash should only change during execution phase"
+    severity: "high"
+    category: "account-abstraction"
+    expression: (
+        (validation::account::state_hash_before == 
+         execution::account::state_hash_before) &&
+        (execution::account::state_hash_after != 
+         execution::account::state_hash_before) &&
+        (settlement::account::state_hash_before == 
+         execution::account::state_hash_after)
+    )
+    phases: ["validation", "execution", "settlement"]
+}

@@ -1,7 +1,53 @@
 //! Account Abstraction cross-layer invariant support.
+//!
+//! Supports phase-qualified invariants for ERC-4337 execution:
+//! - Validation Phase: validateUserOp, account signature checks
+//! - Execution Phase: account code execution, state mutations
+//! - Settlement Phase: bundles with other ops, fund transfers
 
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
+
+/// Execution phases in the ERC-4337 UserOp lifecycle.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
+pub enum ExecutionPhase {
+    /// Validation phase: validateUserOp, signature checks, paymaster verification.
+    Validation,
+    /// Execution phase: account code runs, state mutations, call execution.
+    Execution,
+    /// Settlement phase: bundled with other ops, balances transferred.
+    Settlement,
+}
+
+impl ExecutionPhase {
+    /// Get string representation.
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            Self::Validation => "validation",
+            Self::Execution => "execution",
+            Self::Settlement => "settlement",
+        }
+    }
+}
+
+impl std::str::FromStr for ExecutionPhase {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s {
+            "validation" => Ok(Self::Validation),
+            "execution" => Ok(Self::Execution),
+            "settlement" => Ok(Self::Settlement),
+            _ => Err(()),
+        }
+    }
+}
+
+impl std::fmt::Display for ExecutionPhase {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.as_str())
+    }
+}
 
 /// Identifies different layers in account abstraction execution.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize, PartialOrd, Ord)]
@@ -55,8 +101,14 @@ impl std::fmt::Display for AALayer {
 /// Cross-layer context for account abstraction analysis.
 #[derive(Debug, Clone, Default, Serialize, Deserialize)]
 pub struct AAContext {
-    /// Layer-specific state variables.
+    /// Current execution phase (Validation, Execution, or Settlement).
+    pub current_phase: Option<ExecutionPhase>,
+
+    /// Layer-specific state variables: layer -> (variable -> value).
     pub layer_state: BTreeMap<String, BTreeMap<String, serde_json::Value>>,
+
+    /// Phase-specific state snapshots for cross-phase analysis: phase -> layer_state.
+    pub phase_snapshots: BTreeMap<String, BTreeMap<String, BTreeMap<String, serde_json::Value>>>,
 
     /// UserOperation data from bundler layer.
     pub user_op: Option<UserOpData>,
@@ -72,6 +124,35 @@ pub struct AAContext {
 }
 
 impl AAContext {
+    /// Set the current execution phase.
+    pub fn set_phase(&mut self, phase: ExecutionPhase) {
+        self.current_phase = Some(phase);
+    }
+
+    /// Get the current execution phase.
+    pub fn get_phase(&self) -> Option<ExecutionPhase> {
+        self.current_phase
+    }
+
+    /// Check if currently in a specific phase.
+    pub fn in_phase(&self, phase: ExecutionPhase) -> bool {
+        self.current_phase == Some(phase)
+    }
+
+    /// Snapshot layer state at current phase.
+    pub fn snapshot_phase(&mut self, phase: ExecutionPhase) {
+        self.phase_snapshots
+            .insert(phase.to_string(), self.layer_state.clone());
+    }
+
+    /// Get snapshots from a specific phase for comparison.
+    pub fn get_phase_snapshot(
+        &self,
+        phase: ExecutionPhase,
+    ) -> Option<&BTreeMap<String, BTreeMap<String, serde_json::Value>>> {
+        self.phase_snapshots.get(phase.as_str())
+    }
+
     /// Get variable value from a specific layer.
     pub fn get_layer_var(&self, layer: &str, var: &str) -> Option<&serde_json::Value> {
         self.layer_state.get(layer)?.get(var)
@@ -83,6 +164,19 @@ impl AAContext {
             .entry(layer)
             .or_default()
             .insert(var, value);
+    }
+
+    /// Get variable value from a specific layer at a specific phase.
+    pub fn get_layer_var_at_phase(
+        &self,
+        phase: ExecutionPhase,
+        layer: &str,
+        var: &str,
+    ) -> Option<&serde_json::Value> {
+        self.phase_snapshots
+            .get(phase.as_str())?
+            .get(layer)?
+            .get(var)
     }
 }
 
@@ -181,6 +275,23 @@ mod tests {
     use std::str::FromStr;
 
     #[test]
+    fn test_execution_phase_from_str() {
+        assert_eq!(
+            ExecutionPhase::from_str("validation"),
+            Ok(ExecutionPhase::Validation)
+        );
+        assert_eq!(
+            ExecutionPhase::from_str("execution"),
+            Ok(ExecutionPhase::Execution)
+        );
+        assert_eq!(
+            ExecutionPhase::from_str("settlement"),
+            Ok(ExecutionPhase::Settlement)
+        );
+        assert_eq!(ExecutionPhase::from_str("invalid"), Err(()));
+    }
+
+    #[test]
     fn test_aa_layer_from_str() {
         assert_eq!(AALayer::from_str("bundler"), Ok(AALayer::Bundler));
         assert_eq!(AALayer::from_str("account"), Ok(AALayer::Account));
@@ -200,5 +311,33 @@ mod tests {
 
         let value = ctx.get_layer_var("bundler", "nonce");
         assert_eq!(value, Some(&serde_json::json!(42)));
+    }
+
+    #[test]
+    fn test_phase_tracking() {
+        let mut ctx = AAContext::default();
+        assert_eq!(ctx.get_phase(), None);
+
+        ctx.set_phase(ExecutionPhase::Validation);
+        assert!(ctx.in_phase(ExecutionPhase::Validation));
+        assert!(!ctx.in_phase(ExecutionPhase::Execution));
+
+        ctx.set_layer_var(
+            "account".to_string(),
+            "balance".to_string(),
+            serde_json::json!(1000),
+        );
+        ctx.snapshot_phase(ExecutionPhase::Validation);
+
+        ctx.set_phase(ExecutionPhase::Execution);
+        ctx.set_layer_var(
+            "account".to_string(),
+            "balance".to_string(),
+            serde_json::json!(500),
+        );
+
+        let pre_exec_balance =
+            ctx.get_layer_var_at_phase(ExecutionPhase::Validation, "account", "balance");
+        assert_eq!(pre_exec_balance, Some(&serde_json::json!(1000)));
     }
 }

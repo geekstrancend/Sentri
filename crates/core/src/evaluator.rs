@@ -222,6 +222,45 @@ impl Evaluator {
                     .ok_or(EvaluationError::UndefinedVariable(qualified_name))
             }
 
+            Expression::PhaseQualifiedVar { phase, layer, var } => {
+                // Phase-qualified variables: phase::layer::var
+                // For now, evaluate as layer::var (full phase support requires AA context)
+                let qualified_name = format!("{}::{}::{}", phase, layer, var);
+                self.context
+                    .state_vars
+                    .get(&qualified_name)
+                    .cloned()
+                    .or_else(|| {
+                        let layer_var = format!("{}::{}", layer, var);
+                        self.context.state_vars.get(&layer_var).cloned()
+                    })
+                    .or_else(|| self.context.state_vars.get(var).cloned())
+                    .ok_or(EvaluationError::UndefinedVariable(qualified_name))
+            }
+
+            Expression::PhaseConstraint {
+                phase: _,
+                constraint,
+            } => {
+                // Evaluate the constraint expression
+                // The phase is metadata for analysis; actual phase checking requires AA context
+                self.evaluate(constraint)
+            }
+
+            Expression::CrossPhaseRelation {
+                phase1: _,
+                expr1,
+                phase2: _,
+                expr2,
+                op,
+            } => {
+                // Evaluate cross-phase relation: expr1 op expr2
+                // Phase context requires AA context for snapshot lookup
+                let left_val = self.evaluate(expr1)?;
+                let right_val = self.evaluate(expr2)?;
+                self.eval_binary_op(&left_val, op, &right_val)
+            }
+
             Expression::BinaryOp { left, op, right } => {
                 let left_val = self.evaluate(left)?;
                 let right_val = self.evaluate(right)?;
