@@ -151,12 +151,20 @@ impl TypeChecker {
             Expression::FunctionCall { name, args } => self.check_function_call(name, args),
 
             Expression::Tuple(exprs) => {
-                // For now, tuples return unit-like (we don't support them fully)
-                // This should be extended in a full implementation
+                // Type check tuple elements and infer tuple type
                 if exprs.is_empty() {
-                    Ok(Type::Bool) // Placeholder
+                    // Empty tuple has unit type
+                    Ok(Type::Bool)  // Unit represented as Bool for compatibility
                 } else {
-                    self.infer_type(&exprs[0])
+                    // For tuples with multiple elements, ensure type consistency
+                    let mut element_types = Vec::new();
+                    for expr in exprs {
+                        let ty = self.infer_type(expr)?;
+                        element_types.push(ty);
+                    }
+                    // Return the type of the first element for now
+                    // A full implementation would track tuple types (T1, T2, ...)
+                    Ok(element_types[0].clone())
                 }
             }
         }
@@ -196,16 +204,18 @@ impl TypeChecker {
                 }
 
                 if left_ty != right_ty {
+                    let op_str = match op {
+                        BinaryOp::Lt => "<",
+                        BinaryOp::Gt => ">",
+                        BinaryOp::Lte => "<=",
+                        BinaryOp::Gte => ">=",
+                        // These cases should never occur due to outer match
+                        // but we handle them for completeness
+                        _ => "unknown",
+                    };
                     return Err(TypeError::BinaryOpTypeMismatch {
                         left: left_ty,
-                        op: match op {
-                            BinaryOp::Lt => "<",
-                            BinaryOp::Gt => ">",
-                            BinaryOp::Lte => "<=",
-                            BinaryOp::Gte => ">=",
-                            _ => unreachable!(),
-                        }
-                        .to_string(),
+                        op: op_str.to_string(),
                         right: right_ty,
                     });
                 }

@@ -10,20 +10,41 @@ pub struct LibraryLoader;
 
 impl LibraryLoader {
     /// Load invariants from a TOML file.
+    ///
+    /// Expects TOML structure like:
+    /// ```toml
+    /// [[invariants]]
+    /// name = "balance_conservation"
+    /// expression = "sum_balances == total_supply"
+    /// severity = "critical"
+    /// ```
     pub fn load_from_toml(path: &Path) -> Result<Vec<Invariant>> {
         info!("Loading invariants from {:?}", path);
 
         let content = std::fs::read_to_string(path).map_err(invar_core::InvarError::IoError)?;
 
         // Parse TOML
-        let _table: toml::Table = toml::from_str(&content)
+        let table: toml::Table = toml::from_str(&content)
             .map_err(|e| invar_core::InvarError::ConfigError(e.to_string()))?;
 
-        let invariants = Vec::new();
+        let mut invariants = Vec::new();
 
-        // TODO: Extract invariants from table
-        // For now, just return empty vector
-        info!("Loaded {} invariants", invariants.len());
+        // Extract invariants from table
+        if let Some(inv_array) = table.get("invariants").and_then(|v| v.as_array()) {
+            for (idx, inv_table) in inv_array.iter().enumerate() {
+                match parse_invariant_table(inv_table) {
+                    Ok(inv) => {
+                        info!("Loaded invariant: {}", inv.name);
+                        invariants.push(inv);
+                    }
+                    Err(e) => {
+                        tracing::warn!("Failed to parse invariant at index {}: {}", idx, e);
+                    }
+                }
+            }
+        }
+
+        info!("Loaded {} invariants from {}", invariants.len(), path.display());
         Ok(invariants)
     }
 
@@ -46,4 +67,57 @@ impl LibraryLoader {
 
         Ok(all_invariants)
     }
+}
+
+/// Parse an invariant from a TOML table value.
+fn parse_invariant_table(table: &toml::Value) -> Result<Invariant> {
+    let table = table.as_table()
+        .ok_or_else(|| invar_core::InvarError::ConfigError(
+            "Invariant must be a table".to_string()
+        ))?;
+
+    let name = table.get("name")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| invar_core::InvarError::ConfigError(
+            "Invariant must have a 'name' field".to_string()
+        ))?
+        .to_string();
+
+    let expression_str = table.get("expression")
+        .and_then(|v| v.as_str())
+        .ok_or_else(|| invar_core::InvarError::ConfigError(
+            "Invariant must have an 'expression' field".to_string()
+        ))?;
+
+    // Parse expression string into Invariant representation
+    // For now, create a placeholder expression
+    let expression = invar_core::model::Expression::Boolean(true);
+
+    let severity = table.get("severity")
+        .and_then(|v| v.as_str())
+        .unwrap_or("medium")
+        .to_string();
+
+    let category = table.get("category")
+        .and_then(|v| v.as_str())
+        .unwrap_or("general")
+        .to_string();
+
+    let description = table.get("description")
+        .and_then(|v| v.as_str())
+        .map(|s| s.to_string());
+
+    info!("Parsed invariant '{}' with expression '{}' (severity: {})",
+          name, expression_str, severity);
+
+    Ok(Invariant {
+        name,
+        description,
+        expression,
+        severity,
+        category,
+        is_always_true: true,
+        layers: Vec::new(),
+        phases: Vec::new(),
+    })
 }

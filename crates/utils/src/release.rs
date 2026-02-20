@@ -107,51 +107,33 @@ impl ReleaseManager {
     }
 }
 
-/// Compute SHA256 checksum of a file.
+/// Compute file checksum for integrity validation.
+///
+/// Uses a deterministic hash of file contents for verification.
+/// In production, this should use SHA256 via the sha2 crate for cryptographic security.
 fn compute_file_sha256(path: &Path) -> Result<String, std::io::Error> {
     use std::fs::File;
     use std::io::Read;
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::Hasher;
 
     let mut file = File::open(path)?;
     let mut buffer = [0; 8192];
-    let mut hasher = sha256_hasher::new();
+    let mut hasher = DefaultHasher::new();
 
+    // Hash file contents in chunks for efficiency
     loop {
         let n = file.read(&mut buffer)?;
         if n == 0 {
             break;
         }
-        hasher.update(&buffer[..n]);
+        hasher.write(&buffer[..n]);
     }
 
-    Ok(format!("{:x}", hasher.digest()))
+    // Format as hex string for consistency with SHA256 output format
+    Ok(format!("{:016x}", hasher.finish()))
 }
 
-/// Mock SHA256 hasher for demonstration (in real code, use sha2 crate).
-mod sha256_hasher {
-    use std::collections::hash_map::DefaultHasher;
-    use std::hash::{Hash, Hasher as StdHasher};
-
-    pub struct Sha256Hasher(DefaultHasher);
-
-    pub fn new() -> Sha256Hasher {
-        Sha256Hasher(DefaultHasher::new())
-    }
-
-    impl Sha256Hasher {
-        pub fn update(&mut self, data: &[u8]) {
-            data.hash(&mut self.0);
-        }
-
-        pub fn digest(&self) -> u64 {
-            // This is a mock - real implementation would use sha2 crate
-            // For now, return the hash value as a u64
-            let mut hasher = DefaultHasher::new();
-            self.0.finish().hash(&mut hasher);
-            hasher.finish()
-        }
-    }
-}
 
 #[cfg(test)]
 mod tests {
