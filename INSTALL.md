@@ -12,14 +12,14 @@ Invar is a production-grade, audit-ready multi-chain smart contract invariant en
 
 ### 1. Pre-compiled Binaries (Recommended)
 
-Download the latest release from [GitHub Releases](https://github.com/Emmyhack/Invar/releases).
+Download the latest release from [GitHub Releases](https://github.com/hackdex-max/Invar/releases).
 
 #### Linux / macOS
 
 ```bash
 # Download and verify
-curl -L -O https://github.com/Emmyhack/Invar/releases/download/v0.1.0/invar-linux-x86_64-0.1.0
-curl -L -O https://github.com/Emmyhack/Invar/releases/download/v0.1.0/invar-linux-x86_64-0.1.0.sha256
+curl -L -O https://github.com/hackdex-max/Invar/releases/download/v0.1.0/invar-linux-x86_64-0.1.0
+curl -L -O https://github.com/hackdex-max/Invar/releases/download/v0.1.0/invar-linux-x86_64-0.1.0.sha256
 
 # Verify checksum (critical for security)
 sha256sum -c invar-linux-x86_64-0.1.0.sha256
@@ -35,7 +35,7 @@ invar --version
 #### macOS (ARM64 / Apple Silicon)
 
 ```bash
-curl -L -O https://github.com/Emmyhack/Invar/releases/download/v0.1.0/invar-darwin-aarch64-0.1.0
+curl -L -O https://github.com/hackdex-max/Invar/releases/download/v0.1.0/invar-darwin-aarch64-0.1.0
 sha256sum -c invar-darwin-aarch64-0.1.0.sha256
 chmod +x invar-darwin-aarch64-0.1.0
 sudo mv invar-darwin-aarch64-0.1.0 /usr/local/bin/invar
@@ -51,7 +51,7 @@ Download `invar-windows-x86_64-0.1.0.exe` from the releases page and add it to y
 Requires Rust 1.70.0+. Install from https://rustup.rs/.
 
 ```bash
-git clone https://github.com/Emmyhack/Invar.git
+git clone https://github.com/hackdex-max/Invar.git
 cd Invar
 cargo install --path crates/cli
 ```
@@ -155,9 +155,9 @@ chmod +x /usr/local/bin/invar
 
 ## Getting Help
 
-- Report bugs: https://github.com/Emmyhack/Invar/issues
-- Documentation: https://github.com/Emmyhack/Invar/wiki
-- Community: Discussions at https://github.com/Emmyhack/Invar/discussions
+- Report bugs: https://github.com/hackdex-max/Invar/issues
+- Documentation: https://github.com/hackdex-max/Invar/wiki
+- Community: Discussions at https://github.com/hackdex-max/Invar/discussions
 
 ## Release Notes
 

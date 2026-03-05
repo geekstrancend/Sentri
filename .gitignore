@@ -1,6 +1,5 @@
 # Rust
 /target/
-Cargo.lock
 **/*.rs.bk
 *.pdb
 
@@ -18,3 +17,17 @@ Cargo.lock
 
 # Dependencies
 node_modules/
+
+# Development shortcuts (never commit)
+push.sh
+push_output.txt
+
+# Credentials and secrets (never commit)
+.env
+.env.local
+*.pem
+*.key
+*.secret
+*.p12
+.aws/
+.kube/
