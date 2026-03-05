@@ -8,6 +8,7 @@
 
 pub mod account_abstraction;
 pub mod attack_patterns;
+pub mod config;
 pub mod error;
 pub mod evaluator;
 pub mod model;
@@ -22,6 +23,7 @@ pub use account_abstraction::{
     UserOpData,
 };
 pub use attack_patterns::AttackPatternDB;
+pub use config::{Config, ConfigError, ChainConfig, InvariantConfig, AlertConfig};
 pub use error::{InvarError, Result};
 pub use evaluator::{EvalResult, EvaluationError, Evaluator, ExecutionContext, Value};
 pub use model::{FunctionModel, Invariant, ProgramModel, StateVar};

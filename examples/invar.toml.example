@@ -1,0 +1,414 @@
+# Complete Invar Configuration Example
+# 
+# This file demonstrates all supported configuration options for Invar.
+# Copy this to invar.toml and customize for your environment.
+#
+# Environment variable substitution is supported: ${VAR_NAME}
+# Missing variables will cause an error. Use .env file or export in shell.
+
+[metadata]
+# Project name and version (informational)
+name = "my-protocol-monitor"
+version = "1"
+description = "Smart contract invariant monitoring for my protocol"
+
+# ─────────────────────────────────────────────────────────────────
+# CHAIN CONFIGURATION
+# ─────────────────────────────────────────────────────────────────
+# 
+# Define one [[chains]] block per blockchain you want to monitor.
+# Supported types: evm, solana, cosmos (experimental)
+#
+
+[[chains]]
+# Unique identifier for this chain (used in invariant definitions)
+id = "ethereum"
+type = "evm"
+
+# Chain ID (used for RPC routing and transaction signing)
+chain_id = 1
+
+# RPC endpoint URLs (first is primary, rest are fallbacks)
+# Environment variables are expanded: ${VAR_NAME}
+# Missing env vars will cause startup error
+rpc_urls = [
+    "${ETH_RPC_PRIMARY}",
+    "https://eth.llamarpc.com",
+    "https://rpc.ankr.com/eth",
+]
+
+# Optional: WebSocket URL for real-time block subscriptions
+# Fallback to polling if not available
+ws_url = "${ETH_RPC_WS}"
+
+# Poll interval when WebSocket is unavailable (milliseconds)
+poll_interval_ms = 12000
+
+# Request timeout per RPC call (milliseconds)
+timeout_ms = 30000
+
+# Retry configuration
+# Exponential backoff: attempt 1 after 100ms, attempt 2 after 200ms, attempt 3 after 400ms
+[chains.retry]
+max_attempts = 3
+initial_backoff_ms = 100
+max_backoff_ms = 400
+
+# Connection pooling (number of concurrent HTTP connections)
+[chains.pool]
+max_connections = 10
+keepalive_seconds = 90
+
+
+[[chains]]
+id = "solana"
+type = "solana"
+chain_id = 101  # mainnet-beta
+
+# Solana RPC endpoint
+rpc_url = "${SOLANA_RPC_URL}"
+
+# Solana WebSocket endpoint
+ws_url = "${SOLANA_WS_URL}"
+
+# Poll interval (in slots on Solana, ~400ms per slot)
+poll_interval_ms = 400
+
+[chains.retry]
+max_attempts = 3
+initial_backoff_ms = 100
+max_backoff_ms = 400
+
+
+[[chains]]
+id = "base"
+type = "evm"
+chain_id = 8453
+
+rpc_urls = [
+    "${BASE_RPC_URL}",
+    "https://mainnet.base.org",
+]
+
+ws_url = "${BASE_RPC_WS}"
+poll_interval_ms = 12000
+
+
+# ─────────────────────────────────────────────────────────────────
+# INVARIANTS
+# ─────────────────────────────────────────────────────────────────
+#
+# Define one [[invariants]] block per invariant to monitor.
+# Each invariant is a condition that must always be true.
+#
+
+[[invariants]]
+# Unique identifier (used in alerts and logs)
+name = "erc20_supply_conservation"
+
+# Human-readable description (shown in alerts and reports)
+description = "Total supply must equal sum of all balances (conservation law)"
+
+# Which chain to evaluate this on
+chain = "ethereum"
+
+# Contract address to monitor
+contract = "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"  # USDC
+
+# The invariant condition (in expression language)
+# Available functions: totalSupply(), balanceOf(addr), gte, lte, eq, etc.
+check = "totalSupply() == sum(balances[*])"
+
+# Optional: baseline block number (don't alert on violations before this block)
+# Useful if invariant was broken historically and you only care about new violations
+baseline_block = 21000000
+
+# Severity level (affects alerting and filtering)
+severity = "critical"
+
+# Optional: tags for filtering and grouping
+tags = ["erc20", "conservation", "mainnet"]
+
+
+[[invariants]]
+name = "uniswap_v2_constant_product"
+description = "Uniswap V2: x * y >= k (constant product invariant)"
+chain = "ethereum"
+contract = "0xB4e16d0168e52d35CaCD2c6185b44281Ec28C9Dc"  # USDC/ETH pair
+
+# $k is a placeholder for the "constant" from the last successful state
+check = "reserve0() * reserve1() >= $k"
+
+baseline_block = 20000000
+severity = "high"
+tags = ["dex", "amm", "uniswap"]
+
+
+[[invariants]]
+name = "aave_utilization_bound"
+description = "AAVE utilization ratio must stay below 100%"
+chain = "ethereum"
+contract = "0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9"
+
+check = "totalBorrow() <= totalSupply()"
+
+severity = "critical"
+tags = ["lending", "aave", "risk"]
+
+
+[[invariants]]
+name = "solana_token_supply"
+description = "SPL Token: total supply matches chain state"
+chain = "solana"
+
+# For Solana, contract is the mint authority public key
+contract = "EPjFWaLb3hyccqJ7DDu4THBZmBA2PVPVpnKVfiuV3qU"  # USDC mint
+
+check = "supply == accounts[mint_authority].lamports"
+
+severity = "high"
+tags = ["solana", "spl-token"]
+
+
+[[invariants]]
+name = "cross_chain_bridge_peg"
+description = "Tokens locked on Ethereum == tokens minted on Solana"
+chain = "ethereum"  # Monitor from primary chain
+
+# Complex invariant across chains (synthetic)
+check = "bridge_locked[ethereum] == bridge_minted[solana]"
+
+severity = "critical"
+tags = ["cross-chain", "bridge"]
+
+
+# ─────────────────────────────────────────────────────────────────
+# ALERTING CONFIGURATION
+# ─────────────────────────────────────────────────────────────────
+#
+# Configure where and how violations are reported.
+#
+
+[alert]
+# Throttle (suppress) repeated alerts for the same invariant
+# if the last alert was less than this many seconds ago.
+# Prevents alert fatigue.
+throttle_seconds = 300
+
+# Global enable/disable (set to false to silence all alerts)
+enabled = true
+
+# Log violated invariants at this level (always on, cannot be disabled)
+# Options: error, warn, info
+log_level = "error"
+
+
+# Slack: send alerts to Slack channel via webhook
+[[alert.sinks]]
+type = "slack"
+name = "slack-alerts"  # identifier for this sink
+
+# Slack Incoming Webhook URL
+# Get this from Slack Workspace > Settings > Apps & Integrations > Incoming Webhooks
+webhook_url = "${SLACK_WEBHOOK_URL}"
+
+# Optional: customize the message (supports variables: $INVARIANT, $CHAIN, $VALUE)
+message_template = "🚨 *Invariant Violated*\nInvariant: $INVARIANT\nChain: $CHAIN\nValue: $VALUE"
+
+# Optional: only send Slack alerts for these severity levels
+severities = ["critical", "high"]
+
+
+# Webhook: send alerts to a generic HTTP endpoint
+# Compatible with: Zapier, Make.com, PagerDuty, Opsgenie, custom backends
+[[alert.sinks]]
+type = "webhook"
+name = "pagerduty-integration"
+
+# HTTP endpoint that receives POST requests with alert body
+url = "https://events.pagerduty.com/v2/enqueue"
+
+# Custom headers (for auth tokens, custom headers, etc.)
+# Environment variable substitution works here too
+headers = { "Authorization" = "Bearer ${PAGERDUTY_TOKEN}", "Content-Type" = "application/json" }
+
+# HTTP method (post, put)
+method = "post"
+
+# Optional: retry webhook if it fails
+retry_enabled = true
+retry_max_attempts = 3
+
+# Filter alerts by severity (optional)
+severities = ["critical"]
+
+
+# Webhook: send to a custom backend
+[[alert.sinks]]
+type = "webhook"
+name = "custom-backend"
+
+url = "https://my-ops.example.com/invar/violations"
+
+headers = { "Authorization" = "Bearer ${OPS_API_TOKEN}", "X-Source" = "invar" }
+
+method = "post"
+
+
+# ─────────────────────────────────────────────────────────────────
+# EVALUATION MODES
+# ─────────────────────────────────────────────────────────────────
+#
+
+[evaluation]
+# How often to evaluate all invariants (when not using WebSocket subscriptions)
+# This is the default polling interval (can be overridden per-chain)
+interval_secs = 12
+
+# Timeout for each evaluation (seconds)
+# If evaluation takes longer, it's aborted and logged as an error
+timeout_secs = 30
+
+# Mode: "immediate" or "block_based"
+# - immediate: evaluate on every state change poll
+# - block_based: evaluate only on new blocks
+mode = "block_based"
+
+
+# ─────────────────────────────────────────────────────────────────
+# DAEMON MODE (invar watch)
+# ─────────────────────────────────────────────────────────────────
+#
+
+[daemon]
+# Run until receiving SIGTERM/SIGINT
+enabled = true
+
+# Port for health check and metrics HTTP server
+metrics_port = 9090
+
+# Host to bind metrics server to (0.0.0.0 for all interfaces)
+metrics_host = "127.0.0.1"
+
+# Enable liveness probe at GET /healthz?detailed=true
+health_check_enabled = true
+
+# Reload config file on SIGHUP without restart
+reload_on_sighup = true
+
+# Graceful shutdown: max seconds to wait before force-exit
+graceful_shutdown_timeout_secs = 5
+
+
+# ─────────────────────────────────────────────────────────────────
+# OBSERVABILITY: STRUCTURED LOGGING
+# ─────────────────────────────────────────────────────────────────
+#
+
+[logging]
+# Log level: trace, debug, info, warn, error
+level = "info"
+
+# Format: pretty (human-readable) or json (machine-parseable)
+format = "pretty"
+
+# Optional: log file path (if omitted, logs go to stdout)
+# file = "/var/log/invar.log"
+
+# Optional: log file rotation
+# max_size_mb = 100
+# max_backups = 10
+
+# Don't log sensitive fields (RPC URLs with API keys, webhook URLs, etc.)
+redact_sensitive = true
+
+
+# ─────────────────────────────────────────────────────────────────
+# OBSERVABILITY: PROMETHEUS METRICS
+# ─────────────────────────────────────────────────────────────────
+#
+
+[metrics]
+enabled = true
+
+# Export metrics at Prometheus format
+format = "prometheus"
+
+# Histogram buckets for latency metrics (milliseconds)
+histogram_buckets_ms = [10, 50, 100, 500, 1000, 5000]
+
+# Sample rate for expensive metrics (0.0 to 1.0)
+# 1.0 = sample all, 0.1 = sample 10%
+sample_rate = 1.0
+
+
+# ─────────────────────────────────────────────────────────────────
+# SECURITY & CREDENTIALS
+# ─────────────────────────────────────────────────────────────────
+#
+# Important: NEVER commit real API keys or secrets to source control.
+# Always use environment variables ($VAR_NAME syntax).
+#
+# Recommended setup:
+#   1. Create a .env file (add to .gitignore):
+#      ETH_RPC_PRIMARY=https://eth.mainnet.g.alchemy.com/v2/YOUR_KEY
+#      SLACK_WEBHOOK_URL=https://hooks.slack.com/services/...
+#
+#   2. Load in shell before running:
+#      source .env
+#      invar watch --config invar.toml
+#
+#   3. Or use environment setup in your deployment:
+#      - Docker/Kubernetes: secrets mounted as env vars
+#      - systemd: EnvironmentFile=/etc/invar/.env
+#      - GitHub Actions: secrets.VARIABLE_NAME
+
+[security]
+# Prevent logging of credential fields (URLs with API keys, webhook URLs, etc.)
+# These fields are automatically redacted when logged:
+# - rpc_urls, ws_url
+# - webhook_url, headers.*Authorization
+# - Any field containing "secret", "password", "key", or "token"
+
+redact_sensitive_in_logs = true
+
+
+# ─────────────────────────────────────────────────────────────────
+# ADVANCED: PERFORMANCE TUNING
+# ─────────────────────────────────────────────────────────────────
+#
+
+[performance]
+# Number of evaluator threads (for parallel invariant evaluation)
+eval_workers = 4
+
+# Cache compiled invariant expressions
+cache_expressions = true
+
+# Cache chain state snapshots (useful if many invariants on same contract)
+cache_state = true
+
+# State cache TTL (seconds)
+cache_ttl_secs = 60
+
+
+# ─────────────────────────────────────────────────────────────────
+# ENVIRONMENT SETUP REFERENCE
+# ─────────────────────────────────────────────────────────────────
+#
+# To use this config, set these environment variables:
+#
+# export ETH_RPC_PRIMARY="https://eth.mainnet.g.alchemy.com/v2/YOUR_ALCHEMY_KEY"
+# export ETH_RPC_WS="wss://eth-mainnet.g.alchemy.com/v2/YOUR_ALCHEMY_KEY"
+# export SOLANA_RPC_URL="https://api.mainnet-beta.solana.com"
+# export SOLANA_WS_URL="wss://api.mainnet-beta.solana.com"
+# export BASE_RPC_URL="https://mainnet.base.org"
+# export BASE_RPC_WS="wss://base.rpc.tenderly.co"
+# export SLACK_WEBHOOK_URL="https://hooks.slack.com/services/YOUR/WEBHOOK"
+# export PAGERDUTY_TOKEN="YOUR_PAGERDUTY_API_KEY"
+# export OPS_API_TOKEN="YOUR_CUSTOM_TOKEN"
+#
+# Then run:
+#   invar validate-config --config invar.toml
+#   invar watch --config invar.toml
+#
