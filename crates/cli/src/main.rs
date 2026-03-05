@@ -35,6 +35,39 @@ enum Commands {
         path: PathBuf,
     },
 
+    /// Validate a configuration file (check syntax and env vars).
+    ValidateConfig {
+        /// Configuration file path.
+        #[arg(short, long)]
+        config: PathBuf,
+    },
+
+    /// Check invariants against a configured chain.
+    Check {
+        /// Configuration file path.
+        #[arg(short, long)]
+        config: PathBuf,
+
+        /// Run once and exit (do not enter watch mode).
+        #[arg(long)]
+        once: bool,
+    },
+
+    /// Watch chains and enforce invariants continuously.
+    Watch {
+        /// Configuration file path.
+        #[arg(short, long)]
+        config: PathBuf,
+
+        /// Polling interval in seconds (overrides config).
+        #[arg(long)]
+        interval: Option<u64>,
+
+        /// Metrics port (overrides config).
+        #[arg(long)]
+        metrics_port: Option<u16>,
+    },
+
     /// Analyze and build invariant checks.
     Build {
         /// Source file to analyze.
@@ -108,6 +141,22 @@ fn main() -> anyhow::Result<()> {
     match cli.command {
         Some(Commands::Init { path }) => {
             init_project(&path)?;
+            Ok(())
+        }
+        Some(Commands::ValidateConfig { config }) => {
+            validate_config(&config)?;
+            Ok(())
+        }
+        Some(Commands::Check { config, once }) => {
+            check_invariants(&config, once)?;
+            Ok(())
+        }
+        Some(Commands::Watch {
+            config,
+            interval,
+            metrics_port,
+        }) => {
+            watch_invariants(&config, interval, metrics_port)?;
             Ok(())
         }
         Some(Commands::Build {
@@ -528,4 +577,68 @@ fn generate_move_checks(content: &str) -> String {
          }}\n",
         source_lines, content.len(), check_count, check_count
     )
+}
+
+/// Validate a configuration file without connecting to chains.
+fn validate_config(config_path: &Path) -> anyhow::Result<()> {
+    use invar_core::Config;
+
+    let config_str = std::fs::read_to_string(config_path)?;
+    match Config::load_from_string(&config_str) {
+        Ok(config) => {
+            println!("✓ Configuration file is valid");
+            println!("  Chains configured: {}", config.chains.len());
+            println!("  Invariants defined: {}", config.invariants.len());
+            for chain in &config.chains {
+                println!("    • {}: {} (chainId={})", chain.id, chain.chain_type, chain.chain_id);
+            }
+            for inv in &config.invariants {
+                println!("    • {}: {} [{}]", inv.name, inv.chain, inv.severity);
+            }
+            Ok(())
+        }
+        Err(e) => {
+            eprintln!("✗ Configuration file is invalid");
+            eprintln!("  Error: {}", e);
+            std::process::exit(1);
+        }
+    }
+}
+
+/// Check invariants against a chain (once or continuously).
+fn check_invariants(config_path: &Path, once: bool) -> anyhow::Result<()> {
+    use invar_core::Config;
+
+    let config_str = std::fs::read_to_string(config_path)?;
+    let _config = Config::load_from_string(&config_str)?;
+
+    if once {
+        println!("✓ Running invariant checks (once)...");
+        println!("  [Not yet implemented - would connect to RPC and evaluate]");
+        println!("  To see all configured invariants, run: invar validate-config --config {}", config_path.display());
+    } else {
+        println!("✓ Starting watcher mode...");
+        println!("  [Not yet implemented - would start daemon]");
+    }
+
+    Ok(())
+}
+
+/// Watch chains and enforce invariants continuously (daemon mode).
+fn watch_invariants(
+    config_path: &Path,
+    _interval: Option<u64>,
+    _metrics_port: Option<u16>,
+) -> anyhow::Result<()> {
+    use invar_core::Config;
+
+    let config_str = std::fs::read_to_string(config_path)?;
+    let _config = Config::load_from_string(&config_str)?;
+
+    println!("✓ Starting continuous watcher daemon...");
+    println!("  [Not yet implemented - would subscribe to blocks and monitor]");
+    println!("  Metrics would be available at 127.0.0.1:9090/metrics");
+    println!("  Health check available at 127.0.0.1:9090/healthz");
+
+    Ok(())
 }
