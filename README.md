@@ -46,8 +46,8 @@ docs/
 ## Getting Help
 
 - **Documentation**: See [docs/](docs/) folder
-- **Issues**: [GitHub Issues](https://github.com/Emmyhack/Invar/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Emmyhack/Invar/discussions)
+- **Issues**: [GitHub Issues](https://github.com/hackdex-max/Invar/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/hackdex-max/Invar/discussions)
 - **Security**: See [SECURITY.md](SECURITY.md)
 
 
@@ -55,7 +55,7 @@ docs/
 ## Building from Source
 
 ```bash
-git clone https://github.com/Emmyhack/Invar.git
+git clone https://github.com/hackdex-max/Invar.git
 cd Invar
 cargo build --release
 ./target/release/invar --version
@@ -77,7 +77,7 @@ MIT License - see [LICENSE](LICENSE)
 
 ## Project Metadata
 
-- **Repository**: [github.com/Emmyhack/Invar](https://github.com/Emmyhack/Invar)
-- **Issues**: [GitHub Issues](https://github.com/Emmyhack/Invar/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/Emmyhack/Invar/discussions)
+- **Repository**: [github.com/hackdex-max/Invar](https://github.com/hackdex-max/Invar)
+- **Issues**: [GitHub Issues](https://github.com/hackdex-max/Invar/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/hackdex-max/Invar/discussions)
 - **Code of Conduct**: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)

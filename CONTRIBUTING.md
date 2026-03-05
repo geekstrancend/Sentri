@@ -20,7 +20,7 @@ We are committed to providing a welcoming and inclusive environment for all cont
 
 ```bash
 # Clone the repository
-git clone https://github.com/zelius/invar
+git clone https://github.com/hackdex-max/invar
 cd invar
 
 # Install dependencies
