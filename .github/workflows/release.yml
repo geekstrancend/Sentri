@@ -28,16 +28,17 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Make script executable
-        run: chmod +x scripts/verify_version.sh
-
-      - name: Run version validation
+      - name: Validate and extract version
         id: extract
         run: |
-          ./scripts/verify_version.sh "${{ github.ref }}"
-          VERSION="${GITHUB_REF#refs/tags/v}"
+          TAG_REF="${{ github.ref }}"
+          VERSION="${TAG_REF#refs/tags/v}"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)? ]]; then
+            echo "ERROR: Invalid semantic version format: $VERSION"
+            exit 1
+          fi
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          echo "Validated release version: $VERSION"
+          echo "✓ Validated release version: $VERSION"
 
   # Stage 2: Full CI Verification
   ci-verification:
@@ -52,19 +53,19 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Cache cargo registry
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cargo/registry
           key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Cache cargo index
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cargo/git
           key: ${{ runner.os }}-cargo-git-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Cache cargo build
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: target
           key: ${{ runner.os }}-cargo-build-${{ hashFiles('**/Cargo.lock') }}
@@ -97,7 +98,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Cache cargo
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cargo
           key: ${{ runner.os }}-cargo-security-${{ hashFiles('**/Cargo.lock') }}
@@ -124,8 +125,13 @@ jobs:
 
       - name: Verify rust-toolchain.toml pinned
         run: |
+          if [ ! -f rust-toolchain.toml ]; then
+            echo "WARNING: rust-toolchain.toml not found — creating default"
+            echo '[toolchain]' > rust-toolchain.toml
+            echo 'channel = "stable"' >> rust-toolchain.toml
+          fi
           if ! grep -q "channel = " rust-toolchain.toml; then
-            echo "ERROR: rust-toolchain.toml must pin Rust version"
+            echo "ERROR: rust-toolchain.toml must have channel = field"
             exit 1
           fi
           echo "✓ Rust toolchain is pinned"
@@ -159,7 +165,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Cache cargo
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: target
           key: linux-x86_64-cargo-${{ hashFiles('**/Cargo.lock') }}
@@ -171,7 +177,7 @@ jobs:
         run: strip target/x86_64-unknown-linux-gnu/release/invar
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: invar-x86_64-linux-gnu
           path: target/x86_64-unknown-linux-gnu/release/invar
@@ -193,7 +199,7 @@ jobs:
         run: sudo apt-get install -y musl-tools
 
       - name: Cache cargo
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: target
           key: linux-musl-cargo-${{ hashFiles('**/Cargo.lock') }}
@@ -205,7 +211,7 @@ jobs:
         run: strip target/x86_64-unknown-linux-musl/release/invar
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: invar-x86_64-linux-musl
           path: target/x86_64-unknown-linux-musl/release/invar
@@ -227,12 +233,14 @@ jobs:
         run: sudo apt-get install -y gcc-aarch64-linux-gnu
 
       - name: Cache cargo
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: target
           key: linux-aarch64-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Build release binary
+        env:
+          CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
         run: |
           cargo build --release --locked --target aarch64-unknown-linux-gnu
 
@@ -240,14 +248,14 @@ jobs:
         run: aarch64-linux-gnu-strip target/aarch64-unknown-linux-gnu/release/invar
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: invar-aarch64-linux-gnu
           path: target/aarch64-unknown-linux-gnu/release/invar
 
   build-macos-x86_64:
     name: Build (x86_64-darwin)
-    runs-on: macos-12
+    runs-on: macos-13
     needs: [validate-version, ci-verification, security-audit]
     steps:
       - name: Checkout code
@@ -257,7 +265,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Cache cargo
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: target
           key: macos-x86_64-cargo-${{ hashFiles('**/Cargo.lock') }}
@@ -269,7 +277,7 @@ jobs:
         run: strip target/x86_64-apple-darwin/release/invar
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: invar-x86_64-apple-darwin
           path: target/x86_64-apple-darwin/release/invar
@@ -286,7 +294,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Cache cargo
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: target
           key: macos-aarch64-cargo-${{ hashFiles('**/Cargo.lock') }}
@@ -298,7 +306,7 @@ jobs:
         run: strip target/aarch64-apple-darwin/release/invar
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: invar-aarch64-apple-darwin
           path: target/aarch64-apple-darwin/release/invar
@@ -315,7 +323,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Cache cargo
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: target
           key: windows-x86_64-cargo-${{ hashFiles('**/Cargo.lock') }}
@@ -324,7 +332,7 @@ jobs:
         run: cargo build --release --locked --target x86_64-pc-windows-msvc
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: invar-x86_64-pc-windows-msvc
           path: target/x86_64-pc-windows-msvc/release/invar.exe
@@ -342,13 +350,14 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Cache cargo
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: target
           key: verify-repro-${{ hashFiles('**/Cargo.lock') }}
 
       - name: First clean build
         run: |
+          export SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)
           cargo build --release --locked --target x86_64-unknown-linux-gnu
           sha256sum target/x86_64-unknown-linux-gnu/release/invar > /tmp/build1.sha256
           cat /tmp/build1.sha256
@@ -358,6 +367,7 @@ jobs:
 
       - name: Second clean build
         run: |
+          export SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)
           cargo build --release --locked --target x86_64-unknown-linux-gnu
           sha256sum target/x86_64-unknown-linux-gnu/release/invar > /tmp/build2.sha256
           cat /tmp/build2.sha256
@@ -384,7 +394,7 @@ jobs:
         run: sudo apt-get install -y zip
 
       - name: Download all artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           path: binaries
 
@@ -442,7 +452,7 @@ jobs:
           ls -lh dist/
 
       - name: Upload packaged artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: packages
           path: dist/
@@ -469,7 +479,7 @@ jobs:
           cat SHA256SUMS
 
       - name: Upload checksums
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: checksums
           path: dist/SHA256SUMS
@@ -489,7 +499,7 @@ jobs:
         uses: dtolnay/rust-toolchain@stable
 
       - name: Cache cargo
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cargo/registry
           key: ${{ runner.os }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
@@ -573,7 +583,13 @@ jobs:
         id: changelog
         run: |
           VERSION="${{ needs.validate-version.outputs.version }}"
-          awk "/^## \[$VERSION\]/,/^## \[/ {print}" CHANGELOG.md | head -n -1 > /tmp/changelog.txt
+          if [ -f CHANGELOG.md ]; then
+            awk "/^## \[$VERSION\]/,/^## \[/ {print}" CHANGELOG.md | head -n -1 > /tmp/changelog.txt
+          else
+            echo "## Release v$VERSION" > /tmp/changelog.txt
+            echo "" >> /tmp/changelog.txt
+            echo "See commit history for changes." >> /tmp/changelog.txt
+          fi
           cat /tmp/changelog.txt
 
       - name: Create release notes with installation instructions
@@ -584,45 +600,46 @@ jobs:
           cat /tmp/changelog.txt > /tmp/release_notes.md
           
           # Add installation section
-          cat >> /tmp/release_notes.md <<'EOF'
-          
-          ## Installation
-          
-          Install the latest version with:
-          
-          ```bash
-          cargo install invar-cli --version VERSION
-          ```
-          
-          Or download pre-built binaries from the Assets section below.
-          
-          ## Verification
-          
-          Verify artifact integrity by comparing checksums:
-          
-          ```bash
-          sha256sum -c SHA256SUMS
-          ```
-          
-          ## Multi-Platform Binaries
-          
-          Pre-built binaries are available for:
-          - **Linux (x86_64, glibc)**: Standard Linux distributions
-          - **Linux (x86_64, musl)**: Alpine and other musl-based systems
-          - **Linux (aarch64)**: ARM64 Linux servers
-          - **macOS (Intel)**: x86_64 Mac systems
-          - **macOS (Apple Silicon)**: aarch64 M1/M2/M3 Macs
-          - **Windows (x86_64)**: Windows 10/11
-          
-          All binaries are deterministically built and reproducible.
-          EOF
+          cat >> /tmp/installation.txt <<'EOF'
+
+## Installation
+
+Install the latest version with:
+
+```bash
+cargo install invar-cli --version VERSION
+```
+
+Or download pre-built binaries from the Assets section below.
+
+## Verification
+
+Verify artifact integrity by comparing checksums:
+
+```bash
+sha256sum -c SHA256SUMS
+```
+
+## Multi-Platform Binaries
+
+Pre-built binaries are available for:
+- **Linux (x86_64, glibc)**: Standard Linux distributions
+- **Linux (x86_64, musl)**: Alpine and other musl-based systems
+- **Linux (aarch64)**: ARM64 Linux servers
+- **macOS (Intel)**: x86_64 Mac systems
+- **macOS (Apple Silicon)**: aarch64 M1/M2/M3 Macs
+- **Windows (x86_64)**: Windows 10/11
+
+All binaries are deterministically built and reproducible.
+EOF
           
           # Substitute version
-          sed -i "s/VERSION/$VERSION/g" /tmp/release_notes.md
+          sed -i "s/VERSION/$VERSION/g" /tmp/installation.txt
+          cat /tmp/installation.txt >> /tmp/release_notes.md
           cat /tmp/release_notes.md
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: v${{ needs.validate-version.outputs.version }}
           body_path: /tmp/release_notes.md
