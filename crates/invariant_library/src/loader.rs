@@ -44,7 +44,11 @@ impl LibraryLoader {
             }
         }
 
-        info!("Loaded {} invariants from {}", invariants.len(), path.display());
+        info!(
+            "Loaded {} invariants from {}",
+            invariants.len(),
+            path.display()
+        );
         Ok(invariants)
     }
 
@@ -71,44 +75,52 @@ impl LibraryLoader {
 
 /// Parse an invariant from a TOML table value.
 fn parse_invariant_table(table: &toml::Value) -> Result<Invariant> {
-    let table = table.as_table()
-        .ok_or_else(|| invar_core::InvarError::ConfigError(
-            "Invariant must be a table".to_string()
-        ))?;
+    let table = table.as_table().ok_or_else(|| {
+        invar_core::InvarError::ConfigError("Invariant must be a table".to_string())
+    })?;
 
-    let name = table.get("name")
+    let name = table
+        .get("name")
         .and_then(|v| v.as_str())
-        .ok_or_else(|| invar_core::InvarError::ConfigError(
-            "Invariant must have a 'name' field".to_string()
-        ))?
+        .ok_or_else(|| {
+            invar_core::InvarError::ConfigError("Invariant must have a 'name' field".to_string())
+        })?
         .to_string();
 
-    let expression_str = table.get("expression")
+    let expression_str = table
+        .get("expression")
         .and_then(|v| v.as_str())
-        .ok_or_else(|| invar_core::InvarError::ConfigError(
-            "Invariant must have an 'expression' field".to_string()
-        ))?;
+        .ok_or_else(|| {
+            invar_core::InvarError::ConfigError(
+                "Invariant must have an 'expression' field".to_string(),
+            )
+        })?;
 
     // Parse expression string into Invariant representation
     // For now, create a placeholder expression
     let expression = invar_core::model::Expression::Boolean(true);
 
-    let severity = table.get("severity")
+    let severity = table
+        .get("severity")
         .and_then(|v| v.as_str())
         .unwrap_or("medium")
         .to_string();
 
-    let category = table.get("category")
+    let category = table
+        .get("category")
         .and_then(|v| v.as_str())
         .unwrap_or("general")
         .to_string();
 
-    let description = table.get("description")
+    let description = table
+        .get("description")
         .and_then(|v| v.as_str())
         .map(|s| s.to_string());
 
-    info!("Parsed invariant '{}' with expression '{}' (severity: {})",
-          name, expression_str, severity);
+    info!(
+        "Parsed invariant '{}' with expression '{}' (severity: {})",
+        name, expression_str, severity
+    );
 
     Ok(Invariant {
         name,

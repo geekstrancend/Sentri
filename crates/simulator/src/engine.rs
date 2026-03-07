@@ -80,7 +80,10 @@ impl Simulator for SimulationEngine {
         // Calculate coverage as percentage of iterations without violations
         let coverage = ((FUZZ_ITERATIONS - violations) as f64 / FUZZ_ITERATIONS as f64) * 100.0;
 
-        info!("Simulation complete: {} violations found, {:.1}% coverage", violations, coverage);
+        info!(
+            "Simulation complete: {} violations found, {:.1}% coverage",
+            violations, coverage
+        );
 
         Ok(SimulationReport {
             violations,

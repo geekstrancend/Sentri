@@ -1,10 +1,10 @@
 //! EVM analyzer implementation.
 
-use invar_core::model::{ProgramModel, FunctionModel};
+use invar_core::model::{FunctionModel, ProgramModel};
 use invar_core::traits::ChainAnalyzer;
 use invar_core::Result;
-use std::path::Path;
 use std::collections::BTreeSet;
+use std::path::Path;
 use tracing::info;
 
 /// Analyzer for EVM (Solidity) smart contracts.
@@ -14,12 +14,11 @@ impl ChainAnalyzer for EvmAnalyzer {
     fn analyze(&self, path: &Path) -> Result<ProgramModel> {
         info!("Analyzing EVM contract at {:?}", path);
 
-        let source = std::fs::read_to_string(path)
-            .map_err(invar_core::InvarError::IoError)?;
+        let source = std::fs::read_to_string(path).map_err(invar_core::InvarError::IoError)?;
 
         // Parse Solidity source code
-        let contract_name = extract_contract_name(&source)
-            .unwrap_or_else(|| "UnknownContract".to_string());
+        let contract_name =
+            extract_contract_name(&source).unwrap_or_else(|| "UnknownContract".to_string());
 
         let functions = extract_public_functions(&source);
         info!("Found {} public functions in contract", functions.len());
@@ -61,7 +60,8 @@ fn extract_contract_name(source: &str) -> Option<String> {
     for line in source.lines() {
         if line.trim_start().starts_with("contract ") {
             let contract_part = line.split("contract ").nth(1)?;
-            let name = contract_part.split(|c: char| c == '{' || c == '(' || c == ';')
+            let name = contract_part
+                .split(|c: char| ['{', '(', ';'].contains(&c))
                 .next()?
                 .trim();
             return Some(name.to_string());
@@ -75,7 +75,9 @@ fn extract_public_functions(source: &str) -> Vec<String> {
     let mut functions = Vec::new();
     for line in source.lines() {
         let trimmed = line.trim_start();
-        if (trimmed.contains("public ") || trimmed.contains("external ")) && trimmed.contains("function ") {
+        if (trimmed.contains("public ") || trimmed.contains("external "))
+            && trimmed.contains("function ")
+        {
             if let Some(func_part) = trimmed.split("function ").nth(1) {
                 if let Some(name) = func_part.split('(').next() {
                     functions.push(name.trim().to_string());
@@ -103,18 +105,29 @@ fn extract_state_variables(source: &str) -> Vec<String> {
 
 /// Determine if a line is a state variable declaration.
 fn is_state_variable_declaration(line: &str) -> bool {
-    let types = ["uint", "int", "address", "bool", "bytes", "string", "mapping"];
+    let types = [
+        "uint", "int", "address", "bool", "bytes", "string", "mapping",
+    ];
     types.iter().any(|t| line.starts_with(t)) && !line.contains("function")
 }
 
 /// Extract variable name from declaration (e.g., "uint256 public balance;" → "balance").
 fn extract_variable_name(line: &str) -> Option<String> {
-    let name_part = line.split_whitespace()
-        .skip_while(|w| w.starts_with("uint") || w.starts_with("int") || 
-                        w == &"public" || w == &"private" || w == &"mapping" ||
-                        w == &"address" || w == &"bool" || w == &"bytes" || w == &"string")
-        .next()?;
-    let name = name_part.split(|c: char| c == ';' || c == '=' || c == '(' || c == '[')
+    let name_part = line
+        .split_whitespace()
+        .find(|w| {
+            !w.starts_with("uint")
+                && !w.starts_with("int")
+                && w != &"public"
+                && w != &"private"
+                && w != &"mapping"
+                && w != &"address"
+                && w != &"bool"
+                && w != &"bytes"
+                && w != &"string"
+        })?;
+    let name = name_part
+        .split(|c: char| [';', '=', '(', '['].contains(&c))
         .next()?
         .trim();
     if name.is_empty() {

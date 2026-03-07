@@ -1,10 +1,10 @@
 //! Move analyzer implementation.
 
-use invar_core::model::{ProgramModel, FunctionModel};
+use invar_core::model::{FunctionModel, ProgramModel};
 use invar_core::traits::ChainAnalyzer;
 use invar_core::Result;
-use std::path::Path;
 use std::collections::BTreeSet;
+use std::path::Path;
 use tracing::info;
 
 /// Analyzer for Move programs (Aptos/Sui).
@@ -14,12 +14,10 @@ impl ChainAnalyzer for MoveAnalyzer {
     fn analyze(&self, path: &Path) -> Result<ProgramModel> {
         info!("Analyzing Move program at {:?}", path);
 
-        let source = std::fs::read_to_string(path)
-            .map_err(invar_core::InvarError::IoError)?;
+        let source = std::fs::read_to_string(path).map_err(invar_core::InvarError::IoError)?;
 
         // Parse Move source code
-        let module_name = extract_module_name(&source)
-            .unwrap_or_else(|| "move_module".to_string());
+        let module_name = extract_module_name(&source).unwrap_or_else(|| "move_module".to_string());
 
         let functions = extract_public_functions(&source);
         info!("Found {} public functions in Move module", functions.len());
@@ -61,7 +59,8 @@ fn extract_module_name(source: &str) -> Option<String> {
     for line in source.lines() {
         if line.trim_start().starts_with("module ") {
             let module_part = line.split("module ").nth(1)?;
-            let name = module_part.split(|c: char| c == ':' || c == '{' || c == ';')
+            let name = module_part
+                .split(|c: char| [':', '{', ';'].contains(&c))
                 .next()?
                 .trim();
             return Some(name.to_string());
@@ -98,8 +97,10 @@ fn extract_resource_types(source: &str) -> Vec<String> {
                 "struct "
             };
             if let Some(struct_part) = trimmed.split(key).nth(1) {
-                if let Some(name) = struct_part.split(|c: char| c == '{' || c == '(' || c == '<')
-                    .next() {
+                if let Some(name) = struct_part
+                    .split(|c: char| ['{', '(', '<'].contains(&c))
+                    .next()
+                {
                     resources.push(name.trim().to_string());
                 }
             }

@@ -154,7 +154,7 @@ impl TypeChecker {
                 // Type check tuple elements and infer tuple type
                 if exprs.is_empty() {
                     // Empty tuple has unit type
-                    Ok(Type::Bool)  // Unit represented as Bool for compatibility
+                    Ok(Type::Bool) // Unit represented as Bool for compatibility
                 } else {
                     // For tuples with multiple elements, ensure type consistency
                     let mut element_types = Vec::new();
@@ -164,7 +164,7 @@ impl TypeChecker {
                     }
                     // Return the type of the first element for now
                     // A full implementation would track tuple types (T1, T2, ...)
-                    Ok(element_types[0].clone())
+                    Ok(element_types[0])
                 }
             }
         }
