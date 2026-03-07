@@ -14,8 +14,8 @@ curl -fsSL https://install.sentri.dev | bash
 brew install sentri
 
 # From source
-git clone https://github.com/geekstrancend/Invar.git
-cd Invar
+git clone https://github.com/geekstrancend/Sentri.git
+cd Sentri
 cargo install --path crates/cli
 
 # Using Docker
@@ -58,18 +58,18 @@ curl -fsSL https://install.sentri.dev | bash
 sentri init --project myproject
 
 # Creates:
-# myproject/invar.toml
+# myproject/sentri.toml
 # myproject/invariants.invar
 # myproject/.invarignore
 ```
 
-### Q: Where should I put invar.toml?
+### Q: Where should I put sentri.toml?
 
 **A:** In your project root:
 
 ```
 my-project/
-├── invar.toml          ← Here
+├── sentri.toml          ← Here
 ├── invariants.invar    ← Or in subdirectory
 ├── src/
 └── contracts/
@@ -78,7 +78,7 @@ my-project/
 Can also reference from anywhere:
 
 ```bash
-sentri analyze --config /path/to/invar.toml
+sentri analyze --config /path/to/sentri.toml
 ```
 
 ### Q: How do I exclude files?
@@ -163,7 +163,7 @@ Collections:
 invar analyze --config invar.toml
 
 # Quick check (pass/fail)
-invar check --config invar.toml --strict
+sentri check --config sentri.toml --strict
 ```
 
 ### Q: How do I run only specific invariants?
@@ -172,10 +172,10 @@ invar check --config invar.toml --strict
 
 ```bash
 # Include specific invariant
-invar analyze --include vault_conservation
+sentri analyze --include vault_conservation
 
 # Exclude patterns
-invar analyze --exclude experimental_*
+sentri analyze --exclude experimental_*
 
 # Only specific chain
 invar analyze --chain solana
@@ -213,27 +213,27 @@ esac
 invar analyze --output json
 
 # Or pipe to jq
-invar analyze --output json | jq '.summary'
+sentri analyze --output json | jq '.summary'
 ```
 
 ## Performance
 
-### Q: Invar is slow, how do I speed it up?
+### Q: Sentri is slow, how do I speed it up?
 
 **A:** Several strategies:
 
 ```bash
 # 1. Skip slow invariants
-invar analyze --exclude slow_*
+sentri analyze --exclude slow_*
 
 # 2. Analyze specific chain only
 invar analyze --chain solana
 
 # 3. Limit analysis scope
-invar analyze --path src/ --path contracts/
+sentri analyze --path src/ --path contracts/
 
 # 4. Skip caching
-invar analyze --no-cache
+sentri analyze --no-cache
 ```
 
 ### Q: How do I profile performance?
@@ -241,7 +241,7 @@ invar analyze --no-cache
 **A:** Check timing:
 
 ```bash
-time invar analyze --config invar.toml
+time sentri analyze --config sentri.toml
 
 # More detailed
 RUST_LOG=debug invar analyze --config invar.toml
@@ -252,7 +252,7 @@ RUST_LOG=debug invar analyze --config invar.toml
 **A:** Run with timing output:
 
 ```bash
-invar analyze --config invar.toml --verbose --verbose
+sentri analyze --config sentri.toml --verbose --verbose
 # Shows timing for each phase
 ```
 
@@ -277,14 +277,14 @@ global: "string" + 42
 global: "string_" + string_value
 ```
 
-Check syntax at https://invar-dsl.dev/syntax
+Check syntax at https://sentri-dsl.dev/syntax
 
 ### Q: How do I debug my invariant?
 
 **A:** Use logging:
 
 ```bash
-RUST_LOG=debug invar analyze --config invar.toml --verbose
+RUST_LOG=debug sentri analyze --config sentri.toml --verbose
 
 # See what's being evaluated
 ```
@@ -335,7 +335,7 @@ global: accounts[0].owner == expected_owner
 
 ## CI/CD
 
-### Q: How do I add Invar to GitHub Actions?
+### Q: How do I add Sentri to GitHub Actions?
 
 **A:** Simple workflow:
 
@@ -351,8 +351,8 @@ jobs:
       
       - name: Run Invariants
         run: |
-          curl -fsSL https://install.invar.dev | bash
-          invar analyze --config invar.toml --strict
+          curl -fsSL https://install.sentri.dev | bash
+          sentri analyze --config sentri.toml --strict
 ```
 
 ### Q: How do I prevent merge if invariants fail?
@@ -362,13 +362,13 @@ jobs:
 2. Add rule for main branch
 3. Require "Invariant Check" to pass
 
-### Q: Can I run Invar in Docker?
+### Q: Can I run Sentri in Docker?
 
 **A:** Yes:
 
 ```bash
-docker run -v /path/to/project:/project zelius/invar:latest \
-  analyze --config /project/invar.toml
+docker run -v /path/to/project:/project zelius/sentri:latest \
+  analyze --config /project/sentri.toml
 ```
 
 Or in docker-compose:
@@ -384,9 +384,9 @@ services:
 
 ## Security
 
-### Q: Is it safe to run Invar on untrusted code?
+### Q: Is it safe to run Sentri on untrusted code?
 
-**A:** Yes, Invar uses sandboxing:
+**A:** Yes, Sentri uses sandboxing:
 - No filesystem access
 - No network access
 - No external execution
@@ -406,7 +406,7 @@ See [Security Model](docs/security-model.md) for details.
 
 **A:** Don't use GitHub Issues for security.
 
-Email: security@invar-project.dev
+Email: security@sentri.dev
 
 Include:
 - Description of vulnerability
@@ -416,7 +416,7 @@ Include:
 
 ## Technical
 
-### Q: What's the difference between Invar versions?
+### Q: What's the difference between Sentri versions?
 
 **A:** Check [Versioning Policy](docs/versioning.md):
 
@@ -424,7 +424,7 @@ Include:
 - **v1.x** - Stable API (backward compatible)
 - **Patch** (v1.0.x) - Bug fixes only
 
-### Q: Can I use Invar with language X?
+### Q: Can I use Sentri with language X?
 
 **A:** Depends on the blockchain:
 
@@ -438,7 +438,7 @@ Include:
 
 Request new language support in GitHub Issues.
 
-### Q: Can I extend Invar?
+### Q: Can I extend Sentri?
 
 **A:** Limited extension support:
 
@@ -447,7 +447,7 @@ Request new language support in GitHub Issues.
 
 For plugin system, see [Roadmap](README.md#Roadmap).
 
-### Q: What resources does Invar use?
+### Q: What resources does Sentri use?
 
 **A:** Typical usage:
 
@@ -462,9 +462,9 @@ For plugin system, see [Roadmap](README.md#Roadmap).
 
 - [Documentation](docs/README.md) - Complete guides
 - [Examples](examples/) - Real-world usage
-- [GitHub Issues](https://github.com/zelius/invar/issues) - Ask community
-- [GitHub Discussions](https://github.com/zelius/invar/discussions) - Discussions
-- [Discord](https://discord.gg/invar) - Real-time chat
+- [GitHub Issues](https://github.com/geekstrancend/Sentri/issues) - Ask community
+- [GitHub Discussions](https://github.com/geekstrancend/Sentri/discussions) - Discussions
+- [Discord](https://discord.gg/sentri) - Real-time chat
 
 ### Getting Help
 
@@ -475,7 +475,7 @@ For plugin system, see [Roadmap](README.md#Roadmap).
 
 ## Contributing
 
-Found a bug or want to improve Invar?
+Found a bug or want to improve Sentri?
 
 - [Contributing Guide](CONTRIBUTING_EXTENDED.md)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
@@ -484,4 +484,4 @@ Found a bug or want to improve Invar?
 ---
 
 **Last updated:** 2024-01-15  
-**Invar version:** 0.1.0
+**Sentri version:** 0.1.0

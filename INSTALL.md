@@ -1,6 +1,6 @@
-# Invar Installation Guide
+# Sentri Installation Guide
 
-Invar is a production-grade, audit-ready multi-chain smart contract invariant enforcement tool.
+Sentri is a production-grade, audit-ready multi-chain smart contract invariant enforcement tool.
 
 ## System Requirements
 
@@ -12,54 +12,54 @@ Invar is a production-grade, audit-ready multi-chain smart contract invariant en
 
 ### 1. Pre-compiled Binaries (Recommended)
 
-Download the latest release from [GitHub Releases](https://github.com/hackdex-max/Invar/releases).
+Download the latest release from [GitHub Releases](https://github.com/geekstrancend/Sentri/releases).
 
 #### Linux / macOS
 
 ```bash
 # Download and verify
-curl -L -O https://github.com/hackdex-max/Invar/releases/download/v0.1.0/invar-linux-x86_64-0.1.0
-curl -L -O https://github.com/hackdex-max/Invar/releases/download/v0.1.0/invar-linux-x86_64-0.1.0.sha256
+curl -L -O https://github.com/geekstrancend/Sentri/releases/download/v0.1.0/sentri-linux-x86_64-0.1.0
+curl -L -O https://github.com/geekstrancend/Sentri/releases/download/v0.1.0/sentri-linux-x86_64-0.1.0.sha256
 
 # Verify checksum (critical for security)
-sha256sum -c invar-linux-x86_64-0.1.0.sha256
+sha256sum -c sentri-linux-x86_64-0.1.0.sha256
 
 # Install
-chmod +x invar-linux-x86_64-0.1.0
-sudo mv invar-linux-x86_64-0.1.0 /usr/local/bin/invar
+chmod +x sentri-linux-x86_64-0.1.0
+sudo mv sentri-linux-x86_64-0.1.0 /usr/local/bin/sentri
 
 # Verify installation
-invar --version
+sentri --version
 ```
 
 #### macOS (ARM64 / Apple Silicon)
 
 ```bash
-curl -L -O https://github.com/hackdex-max/Invar/releases/download/v0.1.0/invar-darwin-aarch64-0.1.0
-sha256sum -c invar-darwin-aarch64-0.1.0.sha256
-chmod +x invar-darwin-aarch64-0.1.0
-sudo mv invar-darwin-aarch64-0.1.0 /usr/local/bin/invar
-invar --version
+curl -L -O https://github.com/geekstrancend/Sentri/releases/download/v0.1.0/sentri-darwin-aarch64-0.1.0
+sha256sum -c sentri-darwin-aarch64-0.1.0.sha256
+chmod +x sentri-darwin-aarch64-0.1.0
+sudo mv sentri-darwin-aarch64-0.1.0 /usr/local/bin/sentri
+sentri --version
 ```
 
 #### Windows
 
-Download `invar-windows-x86_64-0.1.0.exe` from the releases page and add it to your PATH.
+Download `sentri-windows-x86_64-0.1.0.exe` from the releases page and add it to your PATH.
 
 ### 2. Install from Source
 
 Requires Rust 1.70.0+. Install from https://rustup.rs/.
 
 ```bash
-git clone https://github.com/hackdex-max/Invar.git
-cd Invar
+git clone https://github.com/geekstrancend/Sentri.git
+cd Sentri
 cargo install --path crates/cli
 ```
 
 ### 3. Cargo Install
 
 ```bash
-cargo install invar
+cargo install sentri
 ```
 
 ## Verification
@@ -67,8 +67,8 @@ cargo install invar
 ### Check Installation
 
 ```bash
-invar --version
-invar --help
+sentri --version
+sentri --help
 ```
 
 ### Verify Binary Integrity
@@ -77,7 +77,7 @@ Always verify checksums for downloaded binaries:
 
 ```bash
 # Get the SHA256 sum of your binary
-sha256sum /usr/local/bin/invar
+sha256sum /usr/local/bin/sentri
 
 # Compare with the published checksum from releases page
 # If they match, your binary is verified
@@ -85,20 +85,20 @@ sha256sum /usr/local/bin/invar
 
 ## Configuration
 
-Invar supports configuration via:
+Sentri supports configuration via:
 
 1. **Command-line arguments** (highest priority)
    ```bash
-   invar --config path/to/config.toml
+   sentri --config path/to/config.toml
    ```
 
 2. **Environment variables**
    ```bash
-   export INVAR_STRICT_MODE=true
-   export INVAR_CHAIN=solana
+   export SENTRI_STRICT_MODE=true
+   export SENTRI_CHAIN=solana
    ```
 
-3. **Configuration file** (`~/.invar/config.toml`)
+3. **Configuration file** (`~/.sentri/config.toml`)
    ```toml
    [enforcement]
    strict_mode = true
@@ -113,10 +113,10 @@ Invar supports configuration via:
 
 ```bash
 # If installed to /usr/local/bin
-sudo rm /usr/local/bin/invar
+sudo rm /usr/local/bin/sentri
 
 # If installed via cargo
-cargo uninstall invar
+cargo uninstall sentri
 ```
 
 ## Troubleshooting
@@ -132,7 +132,7 @@ echo $PATH | grep -q /usr/local/bin || echo "/usr/local/bin not in PATH"
 
 This indicates a corrupted download. Re-download the binary and try again:
 ```bash
-rm invar-*
+rm sentri-*
 # Re-download from releases page
 ```
 
@@ -140,24 +140,24 @@ rm invar-*
 
 Make sure the binary is executable:
 ```bash
-chmod +x /usr/local/bin/invar
+chmod +x /usr/local/bin/sentri
 ```
 
 ## Security Considerations
 
 1. **Always verify checksums** before running downloaded binaries
-2. **Keep Invar updated** to get security patches
+2. **Keep Sentri updated** to get security patches
 3. **Run with least privilege** - don't run as root unless necessary
 4. **Enable strict mode** for production deployments:
    ```bash
-   invar --strict-mode analyze --file invariants.invar
+   sentri --strict-mode analyze --file invariants.invar
    ```
 
 ## Getting Help
 
-- Report bugs: https://github.com/hackdex-max/Invar/issues
-- Documentation: https://github.com/hackdex-max/Invar/wiki
-- Community: Discussions at https://github.com/hackdex-max/Invar/discussions
+- Report bugs: https://github.com/geekstrancend/Sentri/issues
+- Documentation: https://github.com/geekstrancend/Sentri/wiki
+- Community: Discussions at https://github.com/geekstrancend/Sentri/discussions
 
 ## Release Notes
 
@@ -172,12 +172,12 @@ For reproducible builds from source:
 rustc --version
 
 # Build in release mode with reproducible settings
-cargo build --release -p invar
+cargo build --release -p sentri
 
 # Verify the build (if tests are available)
 cargo test --release
 
-# Binary will be at target/release/invar
+# Binary will be at target/release/sentri
 ./target/release/invar --version
 ```
 

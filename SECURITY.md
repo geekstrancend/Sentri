@@ -1,6 +1,6 @@
 # Security Release Policy
 
-This document describes how Invar handles security issues and releases security updates.
+This document describes how Sentri handles security issues and releases security updates.
 
 ## Security Advisory Process
 
@@ -8,7 +8,7 @@ This document describes how Invar handles security issues and releases security 
 
 **DO NOT** open public GitHub issues for security vulnerabilities.
 
-Instead, email security@invar.dev (or equivalent contact if no dedicated security email) with:
+Instead, email security@sentri.dev (or equivalent contact if no dedicated security email) with:
 - Description of the vulnerability
 - Affected versions
 - Steps to reproduce (if applicable)
@@ -193,5 +193,5 @@ Eligibility:
 
 ## Questions?
 
-Contact: security@invar.dev
+Contact: security@sentri.dev
 

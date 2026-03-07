@@ -55,8 +55,8 @@ docs/
 ## Building from Source
 
 ```bash
-git clone https://github.com/geekstrancend/Invar.git
-cd Invar
+git clone https://github.com/geekstrancend/Sentri.git
+cd Sentri
 cargo build --release
 ./target/release/sentri --version
 ```
@@ -77,7 +77,7 @@ MIT License - see [LICENSE](LICENSE)
 
 ## Project Metadata
 
-- **Repository**: [github.com/geekstrancend/Invar](https://github.com/geekstrancend/Invar)
-- **Issues**: [GitHub Issues](https://github.com/geekstrancend/Invar/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/geekstrancend/Invar/discussions)
+- **Repository**: [github.com/geekstrancend/Sentri](https://github.com/geekstrancend/Sentri)
+- **Issues**: [GitHub Issues](https://github.com/geekstrancend/Sentri/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/geekstrancend/Sentri/discussions)
 - **Code of Conduct**: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
