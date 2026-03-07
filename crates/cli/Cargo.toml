@@ -19,18 +19,18 @@ tracing.workspace = true
 tracing-subscriber.workspace = true
 clap.workspace = true
 colored.workspace = true
-invar-core = { path = "../core" }
-invar-ir = { path = "../ir" }
-invar-dsl-parser = { path = "../dsl_parser" }
-invar-utils = { path = "../utils" }
-invar-library = { path = "../invariant_library" }
-invar-report = { path = "../report" }
-invar-analyzer-solana = { path = "../analyzer/solana" }
-invar-analyzer-evm = { path = "../analyzer/evm" }
-invar-analyzer-move = { path = "../analyzer/move" }
-invar-generator-solana = { path = "../generator/solana" }
-invar-generator-evm = { path = "../generator/evm" }
-invar-generator-move = { path = "../generator/move" }
-invar-simulator = { path = "../simulator" }
+invar-core.workspace = true
+invar-ir.workspace = true
+invar-dsl-parser.workspace = true
+invar-utils.workspace = true
+invar-library.workspace = true
+invar-report.workspace = true
+invar-analyzer-solana.workspace = true
+invar-analyzer-evm.workspace = true
+invar-analyzer-move.workspace = true
+invar-generator-solana.workspace = true
+invar-generator-evm.workspace = true
+invar-generator-move.workspace = true
+invar-simulator.workspace = true
 
 [dev-dependencies]

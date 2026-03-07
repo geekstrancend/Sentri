@@ -11,9 +11,9 @@ thiserror.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
-invar-core = { path = "../../core" }
-invar-ir = { path = "../../ir" }
-invar-utils = { path = "../../utils" }
+invar-core.workspace = true
+invar-ir.workspace = true
+invar-utils.workspace = true
 syn = { version = "2.0", features = ["full"] }
 quote = "1.0"
 proc-macro2 = "1.0"
