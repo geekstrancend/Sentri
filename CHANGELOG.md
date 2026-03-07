@@ -61,12 +61,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Function protection status tracking
 
 **CLI**
-- `invar init` command
-- `invar build` command with chain selection
-- `invar simulate` command with seed control
-- `invar upgrade-check` command
-- `invar report` command with format selection
-- `invar list` command for invariant discovery
+- `sentri init` command
+- `sentri build` command with chain selection
+- `sentri simulate` command with seed control
+- `sentri upgrade-check` command
+- `sentri report` command with format selection
+- `sentri list` command for invariant discovery
 - Comprehensive help system
 - Colored output support
 - Verbose logging control
@@ -95,7 +95,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 #### Project Structure
 
 ```
-invar/
+sentri/
 ├── 15 specialized crates
 ├── Zero external unsafe code
 ├── 100% test passing

@@ -1,4 +1,4 @@
-//! Performance benchmarks for Invar core components.
+//! Performance benchmarks for Sentri core components.
 //!
 //! These benchmarks measure:
 //! - Parsing performance

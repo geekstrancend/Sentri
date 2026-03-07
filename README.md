@@ -46,8 +46,8 @@ docs/
 ## Getting Help
 
 - **Documentation**: See [docs/](docs/) folder
-- **Issues**: [GitHub Issues](https://github.com/geekstrancend/Invar/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/geekstrancend/Invar/discussions)
+- **Issues**: [GitHub Issues](https://github.com/geekstrancend/Sentri/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/geekstrancend/Sentri/discussions)
 - **Security**: See [SECURITY.md](SECURITY.md)
 
 
