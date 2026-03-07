@@ -62,23 +62,40 @@ jobs:
       
   # Unit tests across all platforms
   test:
-    name: Unit Tests
+    name: Unit Tests (${{ matrix.rust }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        rust: [stable, beta]
-      include:
-        - rust: beta
-          experimental: true
-    continue-on-error: ${{ matrix.experimental == true }}
+        rust: [stable]
+    continue-on-error: false
     steps:
       - uses: actions/checkout@v4
       
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ matrix.rust }}
+      
+      - uses: Swatinem/rust-cache@v2
+      
+      - name: Run unit tests
+        run: cargo test --lib --all --verbose
+        
+      - name: Run doc tests
+        run: cargo test --doc --all
+        
+  # Beta Rust tests (experimental, non-blocking)
+  test-beta:
+    name: Unit Tests (beta)
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: beta
       
       - uses: Swatinem/rust-cache@v2
       
@@ -170,8 +187,6 @@ jobs:
         
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
           
   # Benchmark smoke test
   benchmark:
