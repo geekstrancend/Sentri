@@ -1,6 +1,6 @@
 # Contributing to Invar
 
-Thank you for your interest in contributing to Invar! This document provides guidelines for contributing to the project.
+Thank you for your interest in contributing to Sentri! This document provides guidelines for contributing to the project.
 
 ## Code of Conduct
 
@@ -9,7 +9,7 @@ We are committed to providing a welcoming and inclusive environment for all cont
 ## Getting Started
 
 1. Fork the repository on GitHub
-2. Clone your fork: `git clone https://github.com/your-username/invar.git`
+2. Clone your fork: `git clone https://github.com/your-username/Sentri.git`
 3. Create a feature branch: `git checkout -b feature/your-feature`
 4. Make your changes
 5. Commit with clear messages
@@ -38,7 +38,7 @@ cargo clippy
 
 ## Code Quality Standards
 
-Invar maintains high code quality standards:
+Sentri maintains high code quality standards:
 
 - **No unsafe code** in production paths (enforced via compiler)
 - **No compiler warnings**: Compiled with `-D warnings`
@@ -97,7 +97,7 @@ pub fn analyze(&self, path: &Path) -> Result<ProgramModel>
 #### 6. **No Panics in CLI**
 - Library code may use `unwrap()` only in unreachable branches with explicit comments
 - CLI code must never panic - use `Result` types instead
-- All user-facing operations must return `Result<T, InvarError>`
+- All user-facing operations must return `Result<T, InvarError>` (or `SentriError` once refactored)
 
 #### 7. **No Unsafe Code**
 - All unsafe code must be explicitly justified with a comment
@@ -484,7 +484,7 @@ Major architectural changes should:
 - **GitHub Discussions**: Questions and ideas
 - **GitHub Issues**: Bugs and feature requests
 - **Discord**: Real-time chat
-- **Email**: security@invar-project.dev (security issues only)
+- **Email**: security@sentri.dev (security issues only)
 
 ## License
 
@@ -500,4 +500,4 @@ Have questions?
 - Ask in pull request comments
 - Email maintainers
 
-Thank you for contributing to Invar!
+Thank you for contributing to Sentri!

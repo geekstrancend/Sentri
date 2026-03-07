@@ -178,7 +178,7 @@ sentri analyze --include vault_conservation
 sentri analyze --exclude experimental_*
 
 # Only specific chain
-invar analyze --chain solana
+sentri analyze --chain solana
 ```
 
 ### Q: What do the exit codes mean?
@@ -195,7 +195,7 @@ invar analyze --chain solana
 Use in scripts:
 
 ```bash
-invar analyze --config invar.toml
+sentri analyze --config sentri.toml
 case $? in
   0) echo "Success" ;;
   1) exit 1  # Halt build
@@ -210,7 +210,7 @@ esac
 **A:** Use output flag:
 
 ```bash
-invar analyze --output json
+sentri analyze --output json
 
 # Or pipe to jq
 sentri analyze --output json | jq '.summary'
@@ -244,7 +244,7 @@ sentri analyze --no-cache
 time sentri analyze --config sentri.toml
 
 # More detailed
-RUST_LOG=debug invar analyze --config invar.toml
+RUST_LOG=debug sentri analyze --config sentri.toml
 ```
 
 ### Q: What's taking the most time?

@@ -1,7 +1,7 @@
 # Complete Sentri Configuration Example
 # 
 # This file demonstrates all supported configuration options for Sentri.
-# Copy this to invar.toml and customize for your environment.
+# Copy this to sentri.toml and customize for your environment.
 #
 # Environment variable substitution is supported: ${VAR_NAME}
 # Missing variables will cause an error. Use .env file or export in shell.
@@ -250,7 +250,7 @@ name = "custom-backend"
 
 url = "https://my-ops.example.com/invar/violations"
 
-headers = { "Authorization" = "Bearer ${OPS_API_TOKEN}", "X-Source" = "invar" }
+headers = { "Authorization" = "Bearer ${OPS_API_TOKEN}", "X-Source" = "sentri" }
 
 method = "post"
 
@@ -276,7 +276,7 @@ mode = "block_based"
 
 
 # ─────────────────────────────────────────────────────────────────
-# DAEMON MODE (invar watch)
+# DAEMON MODE (sentri watch)
 # ─────────────────────────────────────────────────────────────────
 #
 
@@ -313,7 +313,7 @@ level = "info"
 format = "pretty"
 
 # Optional: log file path (if omitted, logs go to stdout)
-# file = "/var/log/invar.log"
+# file = "/var/log/sentri.log"
 
 # Optional: log file rotation
 # max_size_mb = 100
@@ -356,11 +356,11 @@ sample_rate = 1.0
 #
 #   2. Load in shell before running:
 #      source .env
-#      invar watch --config invar.toml
+#      sentri watch --config sentri.toml
 #
 #   3. Or use environment setup in your deployment:
 #      - Docker/Kubernetes: secrets mounted as env vars
-#      - systemd: EnvironmentFile=/etc/invar/.env
+#      - systemd: EnvironmentFile=/etc/sentri/.env
 #      - GitHub Actions: secrets.VARIABLE_NAME
 
 [security]
@@ -409,6 +409,6 @@ cache_ttl_secs = 60
 # export OPS_API_TOKEN="YOUR_CUSTOM_TOKEN"
 #
 # Then run:
-#   invar validate-config --config invar.toml
-#   invar watch --config invar.toml
+#   sentri validate-config --config sentri.toml
+#   sentri watch --config sentri.toml
 #
