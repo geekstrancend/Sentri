@@ -301,7 +301,7 @@ while [ $# -gt 0 ]; do
             ;;
         --help)
             cat <<EOF
-Invar Installation Script
+Sentri Installation Script
 
 Usage:
   bash install.sh [OPTIONS]

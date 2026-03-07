@@ -160,7 +160,7 @@ Collections:
 
 ```bash
 # Full analysis with report
-invar analyze --config invar.toml
+sentri analyze --config sentri.toml
 
 # Quick check (pass/fail)
 sentri check --config sentri.toml --strict
