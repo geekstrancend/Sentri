@@ -168,12 +168,10 @@ jobs:
       - name: Generate coverage
         run: cargo tarpaulin --all --out Xml --timeout 300
         
-      - name: Upload coverage
-        uses: codecov/codecov-action@v4
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./cobertura.xml
-          fail_ci_if_error: false
           
   # Benchmark smoke test
   benchmark:
