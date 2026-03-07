@@ -28,6 +28,22 @@ license = "MIT"
 repository = "https://github.com/geekstrancend/invar"
 
 [workspace.dependencies]
+# Internal crates
+invar-core = { path = "crates/core", version = "0.1.1" }
+invar-utils = { path = "crates/utils", version = "0.1.1" }
+invar-ir = { path = "crates/ir", version = "0.1.1" }
+invar-dsl-parser = { path = "crates/dsl_parser", version = "0.1.1" }
+invar-analyzer-solana = { path = "crates/analyzer/solana", version = "0.1.1" }
+invar-analyzer-evm = { path = "crates/analyzer/evm", version = "0.1.1" }
+invar-analyzer-move = { path = "crates/analyzer/move", version = "0.1.1" }
+invar-generator-solana = { path = "crates/generator/solana", version = "0.1.1" }
+invar-solana-macro = { path = "crates/generator/solana_macro", version = "0.1.0" }
+invar-generator-evm = { path = "crates/generator/evm", version = "0.1.1" }
+invar-generator-move = { path = "crates/generator/move", version = "0.1.1" }
+invar-library = { path = "crates/invariant_library", version = "0.1.1" }
+invar-report = { path = "crates/report", version = "0.1.1" }
+invar-simulator = { path = "crates/simulator", version = "0.1.1" }
+
 # Core dependencies
 anyhow = "1.0"
 thiserror = "1.0"

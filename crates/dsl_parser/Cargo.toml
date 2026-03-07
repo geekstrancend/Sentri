@@ -12,7 +12,7 @@ serde.workspace = true
 serde_json.workspace = true
 pest.workspace = true
 pest_derive.workspace = true
-invar-ir = { path = "../ir" }
-invar-core = { path = "../core" }
+invar-ir.workspace = true
+invar-core.workspace = true
 
 [dev-dependencies]
