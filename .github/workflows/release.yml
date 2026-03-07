@@ -520,7 +520,7 @@ jobs:
           
           # Publish in strict dependency order
           # Layer 1: Core library (no internal dependencies)
-          for crate in "invar-core"; do
+          for crate in "sentri-core"; do
             echo ""
             echo "Publishing core: $crate v$VERSION..."
             cargo publish -p "$crate" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
@@ -530,7 +530,7 @@ jobs:
           done
           
           # Layer 2: Intermediate libraries (depend on core)
-          for crate in "invar-ir" "invar-utils" "invar-library" "invar-report" "invar-dsl-parser"; do
+          for crate in "sentri-ir" "sentri-utils" "sentri-library" "sentri-report" "sentri-dsl-parser"; do
             echo ""
             echo "Publishing intermediate: $crate v$VERSION..."
             cargo publish -p "$crate" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
@@ -540,7 +540,7 @@ jobs:
           done
           
           # Layer 3: Analyzers and generators (depend on core)
-          for crate in "invar-analyzer-evm" "invar-analyzer-move" "invar-analyzer-solana" "invar-solana-macro" "invar-generator-evm" "invar-generator-move" "invar-generator-solana" "invar-simulator"; do
+          for crate in "sentri-analyzer-evm" "sentri-analyzer-move" "sentri-analyzer-solana" "sentri-solana-macro" "sentri-generator-evm" "sentri-generator-move" "sentri-generator-solana" "sentri-simulator"; do
             echo ""
             echo "Publishing analyzer/generator: $crate v$VERSION..."
             cargo publish -p "$crate" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
@@ -551,8 +551,8 @@ jobs:
           
           # Layer 4: CLI (depends on multiple crates)
           echo ""
-          echo "Publishing CLI: invar-cli v$VERSION..."
-          cargo publish -p "invar-cli" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
+          echo "Publishing CLI: sentri-cli v$VERSION..."
+          cargo publish -p "sentri-cli" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
           
           echo ""
           echo "✓ crates.io publication complete"
