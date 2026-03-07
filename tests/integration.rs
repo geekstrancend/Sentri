@@ -1,2 +1,2 @@
 #[test]
-fn placeholder() {}
+fn placeholder_integration() {}
