@@ -1,4 +1,4 @@
-# Invar - Multi-Chain Invariant Enforcement Tool
+# Sentri - Multi-Chain Invariant Enforcement Tool
 
 Production-grade invariant verification system for smart contracts.
 
@@ -46,8 +46,8 @@ docs/
 ## Getting Help
 
 - **Documentation**: See [docs/](docs/) folder
-- **Issues**: [GitHub Issues](https://github.com/hackdex-max/Invar/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/hackdex-max/Invar/discussions)
+- **Issues**: [GitHub Issues](https://github.com/geekstrancend/Invar/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/geekstrancend/Invar/discussions)
 - **Security**: See [SECURITY.md](SECURITY.md)
 
 
@@ -55,10 +55,10 @@ docs/
 ## Building from Source
 
 ```bash
-git clone https://github.com/hackdex-max/Invar.git
+git clone https://github.com/geekstrancend/Invar.git
 cd Invar
 cargo build --release
-./target/release/invar --version
+./target/release/sentri --version
 ```
 
 See [INSTALL.md](INSTALL.md) for detailed installation options.
@@ -77,7 +77,7 @@ MIT License - see [LICENSE](LICENSE)
 
 ## Project Metadata
 
-- **Repository**: [github.com/hackdex-max/Invar](https://github.com/hackdex-max/Invar)
-- **Issues**: [GitHub Issues](https://github.com/hackdex-max/Invar/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/hackdex-max/Invar/discussions)
+- **Repository**: [github.com/geekstrancend/Invar](https://github.com/geekstrancend/Invar)
+- **Issues**: [GitHub Issues](https://github.com/geekstrancend/Invar/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/geekstrancend/Invar/discussions)
 - **Code of Conduct**: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)

@@ -1,6 +1,6 @@
-# Complete Invar Configuration Example
+# Complete Sentri Configuration Example
 # 
-# This file demonstrates all supported configuration options for Invar.
+# This file demonstrates all supported configuration options for Sentri.
 # Copy this to invar.toml and customize for your environment.
 #
 # Environment variable substitution is supported: ${VAR_NAME}
