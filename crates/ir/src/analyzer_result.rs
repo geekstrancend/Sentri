@@ -1,6 +1,6 @@
 //! Analysis context tracking.
 
-use invar_core::model::ProgramModel;
+use sentri_core::model::ProgramModel;
 
 /// Context information from analysis phase.
 #[derive(Debug, Clone)]

@@ -1,8 +1,8 @@
 //! EVM analyzer implementation.
 
-use invar_core::model::{FunctionModel, ProgramModel};
-use invar_core::traits::ChainAnalyzer;
-use invar_core::Result;
+use sentri_core::model::{FunctionModel, ProgramModel};
+use sentri_core::traits::ChainAnalyzer;
+use sentri_core::Result;
 use std::collections::BTreeSet;
 use std::path::Path;
 use tracing::info;
@@ -14,7 +14,7 @@ impl ChainAnalyzer for EvmAnalyzer {
     fn analyze(&self, path: &Path) -> Result<ProgramModel> {
         info!("Analyzing EVM contract at {:?}", path);
 
-        let source = std::fs::read_to_string(path).map_err(invar_core::InvarError::IoError)?;
+        let source = std::fs::read_to_string(path).map_err(sentri_core::InvarError::IoError)?;
 
         // Parse Solidity source code
         let contract_name =
@@ -113,19 +113,17 @@ fn is_state_variable_declaration(line: &str) -> bool {
 
 /// Extract variable name from declaration (e.g., "uint256 public balance;" → "balance").
 fn extract_variable_name(line: &str) -> Option<String> {
-    let name_part = line
-        .split_whitespace()
-        .find(|w| {
-            !w.starts_with("uint")
-                && !w.starts_with("int")
-                && w != &"public"
-                && w != &"private"
-                && w != &"mapping"
-                && w != &"address"
-                && w != &"bool"
-                && w != &"bytes"
-                && w != &"string"
-        })?;
+    let name_part = line.split_whitespace().find(|w| {
+        !w.starts_with("uint")
+            && !w.starts_with("int")
+            && w != &"public"
+            && w != &"private"
+            && w != &"mapping"
+            && w != &"address"
+            && w != &"bool"
+            && w != &"bytes"
+            && w != &"string"
+    })?;
     let name = name_part
         .split(|c: char| [';', '=', '(', '['].contains(&c))
         .next()?

@@ -1,9 +1,9 @@
 //! Simulation engine.
 
-use invar_core::model::{Invariant, ProgramModel, SimulationReport};
-use invar_core::traits::Simulator;
-use invar_core::Result;
 use rand::SeedableRng;
+use sentri_core::model::{Invariant, ProgramModel, SimulationReport};
+use sentri_core::traits::Simulator;
+use sentri_core::Result;
 use tracing::info;
 
 /// Deterministic simulation engine for invariant testing.

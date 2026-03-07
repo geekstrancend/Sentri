@@ -1,8 +1,8 @@
 //! Move analyzer implementation.
 
-use invar_core::model::{FunctionModel, ProgramModel};
-use invar_core::traits::ChainAnalyzer;
-use invar_core::Result;
+use sentri_core::model::{FunctionModel, ProgramModel};
+use sentri_core::traits::ChainAnalyzer;
+use sentri_core::Result;
 use std::collections::BTreeSet;
 use std::path::Path;
 use tracing::info;
@@ -14,7 +14,7 @@ impl ChainAnalyzer for MoveAnalyzer {
     fn analyze(&self, path: &Path) -> Result<ProgramModel> {
         info!("Analyzing Move program at {:?}", path);
 
-        let source = std::fs::read_to_string(path).map_err(invar_core::InvarError::IoError)?;
+        let source = std::fs::read_to_string(path).map_err(sentri_core::InvarError::IoError)?;
 
         // Parse Move source code
         let module_name = extract_module_name(&source).unwrap_or_else(|| "move_module".to_string());

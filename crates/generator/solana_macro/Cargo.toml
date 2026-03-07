@@ -1,5 +1,5 @@
 [package]
-name = "invar-solana-macro"
+name = "sentri-solana-macro"
 version = "0.1.0"
 edition = "2021"
 

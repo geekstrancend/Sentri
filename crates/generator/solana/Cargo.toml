@@ -1,5 +1,5 @@
 [package]
-name = "invar-generator-solana"
+name = "sentri-generator-solana"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -11,10 +11,10 @@ thiserror.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
-invar-core.workspace = true
-invar-ir.workspace = true
-invar-utils.workspace = true
-invar-analyzer-solana.workspace = true
+sentri-core.workspace = true
+sentri-ir.workspace = true
+sentri-utils.workspace = true
+sentri-analyzer-solana.workspace = true
 proc-macro2 = "1.0"
 quote = "1.0"
 syn = { version = "2.0", features = ["full"] }

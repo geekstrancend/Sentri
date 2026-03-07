@@ -4,8 +4,8 @@
 //! Coverage target: 95%+ for parser module.
 
 mod parser_tests {
-    use invar_dsl_parser::lexer::Lexer;
-    use invar_dsl_parser::parser::Parser;
+    use sentri_dsl_parser::lexer::Lexer;
+    use sentri_dsl_parser::parser::Parser;
 
     #[test]
     fn test_parse_simple_invariant() {
@@ -149,8 +149,8 @@ mod parser_tests {
 //! Coverage target: 95%+ for type_checker module.
 
 mod type_checker_tests {
-    use invar_core::type_checker::TypeChecker;
-    use invar_core::types::{Type, TypeEnvironment};
+    use sentri_core::type_checker::TypeChecker;
+    use sentri_core::types::{Type, TypeEnvironment};
 
     #[test]
     fn test_type_inference_number() {
@@ -231,8 +231,8 @@ mod type_checker_tests {
 //! Coverage target: 95%+ for evaluator module.
 
 mod evaluator_tests {
-    use invar_core::evaluator::Evaluator;
-    use invar_core::types::TypedValue;
+    use sentri_core::evaluator::Evaluator;
+    use sentri_core::types::TypedValue;
 
     #[test]
     fn test_evaluate_literal() {
@@ -300,7 +300,7 @@ mod evaluator_tests {
 //! Coverage target: 95%+ for AST module.
 
 mod ast_tests {
-    use invar_ir::ast::*;
+    use sentri_ir::ast::*;
 
     #[test]
     fn test_ast_node_creation() {

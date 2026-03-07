@@ -1,6 +1,6 @@
 //! Invariant library management.
 
-use invar_core::model::Invariant;
+use sentri_core::model::Invariant;
 use std::collections::BTreeMap;
 
 /// A collection of invariants organized by category.

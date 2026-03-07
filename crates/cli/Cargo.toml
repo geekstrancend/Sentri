@@ -1,12 +1,12 @@
 [package]
-name = "invar-cli"
+name = "sentri-cli"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
 
 [[bin]]
-name = "invar"
+name = "sentri"
 path = "src/main.rs"
 
 [dependencies]
@@ -19,18 +19,18 @@ tracing.workspace = true
 tracing-subscriber.workspace = true
 clap.workspace = true
 colored.workspace = true
-invar-core.workspace = true
-invar-ir.workspace = true
-invar-dsl-parser.workspace = true
-invar-utils.workspace = true
-invar-library.workspace = true
-invar-report.workspace = true
-invar-analyzer-solana.workspace = true
-invar-analyzer-evm.workspace = true
-invar-analyzer-move.workspace = true
-invar-generator-solana.workspace = true
-invar-generator-evm.workspace = true
-invar-generator-move.workspace = true
-invar-simulator.workspace = true
+sentri-core.workspace = true
+sentri-ir.workspace = true
+sentri-dsl-parser.workspace = true
+sentri-utils.workspace = true
+sentri-library.workspace = true
+sentri-report.workspace = true
+sentri-analyzer-solana.workspace = true
+sentri-analyzer-evm.workspace = true
+sentri-analyzer-move.workspace = true
+sentri-generator-solana.workspace = true
+sentri-generator-evm.workspace = true
+sentri-generator-move.workspace = true
+sentri-simulator.workspace = true
 
 [dev-dependencies]
