@@ -1,5 +1,5 @@
-// Example Invar DSL file demonstrating invariant syntax
-// This shows how to write invariants using the Invar DSL
+// Example Sentri DSL file demonstrating invariant syntax
+// This shows how to write invariants using the Sentri DSL
 
 invariant BalanceNeverNegative {
     balance >= 0

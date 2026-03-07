@@ -178,7 +178,7 @@ cargo build --release -p sentri
 cargo test --release
 
 # Binary will be at target/release/sentri
-./target/release/invar --version
+./target/release/sentri --version
 ```
 
 ### Reproducibility Verification
