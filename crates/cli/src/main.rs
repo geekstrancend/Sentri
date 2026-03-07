@@ -409,7 +409,7 @@ fn check_upgrade(old: &Path, new: &Path) -> anyhow::Result<()> {
     println!("\nVersion Comparison:");
     println!("  - Old size: {} bytes", old_content.len());
     println!("  - New size: {} bytes", new_content.len());
-    
+
     if old_content == new_content {
         println!("  - Result: No changes detected");
     } else {
@@ -449,7 +449,10 @@ fn generate_report(input: &Path, format: &str, output: Option<PathBuf>) -> anyho
     /// Target coverage percentage (100% indicates all invariants were successfully analyzed)
     const TARGET_COVERAGE_PERCENTAGE: usize = 100;
 
-    let invariant_count = input_content.matches("invariant").count().max(MIN_INVARIANT_COUNT);
+    let invariant_count = input_content
+        .matches("invariant")
+        .count()
+        .max(MIN_INVARIANT_COUNT);
     let violation_count = input_content.matches("violation").count();
 
     let report_content = match format {
@@ -536,7 +539,10 @@ fn generate_solana_checks(content: &str) -> String {
              // {} invariant checks compiled\n\
              Ok(())\n\
          }}\n",
-        source_lines, content.len(), check_count, check_count
+        source_lines,
+        content.len(),
+        check_count,
+        check_count
     )
 }
 
@@ -556,7 +562,10 @@ fn generate_evm_checks(content: &str) -> String {
              _;\n\
              // {} invariant checks enforced\n\
          }}\n",
-        source_lines, content.len(), check_count, check_count
+        source_lines,
+        content.len(),
+        check_count,
+        check_count
     )
 }
 
@@ -575,7 +584,10 @@ fn generate_move_checks(content: &str) -> String {
          public fun verify_invariants() {{\n\
              // {} invariant checks compiled\n\
          }}\n",
-        source_lines, content.len(), check_count, check_count
+        source_lines,
+        content.len(),
+        check_count,
+        check_count
     )
 }
 
@@ -590,7 +602,10 @@ fn validate_config(config_path: &Path) -> anyhow::Result<()> {
             println!("  Chains configured: {}", config.chains.len());
             println!("  Invariants defined: {}", config.invariants.len());
             for chain in &config.chains {
-                println!("    • {}: {} (chainId={})", chain.id, chain.chain_type, chain.chain_id);
+                println!(
+                    "    • {}: {} (chainId={})",
+                    chain.id, chain.chain_type, chain.chain_id
+                );
             }
             for inv in &config.invariants {
                 println!("    • {}: {} [{}]", inv.name, inv.chain, inv.severity);
@@ -615,7 +630,10 @@ fn check_invariants(config_path: &Path, once: bool) -> anyhow::Result<()> {
     if once {
         println!("✓ Running invariant checks (once)...");
         println!("  [Not yet implemented - would connect to RPC and evaluate]");
-        println!("  To see all configured invariants, run: invar validate-config --config {}", config_path.display());
+        println!(
+            "  To see all configured invariants, run: invar validate-config --config {}",
+            config_path.display()
+        );
     } else {
         println!("✓ Starting watcher mode...");
         println!("  [Not yet implemented - would start daemon]");

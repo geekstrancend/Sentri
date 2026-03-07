@@ -23,7 +23,7 @@ pub use account_abstraction::{
     UserOpData,
 };
 pub use attack_patterns::AttackPatternDB;
-pub use config::{Config, ConfigError, ChainConfig, InvariantConfig, AlertConfig};
+pub use config::{AlertConfig, ChainConfig, Config, ConfigError, InvariantConfig};
 pub use error::{InvarError, Result};
 pub use evaluator::{EvalResult, EvaluationError, Evaluator, ExecutionContext, Value};
 pub use model::{FunctionModel, Invariant, ProgramModel, StateVar};

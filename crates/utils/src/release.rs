@@ -112,10 +112,10 @@ impl ReleaseManager {
 /// Uses a deterministic hash of file contents for verification.
 /// In production, this should use SHA256 via the sha2 crate for cryptographic security.
 fn compute_file_sha256(path: &Path) -> Result<String, std::io::Error> {
-    use std::fs::File;
-    use std::io::Read;
     use std::collections::hash_map::DefaultHasher;
+    use std::fs::File;
     use std::hash::Hasher;
+    use std::io::Read;
 
     let mut file = File::open(path)?;
     let mut buffer = [0; 8192];
@@ -133,7 +133,6 @@ fn compute_file_sha256(path: &Path) -> Result<String, std::io::Error> {
     // Format as hex string for consistency with SHA256 output format
     Ok(format!("{:016x}", hasher.finish()))
 }
-
 
 #[cfg(test)]
 mod tests {

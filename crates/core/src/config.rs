@@ -6,7 +6,6 @@
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::env;
-use std::path::Path;
 
 /// Error type for configuration issues.
 #[derive(Debug, Clone)]
@@ -70,22 +69,23 @@ impl Config {
     ///
     /// # Errors
     /// Returns error if file cannot be read, TOML is invalid, or env var is missing.
-    pub fn load_from_file(path: &str) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn load_from_file(path: &str) -> anyhow::Result<Self> {
         let content = std::fs::read_to_string(path)?;
         Self::load_from_string(&content)
     }
 
     /// Load configuration from a TOML string.
     /// Environment variables in the format `${VAR_NAME}` are expanded.
-    pub fn load_from_string(content: &str) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn load_from_string(content: &str) -> anyhow::Result<Self> {
         // Expand environment variables in the content
-        let expanded = Self::expand_env_vars(content)?;
+        let expanded = Self::expand_env_vars(content).map_err(|e| anyhow::anyhow!("{}", e))?;
 
         // Parse TOML
-        let config: Config = toml::from_str(&expanded)?;
+        let config: Config = toml::from_str(&expanded)
+            .map_err(|e| anyhow::anyhow!("Failed to parse TOML: {}", e))?;
 
         // Validate
-        config.validate()?;
+        config.validate().map_err(|e| anyhow::anyhow!("{}", e))?;
 
         Ok(config)
     }
@@ -154,8 +154,7 @@ impl Config {
         // Validate invariants
         if self.invariants.is_empty() {
             return Err(ConfigError {
-                message: "At least one invariant must be configured in [[invariants]]"
-                    .to_string(),
+                message: "At least one invariant must be configured in [[invariants]]".to_string(),
             });
         }
 
