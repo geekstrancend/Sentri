@@ -148,7 +148,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       
       - name: Run integration tests
-        run: cargo test --test integration --verbose
+        run: cargo test --tests --verbose
         
   # CLI behavior tests
   cli-tests:
