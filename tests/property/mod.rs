@@ -32,7 +32,7 @@ mod parser_properties {
         ) {
             // Parser must never panic, even on invalid input
             // It should return Err instead
-            let _lexer = invar_dsl_parser::lexer::Lexer::new(&input);
+            let _lexer = sentri_dsl_parser::lexer::Lexer::new(&input);
             // The critical property: no panic
             // If this test completes, the property holds
         }
@@ -43,12 +43,12 @@ mod parser_properties {
         ) {
             let input = format!("invariant: {}\ntrue", name);
 
-            let lexer1 = invar_dsl_parser::lexer::Lexer::new(&input);
-            let mut parser1 = invar_dsl_parser::parser::Parser::new(lexer1);
+            let lexer1 = sentri_dsl_parser::lexer::Lexer::new(&input);
+            let mut parser1 = sentri_dsl_parser::parser::Parser::new(lexer1);
             let result1 = parser1.parse();
 
-            let lexer2 = invar_dsl_parser::lexer::Lexer::new(&input);
-            let mut parser2 = invar_dsl_parser::parser::Parser::new(lexer2);
+            let lexer2 = sentri_dsl_parser::lexer::Lexer::new(&input);
+            let mut parser2 = sentri_dsl_parser::parser::Parser::new(lexer2);
             let result2 = parser2.parse();
 
             // Same input must always produce same output
@@ -64,8 +64,8 @@ mod parser_properties {
             garbage in r"[!@#$%^&*]{1,100}"
         ) {
             let input = format!("invariant: test\n{}", garbage);
-            let lexer = invar_dsl_parser::lexer::Lexer::new(&input);
-            let mut parser = invar_dsl_parser::parser::Parser::new(lexer);
+            let lexer = sentri_dsl_parser::lexer::Lexer::new(&input);
+            let mut parser = sentri_dsl_parser::parser::Parser::new(lexer);
             let result = parser.parse();
 
             // Most garbage input should fail parsing (not panic)
@@ -94,7 +94,7 @@ mod evaluator_properties {
             input in r"[0-9+\-*/()\s]{0,500}"
         ) {
             // Evaluator must never panic
-            let evaluator = invar_core::evaluator::Evaluator::new();
+            let evaluator = sentri_core::evaluator::Evaluator::new();
             let _ = evaluator.eval(&input);
             // Property: no panic
         }
@@ -104,10 +104,10 @@ mod evaluator_properties {
             a in 1i64..1000,
             b in 1i64..1000,
         ) {
-            let evaluator1 = invar_core::evaluator::Evaluator::new();
+            let evaluator1 = sentri_core::evaluator::Evaluator::new();
             let expr1 = format!("{} + {}", a, b);
 
-            let evaluator2 = invar_core::evaluator::Evaluator::new();
+            let evaluator2 = sentri_core::evaluator::Evaluator::new();
             let expr2 = format!("{} + {}", b, a);
 
             let result1 = evaluator1.eval(&expr1);
@@ -125,10 +125,10 @@ mod evaluator_properties {
         fn prop_evaluation_deterministic(
             input in r"[0-9+\-*()]{1,200}"
         ) {
-            let evaluator1 = invar_core::evaluator::Evaluator::new();
+            let evaluator1 = sentri_core::evaluator::Evaluator::new();
             let result1 = evaluator1.eval(&input);
 
-            let evaluator2 = invar_core::evaluator::Evaluator::new();
+            let evaluator2 = sentri_core::evaluator::Evaluator::new();
             let result2 = evaluator2.eval(&input);
 
             prop_assert_eq!(
@@ -143,7 +143,7 @@ mod evaluator_properties {
             a in 0i64..i64::MAX / 2,
             b in 0i64..i64::MAX / 2,
         ) {
-            let evaluator = invar_core::evaluator::Evaluator::new();
+            let evaluator = sentri_core::evaluator::Evaluator::new();
             let expr = format!("{} + {}", a, b);
             let result = evaluator.eval(&expr);
 
@@ -161,7 +161,7 @@ mod type_checker_properties {
         fn prop_type_checker_never_panics(
             input in r"[a-zA-Z0-9_+\-*/<>=!&| ()]{0,400}"
         ) {
-            let mut checker = invar_core::type_checker::TypeChecker::new();
+            let mut checker = sentri_core::type_checker::TypeChecker::new();
             let _ = checker.check_expr(&input);
             // Property: no panic
         }
@@ -170,11 +170,11 @@ mod type_checker_properties {
         fn prop_type_consistency(
             var_name in "[a-zA-Z_][a-zA-Z0-9_]*"
         ) {
-            let mut checker1 = invar_core::type_checker::TypeChecker::new();
+            let mut checker1 = sentri_core::type_checker::TypeChecker::new();
             let expr = format!("forall {} in items: {} > 0", var_name, var_name);
             let result1 = checker1.check_expr(&expr);
 
-            let mut checker2 = invar_core::type_checker::TypeChecker::new();
+            let mut checker2 = sentri_core::type_checker::TypeChecker::new();
             let result2 = checker2.check_expr(&expr);
 
             prop_assert_eq!(

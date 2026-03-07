@@ -1,5 +1,5 @@
 [package]
-name = "invar-library"
+name = "sentri-library"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -12,8 +12,8 @@ serde.workspace = true
 serde_json.workspace = true
 toml.workspace = true
 tracing.workspace = true
-invar-core.workspace = true
-invar-ir.workspace = true
-invar-dsl-parser.workspace = true
+sentri-core.workspace = true
+sentri-ir.workspace = true
+sentri-dsl-parser.workspace = true
 
 [dev-dependencies]

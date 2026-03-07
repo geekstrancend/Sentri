@@ -1,9 +1,9 @@
 //! Parser for invariant DSL expressions.
 
 use crate::grammar::{Grammar, Rule};
-use invar_core::model::{BinaryOp, Expression, Invariant};
-use invar_core::Result;
 use pest::Parser;
+use sentri_core::model::{BinaryOp, Expression, Invariant};
+use sentri_core::Result;
 
 /// Parser for invariant DSL.
 pub struct InvariantParser;
@@ -12,18 +12,17 @@ impl InvariantParser {
     /// Parse a single invariant definition.
     pub fn parse_invariant(input: &str) -> Result<Invariant> {
         let parsed = Grammar::parse(Rule::invariant_def, input)
-            .map_err(|e| invar_core::InvarError::ConfigError(e.to_string()))?;
+            .map_err(|e| sentri_core::InvarError::ConfigError(e.to_string()))?;
 
-        let invariant_rule = parsed
-            .into_iter()
-            .next()
-            .ok_or_else(|| invar_core::InvarError::ConfigError("No invariant found".to_string()))?;
+        let invariant_rule = parsed.into_iter().next().ok_or_else(|| {
+            sentri_core::InvarError::ConfigError("No invariant found".to_string())
+        })?;
 
         let inner = invariant_rule.into_inner();
         let inner_items: Vec<_> = inner.collect();
 
         if inner_items.is_empty() {
-            return Err(invar_core::InvarError::ConfigError(
+            return Err(sentri_core::InvarError::ConfigError(
                 "Expected invariant name and expression".to_string(),
             ));
         }
@@ -82,7 +81,7 @@ impl InvariantParser {
                 | Rule::unary => {
                     let items: Vec<_> = pair.into_inner().collect();
                     if items.is_empty() {
-                        return Err(invar_core::InvarError::ConfigError(
+                        return Err(sentri_core::InvarError::ConfigError(
                             "Expected expression".to_string(),
                         ));
                     }
@@ -95,7 +94,7 @@ impl InvariantParser {
                         i += 1;
 
                         if i >= items.len() {
-                            return Err(invar_core::InvarError::ConfigError(
+                            return Err(sentri_core::InvarError::ConfigError(
                                 "Expected operand after operator".to_string(),
                             ));
                         }
@@ -107,14 +106,14 @@ impl InvariantParser {
                             Rule::and => {
                                 left = Expression::Logical {
                                     left: Box::new(left),
-                                    op: invar_core::model::LogicalOp::And,
+                                    op: sentri_core::model::LogicalOp::And,
                                     right: Box::new(right),
                                 };
                             }
                             Rule::or => {
                                 left = Expression::Logical {
                                     left: Box::new(left),
-                                    op: invar_core::model::LogicalOp::Or,
+                                    op: sentri_core::model::LogicalOp::Or,
                                     right: Box::new(right),
                                 };
                             }
@@ -172,7 +171,7 @@ impl InvariantParser {
                         parse_pair(inner_pair)
                     } else {
                         // Empty primary - should not happen in well-formed grammar
-                        Err(invar_core::InvarError::ConfigError(
+                        Err(sentri_core::InvarError::ConfigError(
                             "Unexpected empty primary expression".to_string(),
                         ))
                     }
@@ -180,7 +179,7 @@ impl InvariantParser {
                 Rule::function_call => {
                     let items: Vec<_> = pair.into_inner().collect();
                     if items.is_empty() {
-                        return Err(invar_core::InvarError::ConfigError(
+                        return Err(sentri_core::InvarError::ConfigError(
                             "Expected function name".to_string(),
                         ));
                     }
@@ -197,7 +196,7 @@ impl InvariantParser {
                 }
                 Rule::integer => {
                     let val = pair.as_str().parse::<i128>().map_err(|_| {
-                        invar_core::InvarError::ConfigError("Invalid integer".to_string())
+                        sentri_core::InvarError::ConfigError("Invalid integer".to_string())
                     })?;
                     Ok(Expression::Int(val))
                 }
@@ -205,7 +204,7 @@ impl InvariantParser {
                 Rule::qualified_id => {
                     let items: Vec<_> = pair.into_inner().collect();
                     if items.len() != 2 {
-                        return Err(invar_core::InvarError::ConfigError(
+                        return Err(sentri_core::InvarError::ConfigError(
                             "Expected layer::identifier".to_string(),
                         ));
                     }
@@ -229,11 +228,11 @@ impl InvariantParser {
                             return parse_pair(first);
                         }
                     }
-                    Err(invar_core::InvarError::ConfigError(
+                    Err(sentri_core::InvarError::ConfigError(
                         "Expected identifier or layer::identifier".to_string(),
                     ))
                 }
-                _ => Err(invar_core::InvarError::ConfigError(format!(
+                _ => Err(sentri_core::InvarError::ConfigError(format!(
                     "Unexpected rule: {:?}",
                     pair.as_rule()
                 ))),

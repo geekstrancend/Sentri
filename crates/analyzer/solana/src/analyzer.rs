@@ -1,8 +1,8 @@
 //! Solana analyzer implementation.
 
-use invar_core::model::{FunctionModel, ProgramModel, StateVar};
-use invar_core::traits::ChainAnalyzer;
-use invar_core::Result;
+use sentri_core::model::{FunctionModel, ProgramModel, StateVar};
+use sentri_core::traits::ChainAnalyzer;
+use sentri_core::Result;
 use std::path::Path;
 use tracing::{debug, info};
 
@@ -14,7 +14,7 @@ impl ChainAnalyzer for SolanaAnalyzer {
         info!("Analyzing Solana program at {:?}", path);
 
         // Read the Rust source file
-        let source = std::fs::read_to_string(path).map_err(invar_core::InvarError::IoError)?;
+        let source = std::fs::read_to_string(path).map_err(sentri_core::InvarError::IoError)?;
 
         debug!("Source file size: {} bytes", source.len());
 
@@ -27,7 +27,7 @@ impl ChainAnalyzer for SolanaAnalyzer {
 
         // Parse using syn
         let file = syn::parse_file(&source).map_err(|e| {
-            invar_core::InvarError::AnalysisFailed(format!("Failed to parse Rust: {}", e))
+            sentri_core::InvarError::AnalysisFailed(format!("Failed to parse Rust: {}", e))
         })?;
 
         // Extract structs (potential state)

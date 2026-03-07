@@ -130,7 +130,7 @@ fn generate_check_statements(checks: &[String], _state_vars: &[String]) -> Vec<s
 
     // Generate a check for each invariant
     for (idx, check) in checks.iter().enumerate() {
-        let _check_name = format_ident!("invar_check_{}", idx);
+        let _check_name = format_ident!("sentri_check_{}", idx);
         let _check_expr_str = check.clone();
 
         // Create assertion-like statement

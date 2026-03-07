@@ -136,7 +136,7 @@ fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     // Initialize logging
-    invar_utils::setup_tracing(&cli.log_level);
+    sentri_utils::setup_tracing(&cli.log_level);
 
     match cli.command {
         Some(Commands::Init { path }) => {
@@ -237,7 +237,7 @@ tamper_detection = true
 
 /// Build invariant checks from source.
 fn build_invariants(source: &PathBuf, chain: &str, output: &PathBuf) -> anyhow::Result<()> {
-    use invar_core::SecurityValidator;
+    use sentri_core::SecurityValidator;
     use std::fs;
 
     // Validate chain
@@ -593,7 +593,7 @@ fn generate_move_checks(content: &str) -> String {
 
 /// Validate a configuration file without connecting to chains.
 fn validate_config(config_path: &Path) -> anyhow::Result<()> {
-    use invar_core::Config;
+    use sentri_core::Config;
 
     let config_str = std::fs::read_to_string(config_path)?;
     match Config::load_from_string(&config_str) {
@@ -622,7 +622,7 @@ fn validate_config(config_path: &Path) -> anyhow::Result<()> {
 
 /// Check invariants against a chain (once or continuously).
 fn check_invariants(config_path: &Path, once: bool) -> anyhow::Result<()> {
-    use invar_core::Config;
+    use sentri_core::Config;
 
     let config_str = std::fs::read_to_string(config_path)?;
     let _config = Config::load_from_string(&config_str)?;
@@ -648,7 +648,7 @@ fn watch_invariants(
     _interval: Option<u64>,
     _metrics_port: Option<u16>,
 ) -> anyhow::Result<()> {
-    use invar_core::Config;
+    use sentri_core::Config;
 
     let config_str = std::fs::read_to_string(config_path)?;
     let _config = Config::load_from_string(&config_str)?;

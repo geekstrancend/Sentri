@@ -1,5 +1,5 @@
 [package]
-name = "invar-analyzer-move"
+name = "sentri-analyzer-move"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
@@ -11,8 +11,8 @@ thiserror.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 tracing.workspace = true
-invar-core.workspace = true
-invar-ir.workspace = true
-invar-utils.workspace = true
+sentri-core.workspace = true
+sentri-ir.workspace = true
+sentri-utils.workspace = true
 
 [dev-dependencies]

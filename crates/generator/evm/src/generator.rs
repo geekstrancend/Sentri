@@ -1,8 +1,8 @@
 //! EVM generator implementation.
 
-use invar_core::model::{GenerationOutput, Invariant, ProgramModel};
-use invar_core::traits::CodeGenerator;
-use invar_core::Result;
+use sentri_core::model::{GenerationOutput, Invariant, ProgramModel};
+use sentri_core::traits::CodeGenerator;
+use sentri_core::Result;
 use tracing::info;
 
 /// Code generator for EVM (Solidity) contracts.

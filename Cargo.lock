@@ -419,234 +419,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "invar-analyzer-evm"
-version = "0.1.1"
-dependencies = [
- "anyhow",
- "invar-core",
- "invar-ir",
- "invar-utils",
- "regex",
- "serde",
- "serde_json",
- "thiserror",
- "tracing",
-]
-
-[[package]]
-name = "invar-analyzer-move"
-version = "0.1.1"
-dependencies = [
- "anyhow",
- "invar-core",
- "invar-ir",
- "invar-utils",
- "serde",
- "serde_json",
- "thiserror",
- "tracing",
-]
-
-[[package]]
-name = "invar-analyzer-solana"
-version = "0.1.1"
-dependencies = [
- "anyhow",
- "invar-core",
- "invar-ir",
- "invar-utils",
- "proc-macro2",
- "quote",
- "serde",
- "serde_json",
- "syn",
- "thiserror",
- "tracing",
-]
-
-[[package]]
-name = "invar-cli"
-version = "0.1.1"
-dependencies = [
- "anyhow",
- "clap",
- "colored",
- "invar-analyzer-evm",
- "invar-analyzer-move",
- "invar-analyzer-solana",
- "invar-core",
- "invar-dsl-parser",
- "invar-generator-evm",
- "invar-generator-move",
- "invar-generator-solana",
- "invar-ir",
- "invar-library",
- "invar-report",
- "invar-simulator",
- "invar-utils",
- "serde",
- "serde_json",
- "thiserror",
- "toml",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "invar-core"
-version = "0.1.1"
-dependencies = [
- "anyhow",
- "proptest",
- "regex",
- "serde",
- "serde_json",
- "thiserror",
- "toml",
- "tracing",
-]
-
-[[package]]
-name = "invar-dsl-parser"
-version = "0.1.1"
-dependencies = [
- "anyhow",
- "invar-core",
- "invar-ir",
- "pest",
- "pest_derive",
- "serde",
- "serde_json",
- "thiserror",
-]
-
-[[package]]
-name = "invar-generator-evm"
-version = "0.1.1"
-dependencies = [
- "anyhow",
- "invar-analyzer-evm",
- "invar-core",
- "invar-ir",
- "invar-utils",
- "serde",
- "serde_json",
- "thiserror",
- "tracing",
-]
-
-[[package]]
-name = "invar-generator-move"
-version = "0.1.1"
-dependencies = [
- "anyhow",
- "invar-analyzer-move",
- "invar-core",
- "invar-ir",
- "invar-utils",
- "serde",
- "serde_json",
- "thiserror",
- "tracing",
-]
-
-[[package]]
-name = "invar-generator-solana"
-version = "0.1.1"
-dependencies = [
- "anyhow",
- "invar-analyzer-solana",
- "invar-core",
- "invar-ir",
- "invar-utils",
- "proc-macro2",
- "proptest",
- "quote",
- "serde",
- "serde_json",
- "syn",
- "thiserror",
- "tracing",
-]
-
-[[package]]
-name = "invar-ir"
-version = "0.1.1"
-dependencies = [
- "anyhow",
- "invar-core",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "invar-library"
-version = "0.1.1"
-dependencies = [
- "anyhow",
- "invar-core",
- "invar-dsl-parser",
- "invar-ir",
- "serde",
- "serde_json",
- "thiserror",
- "toml",
- "tracing",
-]
-
-[[package]]
-name = "invar-report"
-version = "0.1.1"
-dependencies = [
- "anyhow",
- "chrono",
- "invar-core",
- "invar-ir",
- "serde",
- "serde_json",
- "toml",
- "tracing",
-]
-
-[[package]]
-name = "invar-simulator"
-version = "0.1.1"
-dependencies = [
- "anyhow",
- "invar-core",
- "invar-ir",
- "invar-utils",
- "proptest",
- "rand 0.8.5",
- "rayon",
- "serde",
- "serde_json",
- "thiserror",
- "tracing",
-]
-
-[[package]]
-name = "invar-solana-macro"
-version = "0.1.0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
-]
-
-[[package]]
-name = "invar-utils"
-version = "0.1.1"
-dependencies = [
- "anyhow",
- "chrono",
- "serde",
- "thiserror",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "is_terminal_polyfill"
 version = "1.70.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1019,6 +791,234 @@ name = "semver"
 version = "1.0.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d767eb0aabc880b29956c35734170f26ed551a859dbd361d140cdbeca61ab1e2"
+
+[[package]]
+name = "sentri-analyzer-evm"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "regex",
+ "sentri-core",
+ "sentri-ir",
+ "sentri-utils",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
+name = "sentri-analyzer-move"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "sentri-core",
+ "sentri-ir",
+ "sentri-utils",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
+name = "sentri-analyzer-solana"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "proc-macro2",
+ "quote",
+ "sentri-core",
+ "sentri-ir",
+ "sentri-utils",
+ "serde",
+ "serde_json",
+ "syn",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
+name = "sentri-cli"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "clap",
+ "colored",
+ "sentri-analyzer-evm",
+ "sentri-analyzer-move",
+ "sentri-analyzer-solana",
+ "sentri-core",
+ "sentri-dsl-parser",
+ "sentri-generator-evm",
+ "sentri-generator-move",
+ "sentri-generator-solana",
+ "sentri-ir",
+ "sentri-library",
+ "sentri-report",
+ "sentri-simulator",
+ "sentri-utils",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "toml",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "sentri-core"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "proptest",
+ "regex",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "toml",
+ "tracing",
+]
+
+[[package]]
+name = "sentri-dsl-parser"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "pest",
+ "pest_derive",
+ "sentri-core",
+ "sentri-ir",
+ "serde",
+ "serde_json",
+ "thiserror",
+]
+
+[[package]]
+name = "sentri-generator-evm"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "sentri-analyzer-evm",
+ "sentri-core",
+ "sentri-ir",
+ "sentri-utils",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
+name = "sentri-generator-move"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "sentri-analyzer-move",
+ "sentri-core",
+ "sentri-ir",
+ "sentri-utils",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
+name = "sentri-generator-solana"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "proc-macro2",
+ "proptest",
+ "quote",
+ "sentri-analyzer-solana",
+ "sentri-core",
+ "sentri-ir",
+ "sentri-utils",
+ "serde",
+ "serde_json",
+ "syn",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
+name = "sentri-ir"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "sentri-core",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "sentri-library"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "sentri-core",
+ "sentri-dsl-parser",
+ "sentri-ir",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "toml",
+ "tracing",
+]
+
+[[package]]
+name = "sentri-report"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "sentri-core",
+ "sentri-ir",
+ "serde",
+ "serde_json",
+ "toml",
+ "tracing",
+]
+
+[[package]]
+name = "sentri-simulator"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "proptest",
+ "rand 0.8.5",
+ "rayon",
+ "sentri-core",
+ "sentri-ir",
+ "sentri-utils",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "tracing",
+]
+
+[[package]]
+name = "sentri-solana-macro"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
+name = "sentri-utils"
+version = "0.1.1"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "serde",
+ "thiserror",
+ "tracing",
+ "tracing-subscriber",
+]
 
 [[package]]
 name = "serde"
