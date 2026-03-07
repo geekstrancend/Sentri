@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to the Invar project will be documented in this file.
+All notable changes to the Sentri project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -219,7 +219,7 @@ For questions, issues, or contributions:
 
 ## Contributors
 
-- Invar Team - Initial design and implementation
+- Sentri Team - Initial design and implementation
 
 ---
 
@@ -249,7 +249,7 @@ MIT License - See LICENSE file for details
 
 ---
 
-**Note**: Invar follows Semantic Versioning. See https://semver.org for details.
+**Note**: Sentri follows Semantic Versioning. See https://semver.org for details.
 
 - **MAJOR** version for incompatible API changes
 - **MINOR** version for new backward-compatible functionality

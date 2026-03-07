@@ -25,7 +25,7 @@ edition = "2021"
 rust-version = "1.75"
 authors = ["Sentri Contributors"]
 license = "MIT"
-repository = "https://github.com/geekstrancend/Invar"
+repository = "https://github.com/geekstrancend/Sentri"
 
 [workspace.dependencies]
 # Internal crates
