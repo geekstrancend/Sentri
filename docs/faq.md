@@ -2,50 +2,50 @@
 
 ## Installation
 
-### Q: How do I install Invar?
+### Q: How do I install Sentri?
 
 **A:** Multiple options:
 
 ```bash
 # Using curl (recommended)
-curl -fsSL https://install.invar.dev | bash
+curl -fsSL https://install.sentri.dev | bash
 
 # Using Homebrew
-brew install invar
+brew install sentri
 
 # From source
-git clone https://github.com/zelius/invar
-cd invar
+git clone https://github.com/geekstrancend/Invar.git
+cd Invar
 cargo install --path crates/cli
 
 # Using Docker
-docker pull zelius/invar:latest
+docker pull geekstrancend/sentri:latest
 ```
 
-### Q: I get "command not found: invar"
+### Q: I get "command not found: sentri"
 
-**A:** Add Invar to your PATH:
+**A:** Add Sentri to your PATH:
 
 ```bash
 # Find where it's installed
-which invar
+which sentri
 
 # If empty, add to PATH in ~/.bashrc or ~/.zshrc
-export PATH="$PATH:$HOME/.invar/bin"
+export PATH="$PATH:$HOME/.sentri/bin"
 
 # Reload shell
 source ~/.bashrc  # or ~/.zshrc
 ```
 
-### Q: How do I update Invar?
+### Q: How do I update Sentri?
 
 **A:** Use the update command:
 
 ```bash
-invar update --yes
+sentri update --yes
 
 # Or reinstall
-curl -fsSL https://install.invar.dev | bash
+curl -fsSL https://install.sentri.dev | bash
 ```
 
 ## Configuration
@@ -55,7 +55,7 @@ curl -fsSL https://install.invar.dev | bash
 **A:** Run init command:
 
 ```bash
-invar init --project myproject
+sentri init --project myproject
 
 # Creates:
 # myproject/invar.toml
@@ -78,7 +78,7 @@ my-project/
 Can also reference from anywhere:
 
 ```bash
-invar analyze --config /path/to/invar.toml
+sentri analyze --config /path/to/invar.toml
 ```
 
 ### Q: How do I exclude files?

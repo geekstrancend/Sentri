@@ -1,4 +1,4 @@
-# Invar Crate Completion Status
+# Sentri Crate Completion Status
 
 **Last Updated**: March 5, 2026  
 **Analysis Method**: Source LOC audit + feature completeness
@@ -194,7 +194,7 @@
 - [ ] Implement invariant definition parser (Phase 6 priority)
 - [ ] Implement invariant evaluator (stub analysis below)
 - [ ] Implement chain state fetcher (requires Phase 2 adapters)
-- [ ] Verify `invar check --config examples/invar.toml.example --once` works
+- [ ] Verify `sentri check --config examples/invar.toml.example --once` works
 
 ### Phase 2: Multi-Chain Adapters (Not Started)
 - [ ] EVM adapter (ethers-rs JSON-RPC, eth_subscribe, storage access)
@@ -202,7 +202,7 @@
 - [ ] Cosmos adapter (optional, deferred if needed)
 
 ### Phase 3: Watcher Daemon (Not Started)
-- [ ] `invar watch` long-running mode
+- [ ] `sentri watch` long-running mode
 - [ ] Block subscription loop
 - [ ] Alert integration
 - [ ] Graceful shutdown (SIGTERM)
@@ -220,11 +220,11 @@
 1. **Phase 6 First** (before Phase 1 completion):
    - Design and implement `invar.toml` config format
    - Implement config parser with env var substitution
-   - Add `invar validate-config` subcommand
+   - Add `sentri validate-config` subcommand
    - This unblocks testing of all downstream components
 
 2. **Phase 1 Core Path** (after config):
-   - Implement `invar check` command end-to-end
+   - Implement `sentri check` command end-to-end
    - Mock local node if real RPCs unavailable
    - Get ONE working example (ERC-20 supply check on test network)
 
