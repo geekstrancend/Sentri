@@ -139,7 +139,6 @@ jobs:
   integration-tests:
     name: Integration Tests
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       
@@ -154,7 +153,6 @@ jobs:
   cli-tests:
     name: CLI Behavior Tests
     runs-on: ubuntu-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       
@@ -166,7 +164,7 @@ jobs:
         run: cargo build --release --bin sentri
         
       - name: Run CLI tests
-        run: cargo test --test cli --verbose
+        run: cargo test --tests --verbose
         
   # Code coverage
   coverage:
