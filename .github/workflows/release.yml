@@ -595,47 +595,11 @@ jobs:
       - name: Create release notes with installation instructions
         run: |
           VERSION="${{ needs.validate-version.outputs.version }}"
-          
-          # Start with changelog
+
           cat /tmp/changelog.txt > /tmp/release_notes.md
-          
-          # Add installation section
-          cat >> /tmp/installation.txt <<'EOF'
 
-## Installation
+          printf '\n## Installation\n\nInstall the latest version with:\n\n```bash\ncargo install sentri-cli --version %s\n```\n\nOr download pre-built binaries from the Assets section below.\n\n## Verification\n\nVerify artifact integrity:\n\n```bash\nsha256sum -c SHA256SUMS\n```\n\n## Multi-Platform Binaries\n\n- **Linux (x86_64, glibc)**: Standard Linux distributions\n- **Linux (x86_64, musl)**: Alpine and other musl-based systems\n- **Linux (aarch64)**: ARM64 Linux servers\n- **macOS (Intel)**: x86_64 Mac systems\n- **macOS (Apple Silicon)**: aarch64 M1/M2/M3 Macs\n- **Windows (x86_64)**: Windows 10/11\n\nAll binaries are deterministically built and reproducible.\n' "$VERSION" >> /tmp/release_notes.md
 
-Install the latest version with:
-
-```bash
-cargo install sentri-cli --version VERSION
-```
-
-Or download pre-built binaries from the Assets section below.
-
-## Verification
-
-Verify artifact integrity by comparing checksums:
-
-```bash
-sha256sum -c SHA256SUMS
-```
-
-## Multi-Platform Binaries
-
-Pre-built binaries are available for:
-- **Linux (x86_64, glibc)**: Standard Linux distributions
-- **Linux (x86_64, musl)**: Alpine and other musl-based systems
-- **Linux (aarch64)**: ARM64 Linux servers
-- **macOS (Intel)**: x86_64 Mac systems
-- **macOS (Apple Silicon)**: aarch64 M1/M2/M3 Macs
-- **Windows (x86_64)**: Windows 10/11
-
-All binaries are deterministically built and reproducible.
-EOF
-          
-          # Substitute version
-          sed -i "s/VERSION/$VERSION/g" /tmp/installation.txt
-          cat /tmp/installation.txt >> /tmp/release_notes.md
           cat /tmp/release_notes.md
 
       - name: Create GitHub Release
