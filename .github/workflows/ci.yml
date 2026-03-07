@@ -163,7 +163,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       
       - name: Build CLI
-        run: cargo build --release --bin invar
+        run: cargo build --release --bin sentri
         
       - name: Run CLI tests
         run: cargo test --test cli --verbose
@@ -230,14 +230,14 @@ jobs:
         os: [ubuntu-latest, macos-latest, windows-latest]
         include:
           - os: ubuntu-latest
-            artifact_name: invar
-            asset_name: invar-linux-x86_64
+            artifact_name: sentri
+            asset_name: sentri-linux-x86_64
           - os: macos-latest
-            artifact_name: invar
-            asset_name: invar-macos-x86_64
+            artifact_name: sentri
+            asset_name: sentri-macos-x86_64
           - os: windows-latest
-            artifact_name: invar.exe
-            asset_name: invar-windows-x86_64.exe
+            artifact_name: sentri.exe
+            asset_name: sentri-windows-x86_64.exe
     steps:
       - uses: actions/checkout@v4
       
@@ -246,7 +246,7 @@ jobs:
       - uses: Swatinem/rust-cache@v2
       
       - name: Build release
-        run: cargo build --release --bin invar --verbose
+        run: cargo build --release --bin sentri --verbose
       
       - name: Strip binary (Unix)
         if: runner.os != 'Windows'
