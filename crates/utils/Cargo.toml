@@ -5,6 +5,7 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 description = "Utility functions for Sentri framework"
+readme = "README.md"
 
 [dependencies]
 anyhow.workspace = true
