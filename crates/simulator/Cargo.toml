@@ -6,6 +6,9 @@ authors.workspace = true
 license.workspace = true
 description = "Transaction simulator for Sentri invariant testing"
 readme = "README.md"
+homepage.workspace = true
+repository.workspace = true
+documentation = "https://docs.rs/sentri-simulator"
 
 [dependencies]
 anyhow.workspace = true

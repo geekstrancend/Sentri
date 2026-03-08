@@ -6,6 +6,9 @@ authors.workspace = true
 license.workspace = true
 description = "DSL parser for Sentri invariant definitions"
 readme = "README.md"
+homepage.workspace = true
+repository.workspace = true
+documentation = "https://docs.rs/sentri-dsl-parser"
 
 [dependencies]
 anyhow.workspace = true

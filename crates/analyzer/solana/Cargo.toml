@@ -6,6 +6,9 @@ authors.workspace = true
 license.workspace = true
 description = "Solana analyzer for Sentri invariant checking"
 readme = "README.md"
+homepage.workspace = true
+repository.workspace = true
+documentation = "https://docs.rs/sentri-analyzer-solana"
 
 [dependencies]
 anyhow.workspace = true

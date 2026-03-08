@@ -6,6 +6,9 @@ authors.workspace = true
 license.workspace = true
 description = "Intermediate representation for Sentri invariant specifications"
 readme = "README.md"
+homepage.workspace = true
+repository.workspace = true
+documentation = "https://docs.rs/sentri-ir"
 
 [dependencies]
 anyhow.workspace = true
