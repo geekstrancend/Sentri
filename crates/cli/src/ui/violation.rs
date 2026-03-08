@@ -202,7 +202,7 @@ mod tests {
         let rendered = render_violation(&violation, 80);
 
         // Check that all expected parts are present
-        assert!(rendered.contains("critical"));
+        assert!(rendered.contains("CRITICAL"));
         assert!(rendered.contains("Test Vulnerability"));
         assert!(rendered.contains("test_invariant"));
         assert!(rendered.contains("test.sol:42"));
@@ -235,7 +235,7 @@ mod tests {
             };
 
             let rendered = render_violation(&violation, 80);
-            assert!(rendered.contains(severity));
+            assert!(rendered.contains(&severity.to_uppercase()));
         }
     }
 

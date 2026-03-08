@@ -84,7 +84,7 @@ mod tests {
 
         assert!(output.contains("Sentri Init"));
         assert!(output.contains(".sentri.toml"));
-        assert!(output.contains("configured"));
+        assert!(output.contains("configure"));
         assert!(output.contains("sentri check"));
     }
 }

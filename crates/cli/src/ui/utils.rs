@@ -285,14 +285,14 @@ mod tests {
     #[test]
     fn test_divider() {
         let div = divider(5);
-        assert_eq!(div.len(), 5);
+        assert_eq!(div.chars().count(), 5);
         assert_eq!(div, "─────");
     }
 
     #[test]
     fn test_severity_bar_zero_max() {
         let bar = severity_bar(0, 0, "█", "░");
-        assert_eq!(bar.len(), 10);
+        assert_eq!(bar.chars().count(), 10);
         assert_eq!(bar, "░░░░░░░░░░");
     }
 
@@ -321,6 +321,6 @@ mod tests {
         let line = empty_box_line(20);
         assert!(line.starts_with("│"));
         assert!(line.ends_with("│"));
-        assert_eq!(line.len(), 20);
+        assert_eq!(line.chars().count(), 20);
     }
 }
