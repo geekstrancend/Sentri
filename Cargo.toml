@@ -58,6 +58,9 @@ pest = "2.7"
 pest_derive = "2.7"
 nom = "7.1"
 
+# Terminal UI
+terminal_size = "0.3"
+
 # Solana
 solana-program = "1.18"
 solana-sdk = "1.18"

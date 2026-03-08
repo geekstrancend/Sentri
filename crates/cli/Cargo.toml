@@ -19,6 +19,7 @@ tracing.workspace = true
 tracing-subscriber.workspace = true
 clap.workspace = true
 colored.workspace = true
+terminal_size.workspace = true
 sentri-core.workspace = true
 sentri-ir.workspace = true
 sentri-dsl-parser.workspace = true

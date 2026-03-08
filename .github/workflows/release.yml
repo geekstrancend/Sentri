@@ -85,6 +85,19 @@ jobs:
       - name: Verify all tests pass
         run: echo "✓ All CI checks passed"
 
+      # v0.1: Verify documentation files exist for v0.1 release
+      - name: Verify docs exist
+        run: |
+          test -f docs/QUICKSTART.md || \
+            (echo "ERROR: docs/QUICKSTART.md missing" && exit 1)
+          test -f docs/DSL_REFERENCE.md || \
+            (echo "ERROR: docs/DSL_REFERENCE.md missing" && exit 1)
+          test -f docs/INVARIANT_LIBRARY.md || \
+            (echo "ERROR: docs/INVARIANT_LIBRARY.md missing" && exit 1)
+          test -f docs/CI_INTEGRATION.md || \
+            (echo "ERROR: docs/CI_INTEGRATION.md missing" && exit 1)
+          echo "✓ All documentation files present"
+
   # Stage 3: Security Audit
   security-audit:
     name: Security Checks
@@ -176,6 +189,15 @@ jobs:
       - name: Strip binary
         run: strip target/x86_64-unknown-linux-gnu/release/sentri
 
+      # v0.1: Smoke test binary on Linux
+      - name: Smoke test binary
+        run: |
+          chmod +x target/x86_64-unknown-linux-gnu/release/sentri
+          target/x86_64-unknown-linux-gnu/release/sentri --version
+          target/x86_64-unknown-linux-gnu/release/sentri --help
+          target/x86_64-unknown-linux-gnu/release/sentri doctor
+          echo "✓ Binary smoke test passed"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -209,6 +231,15 @@ jobs:
 
       - name: Strip binary
         run: strip target/x86_64-unknown-linux-musl/release/sentri
+
+      # v0.1: Smoke test binary on Linux musl
+      - name: Smoke test binary
+        run: |
+          chmod +x target/x86_64-unknown-linux-musl/release/sentri
+          target/x86_64-unknown-linux-musl/release/sentri --version
+          target/x86_64-unknown-linux-musl/release/sentri --help
+          target/x86_64-unknown-linux-musl/release/sentri doctor
+          echo "✓ Binary smoke test passed"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -247,6 +278,12 @@ jobs:
       - name: Strip binary
         run: aarch64-linux-gnu-strip target/aarch64-unknown-linux-gnu/release/sentri
 
+      # v0.1: Verify binary exists and has correct architecture (cannot execute aarch64 on x86_64)
+      - name: Verify binary exists and has correct architecture
+        run: |
+          file target/aarch64-unknown-linux-gnu/release/sentri | grep -q "aarch64"
+          echo "✓ Binary is aarch64 architecture"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -275,6 +312,14 @@ jobs:
 
       - name: Strip binary
         run: strip target/x86_64-apple-darwin/release/sentri
+
+      # v0.1: Smoke test binary on macOS
+      - name: Smoke test binary
+        run: |
+          target/x86_64-apple-darwin/release/sentri --version
+          target/x86_64-apple-darwin/release/sentri --help
+          target/x86_64-apple-darwin/release/sentri doctor
+          echo "✓ Binary smoke test passed"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -305,6 +350,14 @@ jobs:
       - name: Strip binary
         run: strip target/aarch64-apple-darwin/release/sentri
 
+      # v0.1: Smoke test binary on macOS ARM
+      - name: Smoke test binary
+        run: |
+          target/aarch64-apple-darwin/release/sentri --version
+          target/aarch64-apple-darwin/release/sentri --help
+          target/aarch64-apple-darwin/release/sentri doctor
+          echo "✓ Binary smoke test passed"
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
@@ -330,6 +383,15 @@ jobs:
 
       - name: Build release binary
         run: cargo build --release --locked --target x86_64-pc-windows-msvc
+
+      # v0.1: Smoke test binary on Windows
+      - name: Smoke test binary
+        run: |
+          .\target\x86_64-pc-windows-msvc\release\sentri.exe --version
+          .\target\x86_64-pc-windows-msvc\release\sentri.exe --help
+          .\target\x86_64-pc-windows-msvc\release\sentri.exe doctor
+          Write-Host "✓ Binary smoke test passed"
+        shell: pwsh
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -518,7 +580,7 @@ jobs:
           echo "Publishing release to crates.io..."
           VERSION="${{ needs.validate-version.outputs.version }}"
           
-          # Publish in strict dependency order
+          # v0.1: Updated publish order to match new dependency graph
           # Layer 1: Core library (no internal dependencies)
           for crate in "sentri-core"; do
             echo ""
@@ -530,7 +592,17 @@ jobs:
           done
           
           # Layer 2: Intermediate libraries (depend on core)
-          for crate in "sentri-ir" "sentri-utils" "sentri-library" "sentri-report" "sentri-dsl-parser"; do
+          for crate in "sentri-ir" "sentri-utils"; do
+            echo ""
+            echo "Publishing utility: $crate v$VERSION..."
+            cargo publish -p "$crate" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
+            if ! grep -q "already uploaded" /tmp/publish.log; then
+              sleep 15
+            fi
+          done
+          
+          # Layer 3: DSL and report (depend on core + ir)
+          for crate in "sentri-dsl-parser" "sentri-report"; do
             echo ""
             echo "Publishing intermediate: $crate v$VERSION..."
             cargo publish -p "$crate" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
@@ -539,17 +611,37 @@ jobs:
             fi
           done
           
-          # Layer 3: Analyzers and generators (depend on core)
-          for crate in "sentri-analyzer-evm" "sentri-analyzer-move" "sentri-analyzer-solana" "sentri-solana-macro" "sentri-generator-evm" "sentri-generator-move" "sentri-generator-solana" "sentri-simulator"; do
+          # Layer 4: Invariant library (depends on core + utils)
+          for crate in "sentri-library"; do
             echo ""
-            echo "Publishing analyzer/generator: $crate v$VERSION..."
+            echo "Publishing library: $crate v$VERSION..."
+            cargo publish -p "$crate" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
+            if ! grep -q "already uploaded" /tmp/publish.log; then
+              sleep 15
+            fi
+          done
+          
+          # Layer 5: Analyzers and macros (depend on core + ir)
+          for crate in "sentri-analyzer-evm" "sentri-analyzer-move" "sentri-analyzer-solana" "sentri-solana-macro"; do
+            echo ""
+            echo "Publishing analyzer: $crate v$VERSION..."
             cargo publish -p "$crate" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
             if ! grep -q "already uploaded" /tmp/publish.log; then
               sleep 10
             fi
           done
           
-          # Layer 4: CLI (depends on multiple crates)
+          # Layer 6: Generators and simulator (depend on analyzers)
+          for crate in "sentri-generator-evm" "sentri-generator-move" "sentri-generator-solana" "sentri-simulator"; do
+            echo ""
+            echo "Publishing generator: $crate v$VERSION..."
+            cargo publish -p "$crate" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
+            if ! grep -q "already uploaded" /tmp/publish.log; then
+              sleep 10
+            fi
+          done
+          
+          # Layer 7: CLI (depends on everything)
           echo ""
           echo "Publishing CLI: sentri-cli v$VERSION..."
           cargo publish -p "sentri-cli" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
@@ -598,7 +690,8 @@ jobs:
 
           cat /tmp/changelog.txt > /tmp/release_notes.md
 
-          printf '\n## Installation\n\nInstall the latest version with:\n\n```bash\ncargo install sentri-cli --version %s\n```\n\nOr download pre-built binaries from the Assets section below.\n\n## Verification\n\nVerify artifact integrity:\n\n```bash\nsha256sum -c SHA256SUMS\n```\n\n## Multi-Platform Binaries\n\n- **Linux (x86_64, glibc)**: Standard Linux distributions\n- **Linux (x86_64, musl)**: Alpine and other musl-based systems\n- **Linux (aarch64)**: ARM64 Linux servers\n- **macOS (Intel)**: x86_64 Mac systems\n- **macOS (Apple Silicon)**: aarch64 M1/M2/M3 Macs\n- **Windows (x86_64)**: Windows 10/11\n\nAll binaries are deterministically built and reproducible.\n' "$VERSION" >> /tmp/release_notes.md
+          # v0.1: Enhanced release notes with quick start and new features
+          printf '\n## Installation\n\nInstall the latest version with:\n\n```bash\ncargo install sentri-cli --version %s\n```\n\nOr download pre-built binaries from the Assets section below.\n\n## Quick Start\n\n```bash\n# Check an EVM contract\nsentri check ./contracts --chain evm\n\n# Check a Solana program\nsentri check ./programs --chain solana\n\n# Initialize config file\nsentri init\n\n# Verify installation\nsentri doctor\n```\n\n## New in v%s\n\n- **Multi-chain invariant checking**: EVM, Solana, and Move support\n- **22 built-in security invariants**: Comprehensive checks across all chains\n- **Structured output**: JSON and HTML report generation\n- **Violation suppression**: Inline comments and config-level control\n- **Health checks**: `sentri doctor` command for component verification\n- **Professional CLI**: Colored output, TTY detection, responsive design\n- **Cross-platform binaries**: Linux (glibc/musl), macOS (Intel/ARM), Windows\n\n## Verification\n\nVerify artifact integrity:\n\n```bash\nsha256sum -c SHA256SUMS\n```\n\n## Multi-Platform Binaries\n\n- **Linux (x86_64, glibc)**: Standard Linux distributions\n- **Linux (x86_64, musl)**: Alpine and other musl-based systems\n- **Linux (aarch64)**: ARM64 Linux servers\n- **macOS (Intel)**: x86_64 Mac systems\n- **macOS (Apple Silicon)**: aarch64 M1/M2/M3 Macs\n- **Windows (x86_64)**: Windows 10/11\n\nAll binaries are deterministically built and reproducible.\n' "$VERSION" "$VERSION" >> /tmp/release_notes.md
 
           cat /tmp/release_notes.md
 
@@ -626,22 +719,32 @@ jobs:
       - name: Release Summary
         run: |
           echo "=========================================="
-          echo "✓ RELEASE PIPELINE COMPLETED SUCCESSFULLY"
+          echo "✓ SENTRI v${{ needs.validate-version.outputs.version }}"
+          echo "  RELEASE PIPELINE COMPLETED SUCCESSFULLY"
           echo "=========================================="
-          echo "Version: ${{ needs.validate-version.outputs.version }}"
           echo ""
           echo "Deliverables:"
-          echo "  ✓ Multi-platform binaries built"
+          echo "  ✓ Multi-platform binaries (6 targets)"
           echo "  ✓ Reproducible build verified"
           echo "  ✓ SHA256 checksums generated"
-          echo "  ✓ Published to crates.io"
+          echo "  ✓ Published to crates.io (all crates)"
           echo "  ✓ GitHub release created"
           echo ""
-          echo "Installation:"
-          echo "  cargo install sentri-cli --version ${{ needs.validate-version.outputs.version }}"
+          # v0.1: Updated summary with new features
+          echo "What's in v${{ needs.validate-version.outputs.version }}:"
+          echo "  · Multi-chain invariant checking (EVM, Solana, Move)"
+          echo "  · 22 built-in security invariants"
+          echo "  · JSON + HTML report output"
+          echo "  · sentri doctor health check"
+          echo "  · Professional colored CLI output"
+          echo "  · Cross-platform support (Linux/macOS/Windows)"
           echo ""
-          echo "Verification:"
-          echo "  sha256sum -c SHA256SUMS"
+          echo "Install:"
+          echo "  cargo install sentri-cli"
+          echo ""
+          echo "Quick start:"
+          echo "  sentri check ./contracts --chain evm"
+          echo "  sentri doctor"
 
 
 
