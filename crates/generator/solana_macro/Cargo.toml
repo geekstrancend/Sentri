@@ -2,6 +2,7 @@
 name = "sentri-solana-macro"
 version = "0.1.0"
 edition = "2021"
+description = "Procedural macros for Sentri Solana code generation"
 
 [lib]
 proc-macro = true
