@@ -11,13 +11,13 @@ This guide covers deploying, configuring, and operating Sentri in production env
 curl -fsSL https://install.invar.dev | bash
 
 # Initialize project
-invar init --project my-project
+sentri init --project my-project
 
 # Run analysis
-invar analyze --config my-project/invar.toml
+sentri analyze --config my-project/invar.toml
 
 # Monitor in CI/CD
-invar check --strict --output json
+sentri check --strict --output json
 ```
 
 ## Installation
@@ -35,54 +35,54 @@ curl -fsSL https://releases.github.com/geekstrancend/sentri/latest/macos-x86_64.
 sudo mv sentri /usr/local/bin/
 
 # Windows
-curl -fsSL https://releases.github.com/zelius/invar/latest/windows-x86_64.zip -o invar.zip
-unzip invar.zip
+curl -fsSL https://releases.github.com/geekstrancend/sentri/latest/windows-x86_64.zip -o sentri.zip
+unzip sentri.zip
 # Add to PATH
 ```
 
 **Verify Installation:**
 ```bash
-invar --version
-invar --help
+sentri --version
+sentri --help
 ```
 
 ### Homebrew (macOS/Linux)
 
 ```bash
 brew tap geekstrancend/sentri
-brew install invar
+brew install sentri
 ```
 
 Update:
 ```bash
-brew upgrade invar
+brew upgrade sentri
 ```
 
 ### Build from Source
 
 ```bash
-git clone https://github.com/zelius/invar
-cd invar
+git clone https://github.com/geekstrancend/Sentri.git
+cd Sentri
 
 # Build release binary
 cargo build --release
 
-# Binary at target/release/invar
+# Binary at target/release/sentri
 ```
 
 ### Docker
 
 ```bash
 # Pull image
-docker pull zelius/invar:latest
+docker pull geekstrancend/sentri:latest
 
 # Run analysis
-docker run -v /path/to/project:/project zelius/invar:latest \
-  analyze --config /project/invar.toml
+docker run -v /path/to/project:/project geekstrancend/sentri:latest \
+  analyze --config /project/sentri.toml
 
 # Tag and push to registry
-docker tag zelius/invar:latest myregistry/invar:v0.1.0
-docker push myregistry/invar:v0.1.0
+docker tag geekstrancend/sentri:latest myregistry/sentri:v0.1.0
+docker push myregistry/sentri:v0.1.0
 ```
 
 Dockerfile:
@@ -102,7 +102,7 @@ ENTRYPOINT ["invar"]
 ### Project initialization
 
 ```bash
-invar init --project myproject
+sentri init --project myproject
 
 # Creates:
 # myproject/invar.toml
@@ -184,43 +184,43 @@ Pattern syntax (gitignore-compatible):
 
 ```bash
 # Use config file
-invar analyze --config invar.toml
+sentri analyze --config invar.toml
 
 # Specify directory
-invar analyze --path /path/to/project
+sentri analyze --path /path/to/project
 
 # Multiple paths
-invar analyze --path ./src --path ./contracts
+sentri analyze --path ./src --path ./contracts
 ```
 
 ### Output Formats
 
 ```bash
 # JSON (for parsing)
-invar analyze --output json > report.json
+sentri analyze --output json > report.json
 
 # Markdown (for reading)
-invar analyze --output markdown > report.md
+sentri analyze --output markdown > report.md
 
 # Text (for console)
-invar analyze --output text
+sentri analyze --output text
 
 # Pretty color output
-invar analyze --pretty
+sentri analyze --pretty
 ```
 
 ### Filtering
 
 ```bash
 # Analyze specific chain
-invar analyze --chain solana
+sentri analyze --chain solana
 
 # Analyze specific invariants
-invar analyze --include vault_conservation
-invar analyze --exclude experimental_*
+sentri analyze --include vault_conservation
+sentri analyze --exclude experimental_*
 
 # Severity threshold
-invar analyze --min-severity warning
+sentri analyze --min-severity warning
 ```
 
 ### Exit Codes
@@ -236,7 +236,7 @@ Invar uses exit codes for CI/CD integration:
 
 **CI/CD Pattern:**
 ```bash
-invar analyze --config invar.toml
+sentri analyze --config invar.toml
 case $? in
   0) echo "All invariants satisfied" ;;
   1) echo "Violation detected - halting deploy" && exit 1 ;;
@@ -265,7 +265,7 @@ jobs:
           echo "$HOME/.invar/bin" >> $GITHUB_PATH
       
       - name: Run Analysis
-        run: invar analyze --config invar.toml --output json
+        run: sentri analyze --config invar.toml --output json
       
       - name: Upload Report
         if: always()
@@ -281,7 +281,7 @@ jobs:
 check_invariants:
   image: zelius/invar:latest
   script:
-    - invar analyze --config invar.toml --output json --output-file report.json
+    - sentri analyze --config invar.toml --output json --output-file report.json
   artifacts:
     reports:
       dotenv: report.json
@@ -318,7 +318,7 @@ set -e
 
 echo "Checking invariants..."
 
-if ! invar analyze --config invar.toml --strict; then
+if ! sentri analyze --config invar.toml --strict; then
     echo "Invariant violations detected"
     exit 1
 fi
@@ -337,13 +337,13 @@ chmod +x .git/hooks/pre-commit
 
 ```bash
 # Debug level logging
-RUST_LOG=debug invar analyze --config invar.toml
+RUST_LOG=debug sentri analyze --config invar.toml
 
 # Specific module
-RUST_LOG=invar_core=debug invar analyze
+RUST_LOG=invar_core=debug sentri analyze
 
 # Tracing with spans
-RUST_LOG=invar=trace invar analyze
+RUST_LOG=invar=trace sentri analyze
 ```
 
 ### Metrics
@@ -372,10 +372,10 @@ Invar produces JSON output for monitoring:
 Parse for monitoring:
 ```bash
 # Extract pass rate
-invar analyze --output json | jq '.summary | (.passed / .total_invariants) * 100'
+sentri analyze --output json | jq '.summary | (.passed / .total_invariants) * 100'
 
 # Alert on violations
-if invar analyze --output json | jq '.summary.failed > 0'; then
+if sentri analyze --output json | jq '.summary.failed > 0'; then
   send_alert "Invariant violations detected"
 fi
 ```
@@ -387,13 +387,13 @@ fi
 # health_check.sh
 
 # Check installation
-invar --version || exit 1
+sentri --version || exit 1
 
 # Check config
-invar analyze --config invar.toml --dry-run || exit 1
+sentri analyze --config invar.toml --dry-run || exit 1
 
 # Quick smoke test
-invar analyze --chain solana --timeout 30s || exit 1
+sentri analyze --chain solana --timeout 30s || exit 1
 
 echo "Invar is healthy"
 ```
@@ -410,7 +410,7 @@ Run periodically:
 
 ```bash
 # Validate config
-invar validate-config --config invar.toml
+sentri validate-config --config invar.toml
 
 # Common issues:
 # - Missing [project] section
@@ -422,10 +422,10 @@ invar validate-config --config invar.toml
 
 ```bash
 # Profile analysis
-time invar analyze --config invar.toml
+time sentri analyze --config invar.toml
 
 # Baseline metrics
-invar analyze --config invar.toml --benchmark
+sentri analyze --config invar.toml --benchmark
 ```
 
 **Optimization:**
@@ -437,23 +437,23 @@ invar analyze --config invar.toml --benchmark
 
 ```bash
 # Monitor memory
-/usr/bin/time -v invar analyze --config invar.toml
+/usr/bin/time -v sentri analyze --config invar.toml
 
 # Reduce memory for large projects
-invar analyze --streaming --max-buffer 256M
+sentri analyze --streaming --max-buffer 256M
 ```
 
 ### Debugging
 
 ```bash
 # Verbose output
-invar analyze --config invar.toml -vv
+sentri analyze --config invar.toml -vv
 
 # Generate debug info
-invar analyze --config invar.toml --debug-output debug.log
+sentri analyze --config invar.toml --debug-output debug.log
 
 # Backtrace on error
-RUST_BACKTRACE=1 invar analyze --config invar.toml
+RUST_BACKTRACE=1 sentri analyze --config invar.toml
 ```
 
 ## Upgrading
@@ -461,21 +461,21 @@ RUST_BACKTRACE=1 invar analyze --config invar.toml
 ### Check Current Version
 
 ```bash
-invar --version
-# invar 0.1.0
+sentri --version
+# sentri 0.1.0
 ```
 
 ### Update Process
 
 ```bash
 # Check for updates
-invar update check
+sentri update check
 
 # Install update
-invar update --yes
+sentri update --yes
 
 # Verify
-invar --version
+sentri --version
 ```
 
 ### Breaking Changes
@@ -494,7 +494,7 @@ cp invar.toml invar.toml.v0.1.0
 cargo install invar@0.2.0
 
 # Test with dry-run
-invar analyze --config invar.toml --dry-run
+sentri analyze --config invar.toml --dry-run
 ```
 
 ## Security Best Practices
@@ -530,14 +530,14 @@ Set in CI/CD:
 ```bash
 export SOLANA_RPC_URL="http://localhost:8899"
 export SOLANA_KEYPAIR="/secure/path/to/keypair.json"
-invar analyze --config invar.toml
+sentri analyze --config invar.toml
 ```
 
 ### Audit Trail
 
 ```bash
 # Log all runs
-invar analyze --config invar.toml --audit-log /var/log/invar.log
+sentri analyze --config invar.toml --audit-log /var/log/invar.log
 
 # Parse logs
 grep "violation" /var/log/invar.log | jq

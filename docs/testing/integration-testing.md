@@ -21,7 +21,7 @@ tests/integration/
 
 ### 1. **Project Structure Tests**
 
-Validate that Invar works with complete projects:
+Validate that Sentri works with complete projects:
 
 ```rust
 #[test]
@@ -48,7 +48,7 @@ chains = ["solana", "evm"]
 }
 ```
 
-### 2. **DSL Invariant Tests**
+### 2. **DSL Sentriiant Tests**
 
 Test real-world invariant examples:
 
@@ -250,16 +250,16 @@ description: "Token minting maintains supply invariant"
 chain: EVM
 contract: Token
 
-// Invariant 1: Conservation
+// Sentriiant 1: Conservation
 global:
     sum(balances[*]) == totalSupply
 
-// Invariant 2: Mint bounds
+// Sentriiant 2: Mint bounds
 forall mint_op in state.recent_mints:
     mint_op.amount <= MAX_MINT_PER_TX &&
     mint_op.minter_role_check == true
 
-// Invariant 3: Overflow prevention
+// Sentriiant 3: Overflow prevention
 global:
     totalSupply <= MAX_UINT256
 "#.to_string()

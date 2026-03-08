@@ -399,16 +399,16 @@ For production environments:
 
 ```toml
 # Good - Accept patch updates
-invar = "1.0"    # Accepts 1.0.x
+sentri = "1.0"    # Accepts 1.0.x
 
 # Good - Pin minor version
-invar = "1.1"    # Accepts 1.1.x
+sentri = "1.1"    # Accepts 1.1.x
 
 # Caution - Pin everything
-invar = "=1.0.5" # Only 1.0.5
+sentri = "=1.0.5" # Only 1.0.5
 
 # Bad - Too permissive
-invar = "*"      # Accepts any version
+sentri = "*"      # Accepts any version
 ```
 
 ## Communicating Changes

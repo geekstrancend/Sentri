@@ -1,8 +1,8 @@
-# Getting Started with Invar
+# Getting Started with Sentri
 
-## What is Invar?
+## What is Sentri?
 
-Invar is a **production-grade invariant enforcement system** for smart contracts across Solana, EVM, and Move chains.
+Sentri is a **production-grade invariant enforcement system** for smart contracts across Solana, EVM, and Move chains.
 
 It lets you:
 - Define invariants in a simple DSL
@@ -16,23 +16,23 @@ It lets you:
 
 ```bash
 # Download latest release
-curl -L https://github.com/invar/invar/releases/download/latest/invar-linux-x86_64 \
+curl -L https://github.com/geekstrancend/Sentri/releases/download/latest/invar-linux-x86_64 \
   -o /usr/local/bin/invar
 chmod +x /usr/local/bin/invar
 
 # Verify installation
-invar --version
+sentri --version
 ```
 
 ### From Source
 
 ```bash
-git clone https://github.com/invar/invar.git
+git clone https://github.com/geekstrancend/Sentri.git
 cd invar
 cargo install --path crates/cli
 
 # Verify
-invar --version
+sentri --version
 ```
 
 ### With Cargo
@@ -46,7 +46,7 @@ cargo install invar
 ### 1. Initialize a Project
 
 ```bash
-invar init my-vault
+sentri init my-vault
 cd my-vault
 ```
 
@@ -108,7 +108,7 @@ EOF
 ### 4. Run Analysis
 
 ```bash
-invar check invariants/vault.invar
+sentri check invariants/vault.invar
 ```
 
 Output:
@@ -126,34 +126,34 @@ Analysis complete: 1 invariant, 1 passed
 
 ```bash
 # Check single file
-invar check vault.invar
+sentri check vault.invar
 
 # Check entire directory
-invar check invariants/
+sentri check invariants/
 
 # Verbose output
-invar check --verbose invariants/
+sentri check --verbose invariants/
 ```
 
 ### Generate Reports
 
 ```bash
 # JSON report
-invar report --format json invariants/vault.invar > report.json
+sentri report --format json invariants/vault.invar > report.json
 
 # Markdown report
-invar report --format markdown invariants/vault.invar > report.md
+sentri report --format markdown invariants/vault.invar > report.md
 
 # Plain text
-invar report --format text invariants/vault.invar
+sentri report --format text invariants/vault.invar
 ```
 
 ### Initialize New Projects
 
 ```bash
-invar init my-project
-invar init --template solana my-solana-vault
-invar init --template evm my-evm-token
+sentri init my-project
+sentri init --template solana my-solana-vault
+sentri init --template evm my-evm-token
 ```
 
 ## Writing Invariants
@@ -257,7 +257,7 @@ jobs:
         run: cargo install invar
       
       - name: Check invariants
-        run: invar check invariants/
+        run: sentri check invariants/
 ```
 
 ### Local Pre-commit Hook
@@ -267,7 +267,7 @@ Create `.git/hooks/pre-commit`:
 ```bash
 #!/bin/bash
 set -e
-invar check invariants/ || exit 1
+sentri check invariants/ || exit 1
 echo "Invariants passed"
 ```
 
@@ -368,14 +368,14 @@ pwd
 ls -la invariants/
 
 # Use absolute paths if needed
-invar check /full/path/to/vault.invar
+sentri check /full/path/to/vault.invar
 ```
 
 ### "Invalid invariant syntax"
 
 ```bash
 # Run with verbose mode
-invar check --verbose invariants/
+sentri check --verbose invariants/
 
 # Check for common mistakes:
 # - Missing ':' after 'invariant'
@@ -394,8 +394,8 @@ invar check --verbose invariants/
 ## Getting Help
 
 - **Documentation**: [https://invar.sh/docs](https://invar.sh/docs)
-- **Issues**: [GitHub Issues](https://github.com/invar/invar/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/invar/invar/discussions)
+- **Issues**: [GitHub Issues](https://github.com/geekstrancend/Sentri/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/geekstrancend/Sentri/discussions)
 - **Security**: [security@invar-project.dev](mailto:security@invar-project.dev)
 
 ## Key Concepts
@@ -403,7 +403,7 @@ invar check --verbose invariants/
 ### Exit Codes
 
 ```bash
-invar check vault.invar
+sentri check vault.invar
 echo $?  # Exit code
 ```
 
@@ -416,13 +416,13 @@ echo $?  # Exit code
 
 ```bash
 # Machine-readable JSON
-invar check --format json vault.invar
+sentri check --format json vault.invar
 
 # Human-readable Markdown
-invar check --format markdown vault.invar
+sentri check --format markdown vault.invar
 
 # CI-friendly SARIF
-invar check --format sarif vault.invar
+sentri check --format sarif vault.invar
 ```
 
 ## Performance Notes
@@ -431,13 +431,13 @@ For large analyses:
 
 ```bash
 # Enable parallel processing (default: on)
-invar check --parallel
+sentri check --parallel
 
 # Use specific number of threads
-invar check --threads 4
+sentri check --threads 4
 
 # Disable parallelism for debugging
-invar check --threads 1
+sentri check --threads 1
 ```
 
 ## Support Level

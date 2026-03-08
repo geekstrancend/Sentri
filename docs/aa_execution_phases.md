@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Invar framework now supports **execution phase-qualified invariants** for Account Abstraction (AA) systems. This extension addresses a critical gap in AA security modeling: most subtle failures in AA systems come from **phase misalignment** rather than contract-level state violations.
+The Sentri framework now supports **execution phase-qualified invariants** for Account Abstraction (AA) systems. This extension addresses a critical gap in AA security modeling: most subtle failures in AA systems come from **phase misalignment** rather than contract-level state violations.
 
 ## The Problem: Actor Boundaries vs. Execution Phases
 
@@ -315,7 +315,7 @@ fn test_phase_tracking() {
 
 Run tests:
 ```bash
-cargo test -p invar-core test_phase_tracking -- --nocapture
+cargo test -p sentri-core test_phase_tracking -- --nocapture
 ```
 
 ## Migration from Actor-Only to Phase-Based Invariants
