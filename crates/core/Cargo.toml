@@ -5,6 +5,7 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 description = "Core types and utilities for Sentri invariant checking framework"
+readme = "README.md"
 
 [dependencies]
 anyhow.workspace = true

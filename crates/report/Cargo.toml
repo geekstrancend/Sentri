@@ -5,6 +5,7 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 description = "Report generation for Sentri invariant violations"
+readme = "README.md"
 
 [dependencies]
 anyhow.workspace = true

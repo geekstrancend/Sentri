@@ -5,6 +5,7 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 description = "Intermediate representation for Sentri invariant specifications"
+readme = "README.md"
 
 [dependencies]
 anyhow.workspace = true

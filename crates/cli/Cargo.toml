@@ -5,6 +5,7 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 description = "Sentri CLI tool for blockchain invariant checking"
+readme = "README.md"
 [[bin]]
 name = "sentri"
 path = "src/main.rs"

@@ -5,6 +5,7 @@ edition.workspace = true
 authors.workspace = true
 license.workspace = true
 description = "EVM analyzer for Sentri invariant checking"
+readme = "README.md"
 
 [dependencies]
 anyhow.workspace = true
