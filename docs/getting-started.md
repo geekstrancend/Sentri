@@ -243,7 +243,7 @@ global:
 Add to `.github/workflows/check.yml`:
 
 ```yaml
-name: Invar Check
+name: Sentri Check
 
 on: [push, pull_request]
 
@@ -253,7 +253,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      - name: Install Invar
+      - name: Install Sentri
         run: cargo install invar
       
       - name: Check invariants
@@ -389,7 +389,7 @@ sentri check --verbose invariants/
 2. **Check [Examples](example-invariants.md)** - Real-world patterns
 3. **CI Integration** - Add to your pipeline
 4. **Security Model** - Understand guarantees
-5. **Contributing** - Help improve Invar
+5. **Contributing** - Help improve Sentri
 
 ## Getting Help
 

@@ -154,7 +154,7 @@ export RUST_LOG_STYLE=always
 export TMPDIR=/tmp/invar
 
 # Security: Disable risky features (none available)
-export INVAR_STRICT=1
+export SENTRI_STRICT=1
 ```
 
 ### Ignoring Files
@@ -225,7 +225,7 @@ sentri analyze --min-severity warning
 
 ### Exit Codes
 
-Invar uses exit codes for CI/CD integration:
+Sentri uses exit codes for CI/CD integration:
 
 | Code | Meaning | Action |
 |------|---------|--------|
@@ -259,7 +259,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       
-      - name: Install Invar
+      - name: Install Sentri
         run: |
           curl -fsSL https://install.invar.dev | bash
           echo "$HOME/.invar/bin" >> $GITHUB_PATH
@@ -348,7 +348,7 @@ RUST_LOG=invar=trace sentri analyze
 
 ### Metrics
 
-Invar produces JSON output for monitoring:
+Sentri produces JSON output for monitoring:
 
 ```json
 {
@@ -395,7 +395,7 @@ sentri analyze --config invar.toml --dry-run || exit 1
 # Quick smoke test
 sentri analyze --chain solana --timeout 30s || exit 1
 
-echo "Invar is healthy"
+echo "Sentri is healthy"
 ```
 
 Run periodically:
@@ -480,7 +480,7 @@ sentri --version
 
 ### Breaking Changes
 
-Invar follows [semantic versioning](./versioning.md).
+Sentri follows [semantic versioning](./versioning.md).
 
 **Migration Guide:**
 ```bash

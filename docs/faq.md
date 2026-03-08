@@ -394,10 +394,10 @@ services:
 
 See [Security Model](docs/security-model.md) for details.
 
-### Q: Should I use Invar instead of audits?
+### Q: Should I use Sentri instead of audits?
 
 **A:** No, use together:
-1. **Invar** - Checks invariants automatically
+1. **Sentri** - Checks invariants automatically
 2. **Audit** - Reviews logic and design
 3. **Testing** - Unit and integration tests
 4. **Monitoring** - Runtime observation

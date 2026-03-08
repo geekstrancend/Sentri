@@ -404,7 +404,7 @@ Error: expected unary at ...
 
 **Environment**
 - Rust version: 1.93.0
-- Invar version: 0.1.0
+- Sentri version: 0.1.0
 - OS: Linux
 ```
 
