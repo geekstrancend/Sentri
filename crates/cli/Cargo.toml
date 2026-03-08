@@ -3,7 +3,8 @@ name = "sentri-cli"
 version.workspace = true
 edition.workspace = true
 authors.workspace = true
-license.workspace = truedescription = "Sentri CLI tool for blockchain invariant checking"
+license.workspace = true
+description = "Sentri CLI tool for blockchain invariant checking"
 [[bin]]
 name = "sentri"
 path = "src/main.rs"
