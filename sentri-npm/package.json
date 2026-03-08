@@ -5,7 +5,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/dextonicx/Sentri"
+    "url": "git+https://github.com/dextonicx/Sentri.git"
   },
   "homepage": "https://github.com/dextonicx/Sentri",
   "bugs": {
@@ -31,7 +31,7 @@
     "node": ">=16.0.0"
   },
   "bin": {
-    "sentri": "./bin/sentri.js"
+    "sentri": "bin/sentri.js"
   },
   "main": "./index.js",
   "types": "./index.d.ts",
