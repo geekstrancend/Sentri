@@ -59,7 +59,7 @@ mod tests {
         let banner = render_banner("0.1.0");
         // Banner should either be empty (non-TTY) or contain the logo
         if !banner.is_empty() {
-            assert!(banner.contains("███")).or_else(|_| Ok::<(), String>(()) as Result<(), String>);
+            assert!(banner.contains("███"), "Banner should contain ASCII art");
         }
     }
 }
