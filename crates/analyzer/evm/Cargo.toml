@@ -6,6 +6,9 @@ authors.workspace = true
 license.workspace = true
 description = "EVM analyzer for Sentri invariant checking"
 readme = "README.md"
+homepage.workspace = true
+repository.workspace = true
+documentation = "https://docs.rs/sentri-analyzer-evm"
 
 [dependencies]
 anyhow.workspace = true

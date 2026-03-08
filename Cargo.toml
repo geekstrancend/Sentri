@@ -25,6 +25,7 @@ edition = "2021"
 rust-version = "1.75"
 authors = ["Sentri Contributors"]
 license = "MIT"
+homepage = "https://github.com/geekstrancend/Sentri"
 repository = "https://github.com/geekstrancend/Sentri"
 
 [workspace.dependencies]

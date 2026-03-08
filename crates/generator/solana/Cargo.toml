@@ -6,6 +6,9 @@ authors.workspace = true
 license.workspace = true
 description = "Code generator for Solana programs using Sentri invariants"
 readme = "README.md"
+homepage.workspace = true
+repository.workspace = true
+documentation = "https://docs.rs/sentri-generator-solana"
 
 [dependencies]
 anyhow.workspace = true

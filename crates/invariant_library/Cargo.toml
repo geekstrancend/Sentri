@@ -6,6 +6,9 @@ authors.workspace = true
 license.workspace = true
 description = "Standard library of invariants for Sentri framework"
 readme = "README.md"
+homepage.workspace = true
+repository.workspace = true
+documentation = "https://docs.rs/sentri-library"
 
 [dependencies]
 anyhow.workspace = true

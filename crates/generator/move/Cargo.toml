@@ -6,6 +6,9 @@ authors.workspace = true
 license.workspace = true
 description = "Code generator for Move modules using Sentri invariants"
 readme = "README.md"
+homepage.workspace = true
+repository.workspace = true
+documentation = "https://docs.rs/sentri-generator-move"
 
 [dependencies]
 anyhow.workspace = true

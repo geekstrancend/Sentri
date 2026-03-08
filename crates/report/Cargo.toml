@@ -6,6 +6,9 @@ authors.workspace = true
 license.workspace = true
 description = "Report generation for Sentri invariant violations"
 readme = "README.md"
+homepage.workspace = true
+repository.workspace = true
+documentation = "https://docs.rs/sentri-report"
 
 [dependencies]
 anyhow.workspace = true

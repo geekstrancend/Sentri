@@ -6,6 +6,9 @@ authors.workspace = true
 license.workspace = true
 description = "Core types and utilities for Sentri invariant checking framework"
 readme = "README.md"
+homepage.workspace = true
+repository.workspace = true
+documentation = "https://docs.rs/sentri-core"
 
 [dependencies]
 anyhow.workspace = true

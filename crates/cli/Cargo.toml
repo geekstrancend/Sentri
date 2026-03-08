@@ -6,6 +6,9 @@ authors.workspace = true
 license.workspace = true
 description = "Sentri CLI tool for blockchain invariant checking"
 readme = "README.md"
+homepage.workspace = true
+repository.workspace = true
+documentation = "https://docs.rs/sentri-cli"
 [[bin]]
 name = "sentri"
 path = "src/main.rs"
