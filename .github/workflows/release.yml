@@ -293,8 +293,6 @@ jobs:
   build-macos-x86_64:
     name: Build (x86_64-darwin)
     runs-on: macos-latest
-    env:
-      SDKROOT: $(xcrun --sdk macosx --show-sdk-path)
     needs: [validate-version, ci-verification, security-audit]
     steps:
       - name: Checkout code
@@ -315,7 +313,9 @@ jobs:
         run: cargo build --release --locked --target x86_64-apple-darwin
 
       - name: Strip binary
-        run: strip target/x86_64-apple-darwin/release/sentri
+        run: |
+          export SDKROOT=$(xcrun --sdk macosx --show-sdk-path)
+          strip target/x86_64-apple-darwin/release/sentri
 
       # v0.1: Smoke test binary on macOS
       - name: Smoke test binary
