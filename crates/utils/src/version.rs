@@ -121,7 +121,7 @@ impl ReleaseArtifact {
 
     /// Compute expected artifact filename.
     pub fn filename(&self) -> String {
-        format!("invar-{}-{}", self.version, self.target)
+        format!("sentri-{}-{}", self.version, self.target)
     }
 
     /// Verify that artifact checksum matches expected value.
