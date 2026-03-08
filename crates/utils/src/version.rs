@@ -1,4 +1,4 @@
-//! Semantic versioning and release management for Invar.
+//! Semantic versioning and release management for Sentri.
 //!
 //! Provides:
 //! - Semantic versioning with validation
@@ -134,7 +134,7 @@ impl fmt::Display for ReleaseArtifact {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(
             f,
-            "invar {} ({}) [{}]",
+            "sentri {} ({}) [{}]",
             self.version, self.target, self.checksum
         )
     }
@@ -288,7 +288,7 @@ mod tests {
             "abc123".to_string(),
             true,
         );
-        assert_eq!(artifact.filename(), "invar-0.1.0-linux-x86_64");
+        assert_eq!(artifact.filename(), "sentri-0.1.0-linux-x86_64");
     }
 
     #[test]

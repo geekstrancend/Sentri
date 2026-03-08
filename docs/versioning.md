@@ -2,7 +2,7 @@
 
 ## Versioning Policy
 
-Invar follows **Semantic Versioning** as defined at https://semver.org/
+Sentri follows **Semantic Versioning** as defined at https://semver.org/
 
 ```
 Version: MAJOR.MINOR.PATCH
@@ -76,10 +76,10 @@ sum(values) >= 100              // New: 101 minimum
 
 ```bash
 # BREAKING: Command removal
-invar check file.invar          # Old command removed
+sentri check file.invar          # Old command removed
 
 # BREAKING: Flag removal
-invar check --old-flag file.invar
+sentri check --old-flag file.invar
 
 # BREAKING: Output format change
 # JSON structure significantly reorganized
@@ -209,7 +209,7 @@ Release 0.2.0:
 ```
 "The 'forall' keyword with type annotations is deprecated.
  Use pattern matching instead. See migration guide:
- https://invar.sh/docs/0.3/migration"
+ https://sentri.sh/docs/0.3/migration"
 ```
 
 Release 0.3.0:
@@ -226,7 +226,7 @@ error: removed syntax: 'forall x:Type in items'
 
 The old type annotation syntax was removed.
 Update your invariants to: 'forall x in items'
-See https://invar.sh/docs/1.0/migration
+See https://sentri.sh/docs/1.0/migration
 ```
 
 ## Backward Compatibility Guarantee
@@ -262,8 +262,8 @@ For each major version, publish:
 - New: `invariant: balance_check`
 
 ### CLI
-- Old: `invar check file.invar`
-- New: `invar analyze file.invar`
+- Old: `sentri check file.invar`
+- New: `sentri analyze file.invar`
 
 ### JSON Output
 - Field `violations` renamed to `failed_invariants`
@@ -329,7 +329,7 @@ move = []  # Experimental
 advanced-dsl = []  # Experimental
 
 [[bin]]
-name = "invar-debug"
+name = "sentri-debug"
 required-features = ["advanced-dsl"]
 ```
 
@@ -338,9 +338,9 @@ required-features = ["advanced-dsl"]
 Documentation for each major version:
 
 ```
-https://invar.sh/docs/0.2/     # Previous
-https://invar.sh/docs/1.0/     # Current
-https://invar.sh/docs/latest   # Alias to current
+https://sentri.sh/docs/0.2/     # Previous
+https://sentri.sh/docs/1.0/     # Current
+https://sentri.sh/docs/latest   # Alias to current
 ```
 
 API documentation:
@@ -444,4 +444,4 @@ Prominent section on breaking changes and migration.
 
 For versioning questions:
 - GitHub Issues with label `versioning`
-- Email: release@invar-project.dev
+- Email: release@sentri-project.dev

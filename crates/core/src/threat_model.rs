@@ -163,12 +163,12 @@ impl TamperDetector {
     pub fn verify_tampering(generated_code: &str, expected_checks: &[String]) -> ThreatResult<()> {
         let expected_hash = Self::compute_hash(expected_checks);
 
-        // Extract hash from generated code (look for INVAR_HASH: pattern)
-        let hash_pattern = format!("INVAR_HASH: {}", expected_hash);
+        // Extract hash from generated code (look for SENTRI_HASH: pattern)
+        let hash_pattern = format!("SENTRI_HASH: {}", expected_hash);
 
         if !generated_code.contains(&hash_pattern) {
             return Err(ThreatModelError::TamperDetected(
-                "hash mismatch: generated code does not contain expected INVAR_HASH".to_string(),
+                "hash mismatch: generated code does not contain expected SENTRI_HASH".to_string(),
             ));
         }
 
@@ -404,7 +404,7 @@ mod tests {
             from.balance -= amount;
             to.balance += amount;
             // Invariant: balance >= 0
-            // INVAR_HASH: abcd1234
+            // SENTRI_HASH: abcd1234
         }
         "#;
 

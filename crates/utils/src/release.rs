@@ -55,7 +55,7 @@ impl ReleaseManager {
         version: SemanticVersion,
         artifacts: &[ReleaseArtifact],
     ) -> String {
-        let mut manifest = format!("# Invar Release {}\n\n", version);
+        let mut manifest = format!("# Sentri Release {}\n\n", version);
         manifest.push_str("## Artifacts\n\n");
 
         for artifact in artifacts {
@@ -158,7 +158,7 @@ mod tests {
         let manager = ReleaseManager::new(std::path::PathBuf::from("/tmp"));
         let manifest = manager.generate_manifest(SemanticVersion::new(0, 1, 0), &artifacts);
 
-        assert!(manifest.contains("Invar Release 0.1.0"));
+        assert!(manifest.contains("Sentri Release 0.1.0"));
         assert!(manifest.contains("linux-x86_64"));
         assert!(manifest.contains("darwin-aarch64"));
         assert!(manifest.contains("Installation"));

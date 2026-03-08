@@ -1,17 +1,17 @@
 #![warn(missing_docs)]
 #![deny(unsafe_code)]
 
-//! Invar CLI: Multi-chain invariant enforcement tool.
+//! Sentri CLI: Multi-chain invariant enforcement tool.
 
 use clap::{Parser, Subcommand};
 use std::path::{Path, PathBuf};
 
-/// Invar: Production-grade multi-chain invariant analysis tool.
+/// Sentri: Production-grade multi-chain invariant analysis tool.
 #[derive(Parser)]
-#[command(name = "invar")]
+#[command(name = "sentri")]
 #[command(version = env!("CARGO_PKG_VERSION"))]
 #[command(about = "Enforce invariants on smart contracts across Solana, EVM, and Move")]
-#[command(author = "Invar Contributors")]
+#[command(author = "Sentri Contributors")]
 #[allow(missing_docs)]
 struct Cli {
     /// Enable verbose logging.
@@ -28,7 +28,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Commands {
-    /// Initialize a new Invar project.
+    /// Initialize a new Sentri project.
     Init {
         /// Project directory.
         #[arg(default_value = ".")]
@@ -192,15 +192,15 @@ fn main() -> anyhow::Result<()> {
             Ok(())
         }
         None => {
-            println!("Invar v{}", env!("CARGO_PKG_VERSION"));
+            println!("Sentri v{}", env!("CARGO_PKG_VERSION"));
             println!("Multi-chain smart contract invariant enforcement tool");
-            println!("\nRun 'invar --help' for usage information");
+            println!("\nRun 'sentri --help' for usage information");
             Ok(())
         }
     }
 }
 
-/// Initialize a new Invar project with default structure.
+/// Initialize a new Sentri project with default structure.
 fn init_project(path: &PathBuf) -> anyhow::Result<()> {
     std::fs::create_dir_all(path)?;
 
@@ -226,7 +226,7 @@ tamper_detection = true
 
     std::fs::write(path.join("config.toml"), config)?;
 
-    println!("✓ Initialized Invar project at {}", path.display());
+    println!("✓ Initialized Sentri project at {}", path.display());
     println!("  - Created invariants/ directory");
     println!("  - Created src/ directory");
     println!("  - Created output/ directory");
