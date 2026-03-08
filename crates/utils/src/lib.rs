@@ -1,7 +1,7 @@
 #![warn(missing_docs)]
 #![deny(unsafe_code)]
 
-//! Utilities for Invar: logging, path handling, and version management.
+//! Utilities for Sentri: logging, path handling, and version management.
 
 pub mod logging;
 pub mod path_utils;

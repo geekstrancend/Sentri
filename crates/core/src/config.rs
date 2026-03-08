@@ -1,4 +1,4 @@
-//! Configuration management for Invar.
+//! Configuration management for Sentri.
 //!
 //! Supports TOML-based configuration with environment variable substitution.
 //! All env vars are expanded at load time; missing vars cause an error.
@@ -112,7 +112,7 @@ impl Config {
                         return Err(ConfigError {
                             message: format!(
                                 "Environment variable not set: {}. \
-                                 Please export it before running Invar. \
+                                 Please export it before running Sentri. \
                                  E.g.: export {}=<value>",
                                 var_ref, var_ref
                             ),

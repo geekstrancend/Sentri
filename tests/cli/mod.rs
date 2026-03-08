@@ -30,15 +30,15 @@ forall tx in transactions:
 
 #[test]
 fn test_cli_help_output() {
-    let mut cmd = Command::cargo_bin("invar").expect("Failed to find binary");
+    let mut cmd = Command::cargo_bin("sentri").expect("Failed to find binary");
     cmd.arg("--help");
     cmd.assert().success()
-        .stdout(predicate::str::contains("Invar"));
+        .stdout(predicate::str::contains("Sentri"));
 }
 
 #[test]
 fn test_cli_version_output() {
-    let mut cmd = Command::cargo_bin("invar").expect("Failed to find binary");
+    let mut cmd = Command::cargo_bin("sentri").expect("Failed to find binary");
     cmd.arg("--version");
     cmd.assert().success();
 }
@@ -48,7 +48,7 @@ fn test_cli_init_creates_project() {
     let temp = TempDir::new().expect("Failed to create temp dir");
     let project_path = temp.path().join("new_project");
 
-    let mut cmd = Command::cargo_bin("invar").expect("Failed to find binary");
+    let mut cmd = Command::cargo_bin("sentri").expect("Failed to find binary");
     cmd.arg("init")
         .arg(&project_path);
     
@@ -58,7 +58,7 @@ fn test_cli_init_creates_project() {
 
 #[test]
 fn test_cli_missing_file_exits_with_error() {
-    let mut cmd = Command::cargo_bin("invar").expect("Failed to find binary");
+    let mut cmd = Command::cargo_bin("sentri").expect("Failed to find binary");
     cmd.arg("build")
         .arg("--source")
         .arg("/nonexistent/file.rs")
@@ -74,7 +74,7 @@ fn test_cli_missing_file_exits_with_error() {
 fn test_cli_invalid_chain_exits_with_error() {
     let temp = setup_test_project();
     
-    let mut cmd = Command::cargo_bin("invar").expect("Failed to find binary");
+    let mut cmd = Command::cargo_bin("sentri").expect("Failed to find binary");
     cmd.arg("build")
         .arg("--source")
         .arg(temp.path().join("test.rs"))
@@ -90,7 +90,7 @@ fn test_cli_invalid_chain_exits_with_error() {
 fn test_cli_verbose_flag_produces_output() {
     let temp = setup_test_project();
     
-    let mut cmd = Command::cargo_bin("invar").expect("Failed to find binary");
+    let mut cmd = Command::cargo_bin("sentri").expect("Failed to find binary");
     cmd.arg("--verbose")
         .arg("list");
 
@@ -99,7 +99,7 @@ fn test_cli_verbose_flag_produces_output() {
 
 #[test]
 fn test_cli_log_level_flag() {
-    let mut cmd = Command::cargo_bin("invar").expect("Found to find binary");
+    let mut cmd = Command::cargo_bin("sentri").expect("Found to find binary");
     cmd.arg("--log-level")
         .arg("debug")
         .arg("list");
@@ -109,7 +109,7 @@ fn test_cli_log_level_flag() {
 
 #[test]
 fn test_cli_invalid_subcommand() {
-    let mut cmd = Command::cargo_bin("invar").expect("Failed to find binary");
+    let mut cmd = Command::cargo_bin("sentri").expect("Failed to find binary");
     cmd.arg("nonexistent_command");
 
     cmd.assert().failure();
@@ -121,7 +121,7 @@ mod exit_codes {
 
     #[test]
     fn test_exit_code_success_is_zero() {
-        let mut cmd = Command::cargo_bin("invar").expect("Failed to find binary");
+        let mut cmd = Command::cargo_bin("sentri").expect("Failed to find binary");
         cmd.arg("--help");
         
         let output = cmd.output().expect("Failed to execute");
@@ -130,7 +130,7 @@ mod exit_codes {
 
     #[test]
     fn test_exit_code_error_is_nonzero() {
-        let mut cmd = Command::cargo_bin("invar").expect("Failed to find binary");
+        let mut cmd = Command::cargo_bin("sentri").expect("Failed to find binary");
         cmd.arg("nonexistent_command");
         
         let output = cmd.output().expect("Failed to execute");
@@ -146,7 +146,7 @@ mod output_formats {
     fn test_json_output_is_valid() {
         let temp = setup_test_project();
         
-        let mut cmd = Command::cargo_bin("invar").expect("Failed to find binary");
+        let mut cmd = Command::cargo_bin("sentri").expect("Failed to find binary");
         cmd.arg("report")
             .arg("--input")
             .arg(temp.path().join("test_report.json"))
@@ -167,7 +167,7 @@ mod output_formats {
     fn test_markdown_output() {
         let temp = setup_test_project();
         
-        let mut cmd = Command::cargo_bin("invar").expect("Failed to find binary");
+        let mut cmd = Command::cargo_bin("sentri").expect("Failed to find binary");
         cmd.arg("report")
             .arg("--input")
             .arg(temp.path().join("test_report.json"))
@@ -217,11 +217,11 @@ mod determinism {
         let temp = setup_test_project();
         
         // Run the same command twice
-        let mut cmd1 = Command::cargo_bin("invar").expect("Failed to find binary");
+        let mut cmd1 = Command::cargo_bin("sentri").expect("Failed to find binary");
         cmd1.arg("list");
         let output1 = cmd1.output().expect("Failed to execute");
 
-        let mut cmd2 = Command::cargo_bin("invar").expect("Failed to find binary");
+        let mut cmd2 = Command::cargo_bin("sentri").expect("Failed to find binary");
         cmd2.arg("list");
         let output2 = cmd2.output().expect("Failed to execute");
 

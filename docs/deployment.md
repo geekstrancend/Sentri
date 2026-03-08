@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide covers deploying, configuring, and operating Invar in production environments.
+This guide covers deploying, configuring, and operating Sentri in production environments.
 
 **Quick Start:**
 
@@ -27,12 +27,12 @@ invar check --strict --output json
 **Latest Release:**
 ```bash
 # Linux
-curl -fsSL https://releases.github.com/zelius/invar/latest/linux-x86_64.tar.gz | tar xz
-sudo mv invar /usr/local/bin/
+curl -fsSL https://releases.github.com/geekstrancend/sentri/latest/linux-x86_64.tar.gz | tar xz
+sudo mv sentri /usr/local/bin/
 
 # macOS
-curl -fsSL https://releases.github.com/zelius/invar/latest/macos-x86_64.tar.gz | tar xz
-sudo mv invar /usr/local/bin/
+curl -fsSL https://releases.github.com/geekstrancend/sentri/latest/macos-x86_64.tar.gz | tar xz
+sudo mv sentri /usr/local/bin/
 
 # Windows
 curl -fsSL https://releases.github.com/zelius/invar/latest/windows-x86_64.zip -o invar.zip
@@ -49,7 +49,7 @@ invar --help
 ### Homebrew (macOS/Linux)
 
 ```bash
-brew tap zelius/invar
+brew tap geekstrancend/sentri
 brew install invar
 ```
 
