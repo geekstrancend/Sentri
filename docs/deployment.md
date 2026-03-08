@@ -8,13 +8,13 @@ This guide covers deploying, configuring, and operating Sentri in production env
 
 ```bash
 # Install latest release
-curl -fsSL https://install.invar.dev | bash
+curl -fsSL https://install.sentri.dev | bash
 
 # Initialize project
 sentri init --project my-project
 
 # Run analysis
-sentri analyze --config my-project/invar.toml
+sentri analyze --config my-project/sentri.toml
 
 # Monitor in CI/CD
 sentri check --strict --output json
@@ -93,8 +93,8 @@ COPY . .
 RUN cargo build --release
 
 FROM debian:bookworm-slim
-COPY --from=builder /app/target/release/invar /usr/local/bin/
-ENTRYPOINT ["invar"]
+COPY --from=builder /app/target/release/sentri /usr/local/bin/
+ENTRYPOINT ["sentri"]
 ```
 
 ## Configuration
@@ -105,12 +105,12 @@ ENTRYPOINT ["invar"]
 sentri init --project myproject
 
 # Creates:
-# myproject/invar.toml
+# myproject/sentri.toml
 # myproject/invariants.invar
 # myproject/.invarignore
 ```
 
-### Configuration File (invar.toml)
+### Configuration File (sentri.toml)
 
 ```toml
 [project]
@@ -151,7 +151,7 @@ export RUST_LOG=debug
 export RUST_LOG_STYLE=always
 
 # Temporary directory
-export TMPDIR=/tmp/invar
+export TMPDIR=/tmp/sentri
 
 # Security: Disable risky features (none available)
 export SENTRI_STRICT=1
@@ -184,7 +184,7 @@ Pattern syntax (gitignore-compatible):
 
 ```bash
 # Use config file
-sentri analyze --config invar.toml
+sentri analyze --config sentri.toml
 
 # Specify directory
 sentri analyze --path /path/to/project
@@ -236,7 +236,7 @@ Sentri uses exit codes for CI/CD integration:
 
 **CI/CD Pattern:**
 ```bash
-sentri analyze --config invar.toml
+sentri analyze --config sentri.toml
 case $? in
   0) echo "All invariants satisfied" ;;
   1) echo "Violation detected - halting deploy" && exit 1 ;;
@@ -254,34 +254,34 @@ name: Invariant Check
 on: [push, pull_request]
 
 jobs:
-  invar:
+  sentri:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
       
       - name: Install Sentri
         run: |
-          curl -fsSL https://install.invar.dev | bash
-          echo "$HOME/.invar/bin" >> $GITHUB_PATH
+          curl -fsSL https://install.sentri.dev | bash
+          echo "$HOME/.sentri/bin" >> $GITHUB_PATH
       
       - name: Run Analysis
-        run: sentri analyze --config invar.toml --output json
+        run: sentri analyze --config sentri.toml --output json
       
       - name: Upload Report
         if: always()
         uses: actions/upload-artifact@v3
         with:
-          name: invar-report
-          path: invar-report.json
+          name: sentri-report
+          path: sentri-report.json
 ```
 
 ### GitLab CI
 
 ```yaml
 check_invariants:
-  image: zelius/invar:latest
+  image: geekstrancend/sentri:latest
   script:
-    - sentri analyze --config invar.toml --output json --output-file report.json
+    - sentri analyze --config sentri.toml --output json --output-file report.json
   artifacts:
     reports:
       dotenv: report.json
@@ -294,13 +294,13 @@ check_invariants:
 stage('Check Invariants') {
     steps {
         sh '''
-            curl -fsSL https://install.invar.dev | bash
-            ~/.invar/bin/invar analyze --config invar.toml
+            curl -fsSL https://install.sentri.dev | bash
+            ~/.sentri/bin/sentri analyze --config sentri.toml
         '''
     }
     post {
         always {
-            archiveArtifacts artifacts: 'invar-report.*'
+            archiveArtifacts artifacts: 'sentri-report.*'
         }
         failure {
             currentBuild.result = 'FAILURE'
@@ -318,7 +318,7 @@ set -e
 
 echo "Checking invariants..."
 
-if ! sentri analyze --config invar.toml --strict; then
+if ! sentri analyze --config sentri.toml --strict; then
     echo "Invariant violations detected"
     exit 1
 fi
@@ -337,13 +337,13 @@ chmod +x .git/hooks/pre-commit
 
 ```bash
 # Debug level logging
-RUST_LOG=debug sentri analyze --config invar.toml
+RUST_LOG=debug sentri analyze --config sentri.toml
 
 # Specific module
-RUST_LOG=invar_core=debug sentri analyze
+RUST_LOG=sentri_core=debug sentri analyze
 
 # Tracing with spans
-RUST_LOG=invar=trace sentri analyze
+RUST_LOG=sentri=trace sentri analyze
 ```
 
 ### Metrics
@@ -390,7 +390,7 @@ fi
 sentri --version || exit 1
 
 # Check config
-sentri analyze --config invar.toml --dry-run || exit 1
+sentri analyze --config sentri.toml --dry-run || exit 1
 
 # Quick smoke test
 sentri analyze --chain solana --timeout 30s || exit 1
@@ -410,7 +410,7 @@ Run periodically:
 
 ```bash
 # Validate config
-sentri validate-config --config invar.toml
+sentri validate-config --config sentri.toml
 
 # Common issues:
 # - Missing [project] section
@@ -422,22 +422,22 @@ sentri validate-config --config invar.toml
 
 ```bash
 # Profile analysis
-time sentri analyze --config invar.toml
+time sentri analyze --config sentri.toml
 
 # Baseline metrics
-sentri analyze --config invar.toml --benchmark
+sentri analyze --config sentri.toml --benchmark
 ```
 
 **Optimization:**
 - Skip non-critical invariants: `--exclude experimental_*`
 - Use specific chains: `--chain solana` (not all)
-- Cache results: `--cache /tmp/invar`
+- Cache results: `--cache /tmp/sentri`
 
 ### Memory Usage
 
 ```bash
 # Monitor memory
-/usr/bin/time -v sentri analyze --config invar.toml
+/usr/bin/time -v sentri analyze --config sentri.toml
 
 # Reduce memory for large projects
 sentri analyze --streaming --max-buffer 256M
@@ -447,13 +447,13 @@ sentri analyze --streaming --max-buffer 256M
 
 ```bash
 # Verbose output
-sentri analyze --config invar.toml -vv
+sentri analyze --config sentri.toml -vv
 
 # Generate debug info
-sentri analyze --config invar.toml --debug-output debug.log
+sentri analyze --config sentri.toml --debug-output debug.log
 
 # Backtrace on error
-RUST_BACKTRACE=1 sentri analyze --config invar.toml
+RUST_BACKTRACE=1 sentri analyze --config sentri.toml
 ```
 
 ## Upgrading
@@ -488,13 +488,13 @@ Sentri follows [semantic versioning](./versioning.md).
 # Review MIGRATION.md before upgrading
 
 # Backup current config
-cp invar.toml invar.toml.v0.1.0
+cp sentri.toml sentri.toml.v0.1.0
 
 # Upgrade
-cargo install invar@0.2.0
+cargo install sentri@0.2.0
 
 # Test with dry-run
-sentri analyze --config invar.toml --dry-run
+sentri analyze --config sentri.toml --dry-run
 ```
 
 ## Security Best Practices
@@ -503,11 +503,11 @@ sentri analyze --config invar.toml --dry-run
 
 ```bash
 # Restrict binary permissions
-chmod 755 /usr/local/bin/invar
+chmod 755 /usr/local/bin/sentri
 
 # Only allow specific users
-chmod 700 /path/to/invar.toml
-chown analyzer:analyzer /path/to/invar.toml
+chmod 700 /path/to/sentri.toml
+chown analyzer:analyzer /path/to/sentri.toml
 ```
 
 ### Secret Management
@@ -530,17 +530,17 @@ Set in CI/CD:
 ```bash
 export SOLANA_RPC_URL="http://localhost:8899"
 export SOLANA_KEYPAIR="/secure/path/to/keypair.json"
-sentri analyze --config invar.toml
+sentri analyze --config sentri.toml
 ```
 
 ### Audit Trail
 
 ```bash
 # Log all runs
-sentri analyze --config invar.toml --audit-log /var/log/invar.log
+sentri analyze --config sentri.toml --audit-log /var/log/sentri.log
 
 # Parse logs
-grep "violation" /var/log/invar.log | jq
+grep "violation" /var/log/sentri.log | jq
 ```
 
 ## Production Checklist
@@ -562,7 +562,7 @@ Before deploying to production:
 
 - **Issues**: GitHub Issues with `[deployment]` tag
 - **Questions**: GitHub Discussions
-- **Security**: security@invar-project.dev
+- **Security**: security@sentri.dev
 - **Community**: Discord (link in README)
 
 ## Summary

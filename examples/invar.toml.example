@@ -248,7 +248,7 @@ severities = ["critical"]
 type = "webhook"
 name = "custom-backend"
 
-url = "https://my-ops.example.com/invar/violations"
+url = "https://my-ops.example.com/sentri/violations"
 
 headers = { "Authorization" = "Bearer ${OPS_API_TOKEN}", "X-Source" = "sentri" }
 

@@ -344,7 +344,7 @@ name: Invariant Check
 on: [push, pull_request]
 
 jobs:
-  invar:
+  sentri:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -375,11 +375,11 @@ Or in docker-compose:
 
 ```yaml
 services:
-  invar:
-    image: zelius/invar:latest
+  sentri:
+    image: geekstrancend/sentri:latest
     volumes:
-      - ./sentriiants.invar:/app/invariants.invar
-    command: analyze --config /app/invar.toml
+      - ./invariants.invar:/app/invariants.invar
+    command: analyze --config /app/sentri.toml
 ```
 
 ## Security

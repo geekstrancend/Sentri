@@ -41,7 +41,7 @@ name = "test-project"
 version = "0.1.0"
 chains = ["solana", "evm"]
 "#;
-    fs::write(base.join("invar.toml"), config)?;
+    fs::write(base.join("sentri.toml"), config)?;
 
     // Verify structure
     assert!(base.join("invariants").exists());

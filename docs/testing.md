@@ -132,7 +132,7 @@ use predicates::prelude::*;
 
 #[test]
 fn test_help_output() {
-    Command::cargo_bin("invar")
+    Command::cargo_bin("sentri")
         .unwrap()
         .arg("--help")
         .assert()
@@ -184,7 +184,7 @@ fn test_solana_vault_analysis() {
 ```rust
 let dir = TempDir::new().unwrap();
 create_invariant(&dir, "invariant: test\nglobal: x > 0")?;
-let output = run_invar(&dir)?;
+let output = run_sentri(&dir)?;
 ```
 
 ### 5. Security Tests
@@ -359,7 +359,7 @@ RUST_BACKTRACE=1 cargo test
 cargo test test_parser_simple -- --nocapture
 
 # Debug with debugger
-rust-gdb --args target/debug/deps/invar-<hash> test_parser_simple
+rust-gdb --args target/debug/deps/sentri-<hash> test_parser_simple
 
 # Debug in IDE
 # Set breakpoint and run via code-debug extension

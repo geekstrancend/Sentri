@@ -16,9 +16,9 @@ It lets you:
 
 ```bash
 # Download latest release
-curl -L https://github.com/geekstrancend/Sentri/releases/download/latest/invar-linux-x86_64 \
-  -o /usr/local/bin/invar
-chmod +x /usr/local/bin/invar
+curl -L https://github.com/geekstrancend/Sentri/releases/download/latest/sentri-linux-x86_64 \
+  -o /usr/local/bin/sentri
+chmod +x /usr/local/bin/sentri
 
 # Verify installation
 sentri --version
@@ -28,7 +28,7 @@ sentri --version
 
 ```bash
 git clone https://github.com/geekstrancend/Sentri.git
-cd invar
+cd Sentri
 cargo install --path crates/cli
 
 # Verify
@@ -38,7 +38,7 @@ sentri --version
 ### With Cargo
 
 ```bash
-cargo install invar
+cargo install sentri
 ```
 
 ## Quick Start
@@ -53,7 +53,7 @@ cd my-vault
 Creates:
 ```
 my-vault/
-├── invar.toml          # Project configuration
+├── sentri.toml         # Project configuration
 ├── invariants/         # Invariant definitions
 │   └── vault.invar
 ├── src/                # Your contract code
@@ -254,7 +254,7 @@ jobs:
       - uses: actions/checkout@v4
       
       - name: Install Sentri
-        run: cargo install invar
+        run: cargo install sentri
       
       - name: Check invariants
         run: sentri check invariants/
@@ -278,7 +278,7 @@ chmod +x .git/hooks/pre-commit
 
 ## Configuration
 
-### invar.toml
+### sentri.toml
 
 ```toml
 [project]
@@ -345,14 +345,14 @@ Error: Invariant violated in vault.invar:5
 
 ## Troubleshooting
 
-### "Command not found: invar"
+### "Command not found: sentri"
 
 ```bash
 # Make sure it's installed
-which invar
+which sentri
 
 # If not found, install
-cargo install invar
+cargo install sentri
 
 # Or add to PATH
 export PATH="$PATH:$HOME/.cargo/bin"
@@ -393,10 +393,10 @@ sentri check --verbose invariants/
 
 ## Getting Help
 
-- **Documentation**: [https://invar.sh/docs](https://invar.sh/docs)
+- **Documentation**: [https://sentri.dev/docs](https://sentri.dev/docs)
 - **Issues**: [GitHub Issues](https://github.com/geekstrancend/Sentri/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/geekstrancend/Sentri/discussions)
-- **Security**: [security@invar-project.dev](mailto:security@invar-project.dev)
+- **Security**: [security@sentri.dev](mailto:security@sentri.dev)
 
 ## Key Concepts
 

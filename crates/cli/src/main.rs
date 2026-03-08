@@ -631,7 +631,7 @@ fn check_invariants(config_path: &Path, once: bool) -> anyhow::Result<()> {
         println!("✓ Running invariant checks (once)...");
         println!("  [Not yet implemented - would connect to RPC and evaluate]");
         println!(
-            "  To see all configured invariants, run: invar validate-config --config {}",
+            "  To see all configured invariants, run: sentri validate-config --config {}",
             config_path.display()
         );
     } else {
