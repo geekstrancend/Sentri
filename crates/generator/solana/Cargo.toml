@@ -4,6 +4,7 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
+description = "Code generator for Solana programs using Sentri invariants"
 
 [dependencies]
 anyhow.workspace = true
