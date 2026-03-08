@@ -69,14 +69,14 @@ impl ReleaseManager {
         manifest.push_str("\n## Installation\n\n");
         manifest.push_str("```bash\n");
         manifest.push_str("# Extract the appropriate archive for your platform:\n");
-        manifest.push_str("tar xzf invar-VERSION-PLATFORM.tar.gz\n");
-        manifest.push_str("sudo mv invar /usr/local/bin/\n");
+        manifest.push_str("tar xzf sentri-VERSION-PLATFORM.tar.gz\n");
+        manifest.push_str("sudo mv sentri /usr/local/bin/\n");
         manifest.push_str("```\n");
 
         manifest.push_str("\n## Verification\n\n");
         manifest.push_str("Verify the checksum (replace CHECKSUM):\n");
         manifest.push_str("```bash\n");
-        manifest.push_str("sha256sum -c invar-CHECKSUM.txt\n");
+        manifest.push_str("sha256sum -c sentri-CHECKSUM.txt\n");
         manifest.push_str("```\n");
 
         manifest
