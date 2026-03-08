@@ -227,7 +227,7 @@ sentri analyze --output json | jq '.summary'
 sentri analyze --exclude slow_*
 
 # 2. Analyze specific chain only
-invar analyze --chain solana
+sentri analyze --chain solana
 
 # 3. Limit analysis scope
 sentri analyze --path src/ --path contracts/
@@ -378,7 +378,7 @@ services:
   invar:
     image: zelius/invar:latest
     volumes:
-      - ./invariants.invar:/app/invariants.invar
+      - ./sentriiants.invar:/app/invariants.invar
     command: analyze --config /app/invar.toml
 ```
 

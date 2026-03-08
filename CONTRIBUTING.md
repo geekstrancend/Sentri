@@ -1,4 +1,4 @@
-# Contributing to Invar
+# Contributing to Sentri
 
 Thank you for your interest in contributing to Sentri! This document provides guidelines for contributing to the project.
 
@@ -20,8 +20,8 @@ We are committed to providing a welcoming and inclusive environment for all cont
 
 ```bash
 # Clone the repository
-git clone https://github.com/hackdex-max/invar
-cd invar
+git clone https://github.com/geekstrancend/Sentri.git
+cd Sentri
 
 # Install dependencies
 cargo build

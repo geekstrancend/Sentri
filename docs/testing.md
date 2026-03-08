@@ -2,7 +2,7 @@
 
 ## Overview
 
-This guide explains how to run, write, and maintain tests in Invar.
+This guide explains how to run, write, and maintain tests in Sentri.
 
 **Quick Start:**
 
