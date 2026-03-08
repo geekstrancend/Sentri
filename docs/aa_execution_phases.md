@@ -290,7 +290,7 @@ invariant NonceExhaustionPrevention {
 
 ## Integration with Analyzers
 
-Phase-qualified invariants integrate with all Invar analyzers:
+Phase-qualified invariants integrate with all Sentri analyzers:
 
 - **DSL Parser** (`dsl_parser`): Parses phase syntax `phase::layer::var`
 - **Type Checker** (`type_checker`): Validates phase expression types
