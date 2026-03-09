@@ -350,4 +350,3 @@ mod tests {
         assert_eq!(analyzer.chain(), "move");
     }
 }
-
