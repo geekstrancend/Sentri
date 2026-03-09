@@ -2,9 +2,10 @@
 
 use crate::ui::constants::{color_failure, color_label, color_success, ICON_CRITICAL, ICON_PASS};
 use crate::ui::utils::{divider, term_width};
+use serde::Serialize;
 
 /// Represents a component health check result.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct HealthCheck {
     /// Name of the component
     pub component: String,

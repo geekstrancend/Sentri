@@ -2,9 +2,10 @@
 
 use crate::ui::constants::*;
 use crate::ui::utils::{box_line, divider, empty_box_line, severity_bar, term_width};
+use serde::Serialize;
 
 /// Represents the analysis summary report.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct AnalysisSummary {
     /// The target file or path analyzed
     pub target: String,
@@ -25,7 +26,7 @@ pub struct AnalysisSummary {
 }
 
 /// Breakdown of violations by severity level.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct SeverityBreakdown {
     pub critical: usize,
     pub high: usize,
