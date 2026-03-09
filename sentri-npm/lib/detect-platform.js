@@ -3,7 +3,7 @@
 const os = require("os");
 const path = require("path");
 
-const SENTRI_VERSION = "0.1.3";
+const { version: SENTRI_VERSION } = require("../package.json");
 const GITHUB_REPO = "geekstrancend/Sentri";
 const BINARY_DIR = path.join(__dirname, "..", ".sentri-bin");
 

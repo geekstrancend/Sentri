@@ -42,7 +42,7 @@ async function downloadBinary(platformInfo, options = {}) {
   try {
     // Download binary
     if (verbose) {
-      console.log(`Downloading Sentri v${platformInfo.version || "0.1.3"} for ${process.platform}-${process.arch}...`);
+      console.log(`Downloading Sentri v${platformInfo.version} for ${process.platform}-${process.arch}...`);
     }
 
     await downloadFile(downloadUrl, archivePath, verbose);

@@ -16,7 +16,7 @@ const HttpsProxyAgent = require("https-proxy-agent");
  */
 async function verifyChecksum(archivePath, platformInfo) {
   // Download SHA256SUMS file
-  const sha256sumsUrl = `https://github.com/geekstrancend/Sentri/releases/download/v${platformInfo.version || "0.1.3"}/SHA256SUMS`;
+  const sha256sumsUrl = `https://github.com/geekstrancend/Sentri/releases/download/v${platformInfo.version}/SHA256SUMS`;
   
   const checksumContent = await downloadSha256Sums(sha256sumsUrl);
   
