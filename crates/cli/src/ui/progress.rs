@@ -7,7 +7,6 @@ use crate::ui::utils::is_tty;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::thread::{self, JoinHandle};
-use std::time::Duration;
 
 /// A spinner that runs on a background thread.
 ///
@@ -42,7 +41,6 @@ impl Spinner {
                     let spinner_char = SPINNER_FRAMES[frame % SPINNER_FRAMES.len()];
                     eprint!("\r  {} {}", spinner_char, message);
                     frame += 1;
-                    thread::sleep(Duration::from_millis(80));
                 }
                 // Clear the spinner line
                 eprint!("\r{}", " ".repeat(100));
