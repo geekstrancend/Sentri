@@ -1,4 +1,4 @@
-# Installation Guide for @sentri/cli
+# Installation Guide for @dextonicx/cli
 
 Complete guide to installing and configuring the Sentri npm package.
 
@@ -18,7 +18,7 @@ Complete guide to installing and configuring the Sentri npm package.
 ## Quick Install
 
 ```bash
-npm install -g @sentri/cli
+npm install -g @dextonicx/cli
 sentri --version
 ```
 
@@ -29,7 +29,7 @@ sentri --version
 Install globally to use `sentri` command anywhere:
 
 ```bash
-npm install --global @sentri/cli
+npm install --global @dextonicx/cli
 ```
 
 Verify:
@@ -40,7 +40,7 @@ sentri check --help
 
 Uninstall:
 ```bash
-npm uninstall --global @sentri/cli
+npm uninstall --global @dextonicx/cli
 ```
 
 ---
@@ -51,7 +51,7 @@ Install as a dev dependency in your project:
 
 ```bash
 cd my-smart-contracts-project
-npm install --save-dev @sentri/cli
+npm install --save-dev @dextonicx/cli
 ```
 
 Use in package.json scripts:
@@ -84,7 +84,7 @@ npx sentri check ./contracts --chain evm
 No installation needed — download and run in one command:
 
 ```bash
-npx @sentri/cli check ./contracts --chain evm
+npx @dextonicx/cli check ./contracts --chain evm
 ```
 
 First run downloads the binary, subsequent runs use the cached version in your npm cache.
@@ -103,7 +103,7 @@ sentri --version
 Then use npm's API pointing to the Cargo binary:
 ```bash
 export SENTRI_BINARY_PATH=$(which sentri)
-npm install @sentri/cli
+npm install @dextonicx/cli
 ```
 
 ---
@@ -128,7 +128,7 @@ jobs:
           node-version: "20"
       
       - name: Install Sentri
-        run: npm install -g @sentri/cli
+        run: npm install -g @dextonicx/cli
       
       - name: Run Sentri checks
         run: sentri check ./contracts --chain evm --fail-on high
@@ -142,13 +142,13 @@ If npm must go through an HTTP proxy:
 npm config set https-proxy [protocol://]login:password@[host]:[port]
 npm config set proxy [protocol://]login:password@[host]:[port]
 
-npm install -g @sentri/cli
+npm install -g @dextonicx/cli
 ```
 
 Or set environment variables:
 ```bash
 export HTTPS_PROXY=http://proxy.company.com:8080
-npm install -g @sentri/cli
+npm install -g @dextonicx/cli
 ```
 
 ### CI Environment with Pre-downloaded Binary
@@ -158,7 +158,7 @@ Skip automatic download in CI:
 ```bash
 # In your CI config
 export SENTRI_SKIP_DOWNLOAD=1
-npm install @sentri/cli
+npm install @dextonicx/cli
 
 # Provide your own binary
 export SENTRI_BINARY_PATH=/opt/sentri/bin/sentri
@@ -171,7 +171,7 @@ sentri check ./contracts --chain evm
 FROM node:20-slim
 
 # Install Sentri npm package
-RUN npm install -g @sentri/cli
+RUN npm install -g @dextonicx/cli
 
 # Copy your contracts
 COPY ./contracts /app/contracts
@@ -193,7 +193,7 @@ docker run my-contract-auditor
 audit:
   image: node:20
   before_script:
-    - npm install -g @sentri/cli
+    - npm install -g @dextonicx/cli
   script:
     - sentri check ./contracts --chain evm --fail-on high
   artifacts:
@@ -210,7 +210,7 @@ pipeline {
   stages {
     stage('Install Sentri') {
       steps {
-        sh 'npm install -g @sentri/cli'
+        sh 'npm install -g @dextonicx/cli'
       }
     }
     
@@ -243,13 +243,13 @@ pipeline {
 **Solution 1**: Install globally
 
 ```bash
-npm install -g @sentri/cli
+npm install -g @dextonicx/cli
 ```
 
 **Solution 2**: Use npx
 
 ```bash
-npx @sentri/cli check ./contracts --chain evm
+npx @dextonicx/cli check ./contracts --chain evm
 ```
 
 **Solution 3**: Use npm script in package.json
@@ -275,8 +275,8 @@ The postinstall script may have been skipped or failed.
 
 ```bash
 # Reinstall completely
-npm uninstall @sentri/cli
-npm install @sentri/cli
+npm uninstall @dextonicx/cli
+npm install @dextonicx/cli
 ```
 
 Or provide your own binary:
@@ -284,7 +284,7 @@ Or provide your own binary:
 # Install via Cargo
 cargo install sentri-cli
 export SENTRI_BINARY_PATH=$(which sentri)
-npm install @sentri/cli
+npm install @dextonicx/cli
 ```
 
 ---
@@ -296,8 +296,8 @@ The binary may have lost execute permission or was compiled for wrong architectu
 **Solution**: Reinstall
 
 ```bash
-npm uninstall --force @sentri/cli
-npm install @sentri/cli
+npm uninstall --force @dextonicx/cli
+npm install @dextonicx/cli
 ```
 
 Check your platform is supported:
@@ -316,14 +316,14 @@ Set proxy environment variables:
 ```bash
 export HTTPS_PROXY=http://proxy:8080
 export HTTP_PROXY=http://proxy:8080
-npm install @sentri/cli
+npm install @dextonicx/cli
 ```
 
 Or configure npm permanently:
 ```bash
 npm config set https-proxy http://proxy:8080
 npm config set proxy http://proxy:8080
-npm install @sentri/cli
+npm install @dextonicx/cli
 ```
 
 ---
@@ -337,7 +337,7 @@ Your disk is full. Free up space:
 npm cache clean --force
 
 # Try again
-npm install @sentri/cli
+npm install @dextonicx/cli
 ```
 
 ---
@@ -352,7 +352,7 @@ https://github.com/geekstrancend/Sentri/releases
 
 Install a different version:
 ```bash
-npm install @sentri/cli@0.1.2
+npm install @dextonicx/cli@0.1.2
 ```
 
 Or install via Cargo:
@@ -373,8 +373,8 @@ sudo spctl --add /path/to/.sentri-bin/sentri
 
 Or reinstall:
 ```bash
-npm uninstall @sentri/cli
-npm install @sentri/cli
+npm uninstall @dextonicx/cli
+npm install @dextonicx/cli
 ```
 
 ---
@@ -383,13 +383,13 @@ npm install @sentri/cli
 
 ```bash
 # Global
-npm uninstall --global @sentri/cli
+npm uninstall --global @dextonicx/cli
 
 # Local project
-npm uninstall @sentri/cli
+npm uninstall @dextonicx/cli
 
 # Force remove (if stuck)
-npm uninstall --force @sentri/cli
+npm uninstall --force @dextonicx/cli
 npm cache clean --force
 ```
 
