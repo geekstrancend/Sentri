@@ -9,6 +9,7 @@
 use anyhow::Result;
 use clap::{Parser, Subcommand, ValueEnum};
 use std::path::PathBuf;
+use serde_json::json;
 
 // UI module
 mod ui;
@@ -48,7 +49,19 @@ enum Commands {
     /// Initialize a .sentri.toml configuration file.
     Init(InitArgs),
     /// Check that all Sentri components are working correctly.
-    Doctor,
+    Doctor(DoctorArgs),
+}
+
+/// Arguments for the `doctor` subcommand.
+#[derive(Parser)]
+struct DoctorArgs {
+    /// Output format.
+    #[arg(long, value_enum, default_value = "text")]
+    format: FormatArg,
+
+    /// Output file.
+    #[arg(long)]
+    output: Option<PathBuf>,
 }
 
 /// Arguments for the `check` subcommand.
@@ -153,7 +166,7 @@ fn main() -> Result<()> {
         Commands::Check(args) => cmd_check(args, cli.quiet, cli.verbose)?,
         Commands::Report(args) => cmd_report(args, cli.quiet)?,
         Commands::Init(args) => cmd_init(args, cli.quiet)?,
-        Commands::Doctor => cmd_doctor(cli.quiet)?,
+        Commands::Doctor(args) => cmd_doctor(args, cli.quiet)?,
     }
 
     Ok(())
@@ -178,8 +191,8 @@ fn cmd_check(args: CheckArgs, quiet: bool, verbose: bool) -> Result<()> {
         .map(|p| p.to_string_lossy().to_string());
     let config_ref = config_str.as_deref();
 
-    // Display header
-    if !quiet {
+    // Display header (only for text format)
+    if !quiet && matches!(args.format, FormatArg::Text) {
         println!(
             "{}",
             render_check_header(
@@ -191,8 +204,8 @@ fn cmd_check(args: CheckArgs, quiet: bool, verbose: bool) -> Result<()> {
         );
     }
 
-    // Create spinner
-    let spinner = if !quiet {
+    // Create spinner (only for text format)
+    let spinner = if !quiet && matches!(args.format, FormatArg::Text) {
         Some(Spinner::start(&format!(
             "Analyzing {}...",
             args.path.display()
@@ -220,47 +233,114 @@ fn cmd_check(args: CheckArgs, quiet: bool, verbose: bool) -> Result<()> {
         },
     ];
 
+    // Build summary
+    let summary = AnalysisSummary {
+        target: args.path.display().to_string(),
+        chain: chain_name.to_string(),
+        total_checks: 47,
+        violations: violations.len(),
+        passed: 44,
+        suppressed: 0,
+        duration_secs: 1.2,
+        severity_breakdown: SeverityBreakdown {
+            critical: 1,
+            high: 1,
+            medium: 1,
+            low: 0,
+        },
+    };
+
     // Stop spinner with success
     if let Some(s) = spinner {
         s.stop_with_success(&format!("{} checks in 1.2s", 47));
     }
 
-    // Display violations
-    if !quiet && !violations.is_empty() {
-        println!("{}", render_violations(&violations));
-    }
+    // Handle different output formats
+    match args.format {
+        FormatArg::Text => {
+            // Display violations
+            if !quiet && !violations.is_empty() {
+                println!("{}", render_violations(&violations));
+            }
 
-    // Display passed checks (verbose mode)
-    if verbose && !quiet {
-        let passed_checks = vec![
-            "balance_conservation".to_string(),
-            "no_integer_overflow".to_string(),
-            "owner_only_withdraw".to_string(),
-            "access_control_present".to_string(),
-            "arithmetic_overflow".to_string(),
-            "missing_signer_check".to_string(),
-        ];
-        println!("{}", render_passed_checks(&passed_checks));
-    }
+            // Display passed checks (verbose mode)
+            if verbose && !quiet {
+                let passed_checks = vec![
+                    "balance_conservation".to_string(),
+                    "no_integer_overflow".to_string(),
+                    "owner_only_withdraw".to_string(),
+                    "access_control_present".to_string(),
+                    "arithmetic_overflow".to_string(),
+                    "missing_signer_check".to_string(),
+                ];
+                println!("{}", render_passed_checks(&passed_checks));
+            }
 
-    // Display summary
-    if !quiet {
-        let summary = AnalysisSummary {
-            target: args.path.display().to_string(),
-            chain: chain_name.to_string(),
-            total_checks: 47,
-            violations: violations.len(),
-            passed: 44,
-            suppressed: 0,
-            duration_secs: 1.2,
-            severity_breakdown: SeverityBreakdown {
-                critical: 1,
-                high: 1,
-                medium: 1,
-                low: 0,
-            },
-        };
-        println!("{}", render_summary(&summary));
+            // Display summary
+            if !quiet {
+                println!("{}", render_summary(&summary));
+            }
+        }
+        FormatArg::Json => {
+            // Create JSON report
+            let report = json!({
+                "version": env!("CARGO_PKG_VERSION"),
+                "timestamp": std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map(|d| d.as_secs())
+                    .unwrap_or(0),
+                "chain": summary.chain,
+                "target": summary.target,
+                "duration_ms": (summary.duration_secs * 1000.0) as u64,
+                "summary": {
+                    "total_checks": summary.total_checks,
+                    "violations": summary.violations,
+                    "critical": summary.severity_breakdown.critical,
+                    "high": summary.severity_breakdown.high,
+                    "medium": summary.severity_breakdown.medium,
+                    "low": summary.severity_breakdown.low,
+                    "passed": summary.passed,
+                    "suppressed": summary.suppressed,
+                },
+                "violations": violations,
+            });
+
+            let output_json = serde_json::to_string_pretty(&report)?;
+
+            if let Some(output_path) = args.output {
+                // Write to file
+                std::fs::write(&output_path, &output_json)?;
+                if !quiet {
+                    eprintln!("✓ Report written to {}", output_path.display());
+                }
+            } else {
+                // Write to stdout
+                println!("{}", output_json);
+            }
+        }
+        FormatArg::Html => {
+            if !quiet {
+                eprintln!("ℹ HTML format is not yet implemented");
+            }
+            // For now, fall back to JSON representation
+            let report = json!({
+                "version": env!("CARGO_PKG_VERSION"),
+                "timestamp": std::time::SystemTime::now()
+                    .duration_since(std::time::UNIX_EPOCH)
+                    .map(|d| d.as_secs())
+                    .unwrap_or(0),
+                "chain": summary.chain,
+                "target": summary.target,
+                "summary": {
+                    "total_checks": summary.total_checks,
+                    "violations": summary.violations,
+                    "passed": summary.passed,
+                },
+                "violations": violations,
+            });
+
+            println!("{}", serde_json::to_string_pretty(&report)?);
+        }
     }
 
     // Exit with appropriate code
@@ -336,7 +416,7 @@ enabled = ["evm"]
 }
 
 /// Handle the `doctor` subcommand.
-fn cmd_doctor(quiet: bool) -> Result<()> {
+fn cmd_doctor(args: DoctorArgs, quiet: bool) -> Result<()> {
     let checks = vec![
         HealthCheck {
             component: "sentri-core".to_string(),
@@ -375,8 +455,53 @@ fn cmd_doctor(quiet: bool) -> Result<()> {
         },
     ];
 
-    if !quiet {
-        println!("{}", render_doctor_results(&checks));
+    match args.format {
+        FormatArg::Text => {
+            if !quiet {
+                println!("{}", render_doctor_results(&checks));
+            }
+        }
+        FormatArg::Json => {
+            // Build components map
+            let mut components = serde_json::Map::new();
+            for check in &checks {
+                components.insert(
+                    check.component.clone(),
+                    json!({
+                        "status": if check.passed { "ok" } else { "error" },
+                        "message": &check.message,
+                    }),
+                );
+            }
+
+            let report = json!({
+                "status": if checks.iter().all(|c| c.passed) { "healthy" } else { "error" },
+                "components": components,
+            });
+
+            let output_json = serde_json::to_string_pretty(&report)?;
+
+            if let Some(output_path) = args.output {
+                std::fs::write(&output_path, &output_json)?;
+                if !quiet {
+                    eprintln!("✓ Report written to {}", output_path.display());
+                }
+            } else {
+                println!("{}", output_json);
+            }
+        }
+        FormatArg::Html => {
+            if !quiet {
+                eprintln!("ℹ HTML format is not yet implemented");
+            }
+            // Fall back to JSON
+            let report = json!({
+                "status": if checks.iter().all(|c| c.passed) { "healthy" } else { "error" },
+                "components": checks,
+            });
+
+            println!("{}", serde_json::to_string_pretty(&report)?);
+        }
     }
 
     Ok(())

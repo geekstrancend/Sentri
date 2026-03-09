@@ -2,9 +2,10 @@
 
 use crate::ui::constants::*;
 use crate::ui::utils::{box_line, divider, empty_box_line, term_width, wrap_text};
+use serde::Serialize;
 
 /// Represents a security violation to be displayed.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize)]
 pub struct Violation {
     /// The index of this violation (1-indexed for display)
     pub index: usize,
