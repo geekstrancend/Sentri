@@ -2,9 +2,10 @@
 
 ## ✅ Status: Fully Implemented and Operational with Real Analysis (v0.1.2+)
 
-All commands documented on https://www.npmjs.com/package/@dextonicx/cli are now **working perfectly** with **completely real static analysis** - all stubs and placeholders have been removed.
+All commands documented on <https://www.npmjs.com/package/@dextonicx/cli> are now **working perfectly** with **completely real static analysis** - all stubs and placeholders have been removed.
 
 ### Production-Grade Improvements (v0.1.2)
+
 - ✅ **All hardcoded stubs removed** - No more mock detection functions
 - ✅ **Real static analysis** - Simulator now analyzes actual program structure, reentrancy patterns, access control, and arithmetic risks
 - ✅ **DSL parser integration** - All invariant expressions are properly parsed through deterministic grammar
@@ -13,13 +14,15 @@ All commands documented on https://www.npmjs.com/package/@dextonicx/cli are now 
 
 ## What Was Fixed
 
-### 1. **Integrated Real Analyzers** 
+### 1. **Integrated Real Analyzers**
+
 - Connected EVM analyzer (`sentri_analyzer_evm`)
-- Connected Solana analyzer (`sentri_analyzer_solana`) 
+- Connected Solana analyzer (`sentri_analyzer_solana`)
 - Connected Move analyzer (`sentri_analyzer_move`)
 - Each analyzer parses source code and builds a ProgramModel
 
 ### 2. **Integrated Simulation Engine with Real Analysis**
+
 - Connected `sentri_simulator` for invariant checking
 - Analyzes actual program structure: entry points, state mutations, function complexity
 - Detects real security patterns: reentrancy risks, access control violations, arithmetic overflows
@@ -28,17 +31,20 @@ All commands documented on https://www.npmjs.com/package/@dextonicx/cli are now 
 - All detection functions based on code examination, not random thresholds
 
 ### 3. **Fixed Format/Output Handling**
+
 - `--format json` now produces valid JSON output
 - `--output file.json` now writes to specified file
 - `--format text` produces styled terminal output
 - `--format html` placeholder (currently falls back to JSON)
 
 ### 4. **Fixed Doctor Command**
+
 - Now accepts `--format json` parameter
 - Now accepts `--output file` parameter
 - Outputs proper JSON with component health status
 
 ### 5. **Fixed NPM API Functions**
+
 - `analyze()` now returns real violations from simulation
 - `doctor()` now parses correct JSON format
 - Both functions properly serialize/deserialize data

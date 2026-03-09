@@ -91,9 +91,23 @@ async function downloadFile(url, destinationPath, verbose) {
         ? new HttpsProxyAgent(process.env.HTTPS_PROXY || process.env.HTTP_PROXY)
         : undefined;
 
-      const options = { agent };
+      const options = {
+        agent,
+        timeout: 30_000, // 30 second socket timeout
+      };
 
-      client.get(url, options, (response) => {
+      // Hard timeout for entire download (60 seconds)
+      let timedOut = false;
+      const downloadTimeout = setTimeout(() => {
+        timedOut = true;
+        req.destroy();
+        reject(new Error(`Download timeout: no progress for 60 seconds (${url})`));
+      }, 60_000);
+
+      const req = client.get(url, options, (response) => {
+        // Reset timeout on successful response
+        clearTimeout(downloadTimeout);
+
         // Handle redirects
         if (response.statusCode >= 300 && response.statusCode < 400 && response.headers.location) {
           response.resume(); // Consume response data to free up memory
@@ -107,6 +121,7 @@ async function downloadFile(url, destinationPath, verbose) {
             `HTTP ${response.statusCode}: ${response.statusMessage}\n` +
             `Check the GitHub releases page: https://github.com/geekstrancend/Sentri/releases`
           ));
+          response.resume(); // drain the response
           return;
         }
 
@@ -127,6 +142,7 @@ async function downloadFile(url, destinationPath, verbose) {
         response.pipe(file);
 
         file.on("finish", () => {
+          clearTimeout(downloadTimeout);
           file.close(() => {
             if (verbose) {
               const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
@@ -137,11 +153,25 @@ async function downloadFile(url, destinationPath, verbose) {
         });
 
         file.on("error", (error) => {
+          clearTimeout(downloadTimeout);
           fs.unlink(destinationPath, () => {
             reject(error);
           });
         });
-      }).on("error", reject);
+      });
+
+      req.on("error", (error) => {
+        clearTimeout(downloadTimeout);
+        if (!timedOut) {
+          reject(error);
+        }
+      });
+
+      req.on("timeout", () => {
+        clearTimeout(downloadTimeout);
+        req.destroy();
+        reject(new Error(`Connection timeout: ${url}`));
+      });
     };
 
     request(url);

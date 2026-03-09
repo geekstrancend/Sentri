@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.1.1] - 2026-02-18
 
 ### Fixed
+
 - Release pipeline configuration fixes
 - Version validation and crates.io publishing
 
@@ -17,13 +18,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 #### Added
 
-**Core Architecture**
+### Core Architecture
+
 - Multi-chain smart contract invariant enforcement framework
 - Chain-agnostic `ChainAnalyzer`, `CodeGenerator`, and `Simulator` traits
 - Structured error handling via `InvarError` type
 - Intermediate Representation (IR) for unified program models
 
-**DSL Parser**
+### DSL Parser
+
 - Pest-based deterministic grammar for invariant expressions
 - Support for binary operators (`==`, `!=`, `<`, `>`, `<=`, `>=`)
 - Support for logical operators (`&&`, `||`, `!`)
@@ -32,7 +35,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Comprehensive error messages with line/column information
 - 3/3 unit tests passing
 
-**Chain Support**
+### Chain Support
+
 - **Solana**: Analyzer using `syn` crate
   - Detects struct definitions and state variables
   - Extracts function signatures and entry points
@@ -47,20 +51,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Ready for Move parser integration
   - Resource and borrow checker support
 
-**Simulation Engine**
+### Simulation Engine
+
 - Deterministic simulation with seeded RNG
 - Parallel fuzzing infrastructure (rayon)
 - Violation trace collection
 - Coverage reporting
 
-**Reporting**
+### Reporting
+
 - JSON report generation
 - Markdown report generation
 - CLI table formatting
 - Invariant coverage metrics
 - Function protection status tracking
 
-**CLI**
+### CLI
+
 - `sentri init` command
 - `sentri build` command with chain selection
 - `sentri simulate` command with seed control
@@ -71,7 +78,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Colored output support
 - Verbose logging control
 
-**Development & CI**
+### Development & CI
+
 - GitHub Actions matrix CI (Linux, macOS, Windows)
 - Clippy linting enforcement
 - Rustfmt code style
@@ -79,7 +87,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Release binary generation
 - Code coverage tracking
 
-**Documentation**
+### Documentation
+
 - Comprehensive README.md
 - CONTRIBUTING.md guidelines
 - Build summary and architecture documentation
@@ -87,14 +96,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Example programs (Solana, EVM, Move)
 - Example invariant files (TOML, DSL)
 
-**Utilities**
+### Utilities
+
 - Cross-platform path handling
 - Structured logging with tracing
 - Deterministic directory traversal
 
 #### Project Structure
 
-```
+```text
 sentri/
 ├── 15 specialized crates
 ├── Zero external unsafe code
@@ -145,19 +155,22 @@ sentri/
 
 ### Changed
 
-**Simulation Engine**
+### Simulation Engine (v0.1.2)
+
 - Replaced probabilistic stub functions with real static analysis
 - Removed `detect_invariant_violation()`, `detect_function_violation()`, `test_execution_depth()` placeholder functions
 - Implemented `analyze_program_invariant()` for real reentrancy, access control, and arithmetic pattern detection
 - Implemented `analyze_function_invariant()` for function-level invariant checking based on actual program structure
 
-**Invariant Library**
+### Invariant Library
+
 - Removed hardcoded `Expression::Boolean(true)` placeholder expressions
 - Integrated DSL parser for actual expression parsing and AST construction
 - Updated `parse_invariant_table()` to use real DSL parser instead of placeholder values
 - All invariant expressions now properly evaluated through deterministic grammar
 
-**Chain Analyzers**
+### Chain Analyzers
+
 - **EVM**: Enhanced with full state access tracking (mutable vs read-only)
   - Added `analyze_function_body()` for state mutation detection
   - Improved function parameter extraction
@@ -173,9 +186,10 @@ sentri/
   - Proper mutable reference tracking
   - Improved function analysis with resource lifecycle tracking
 
-### Fixed
+### Bug Fixes (v0.1.2)
 
-**Code Quality**
+### Code Quality
+
 - Fixed all clippy linting errors (0 warnings with -D warnings flag)
 - Applied `cargo fmt` to all source files for consistent formatting
 - Fixed method comparisons: compare `Ident` directly instead of `.to_string()`
@@ -184,21 +198,22 @@ sentri/
 - Changed `&PathBuf` to `&Path` for better API design
 - Removed redundant `.trim()` before `.split_whitespace()`
 
-**CI/CD Automation**
+### CI/CD Automation
+
 - Installed git pre-push hook for automated code quality checks
 - Hook runs `cargo fmt --check` before push (prevents formatting regressions)
 - Hook runs `cargo clippy --all --all-features -- -D warnings` before push
 - Blocks pushes with clear error messages if checks fail
 - Ensures all pushed code meets production standards locally
 
-### Testing
+### Test Coverage
 
 - All 91+ unit, integration, and property tests passing
 - Verified real analysis produces meaningful violation patterns
 - Tested pre-push hook validation on all modified files
 - Confirmed no regressions in existing functionality
 
-### Quality Metrics
+### Quality Metrics (v0.1.2)
 
 - **Compilation**: ✅ Zero errors
 - **Linting**: ✅ Zero warnings (clippy with -D warnings)
@@ -214,17 +229,20 @@ sentri/
 ### In Progress
 
 #### Phase 6: Solana Generator
+
 - Procedural macro development
 - Assertion injection logic
 - Compute budget preservation
 - Property test generation
 
 #### Phase 7: EVM Support
+
 - Solang parser integration
 - Modifier generation for checks
 - Foundry test framework integration
 
 #### Phase 8: Move Support
+
 - Move parser integration
 - Resource and borrow checking
 - Assertion framework
@@ -244,11 +262,13 @@ sentri/
 ## Version Compatibility
 
 ### Rust Version
+
 - Minimum: 1.93.0 (stable)
 - Tested: 1.93.0
 - Edition: 2021
 
 ### Operating Systems
+
 - Linux (x86_64, aarch64)
 - macOS (x86_64, Apple Silicon)
 - Windows (x86_64)
@@ -256,14 +276,13 @@ sentri/
 ### Dependencies
 
 Major dependencies and their versions:
+
 - pest 2.7
 - syn 2.0
 - clap 4.4
 - serde 1.0
 - anyhow 1.0
 - rayon 1.7
-
----
 
 ## Migration Guide
 
@@ -276,6 +295,7 @@ This is the initial release. No migration needed.
 ## Support
 
 For questions, issues, or contributions:
+
 - Open an issue on GitHub
 - Check the README.md for documentation
 - Review CONTRIBUTING.md for guidelines
@@ -315,7 +335,7 @@ MIT License - See LICENSE file for details
 
 ---
 
-**Note**: Sentri follows Semantic Versioning. See https://semver.org for details.
+**Note**: Sentri follows Semantic Versioning. See <https://semver.org> for details.
 
 - **MAJOR** version for incompatible API changes
 - **MINOR** version for new backward-compatible functionality
