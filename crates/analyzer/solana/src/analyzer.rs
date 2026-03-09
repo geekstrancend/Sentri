@@ -278,11 +278,7 @@ pub struct MyAccount {
     fn test_analyze_malformed_rust() {
         let dir = tempdir().unwrap();
         let path = dir.path().join("bad.rs");
-        fs::write(
-            &path,
-            r#"fn broken_function( { invalid rust code }"#,
-        )
-        .unwrap();
+        fs::write(&path, r#"fn broken_function( { invalid rust code }"#).unwrap();
 
         let analyzer = SolanaAnalyzer;
         let result = analyzer.analyze(&path);
