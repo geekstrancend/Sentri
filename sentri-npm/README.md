@@ -1,7 +1,7 @@
-# @sentri/cli
+# @dextonicx/cli
 
-[![npm version](https://img.shields.io/npm/v/@sentri/cli.svg)](https://www.npmjs.com/package/@sentri/cli)
-[![npm downloads](https://img.shields.io/npm/dm/@sentri/cli.svg)](https://www.npmjs.com/package/@sentri/cli)
+[![npm version](https://img.shields.io/npm/v/@dextonicx/cli.svg)](https://www.npmjs.com/package/@dextonicx/cli)
+[![npm downloads](https://img.shields.io/npm/dm/@dextonicx/cli.svg)](https://www.npmjs.com/package/@dextonicx/cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 Multi-chain smart contract invariant checker for **EVM** (Solidity), **Solana** (Rust/Anchor), and **Move** (Aptos/Sui).
@@ -13,7 +13,7 @@ Run static analysis on your blockchain code before deployment. Sentri checks inv
 ### NPM (Recommended)
 
 ```bash
-npm install -g @sentri/cli
+npm install -g @dextonicx/cli
 ```
 
 Then use globally:
@@ -25,7 +25,7 @@ sentri check ./contracts --chain evm
 Or use with npx without installing:
 
 ```bash
-npx @sentri/cli check ./contracts --chain evm
+npx @dextonicx/cli check ./contracts --chain evm
 ```
 
 ### From Cargo (Alternative)
@@ -117,7 +117,7 @@ Options:
 Use Sentri programmatically in JavaScript/TypeScript:
 
 ```javascript
-const { analyze } = require("@sentri/cli");
+const { analyze } = require("@dextonicx/cli");
 
 async function checkContracts() {
   const report = await analyze({
@@ -151,7 +151,7 @@ Use Sentri in Hardhat tasks:
 
 ```javascript
 // hardhat.config.js
-const { analyze } = require("@sentri/cli");
+const { analyze } = require("@dextonicx/cli");
 
 task("sentri", "Run Sentri invariant checks")
   .addParam("chain", "Blockchain: evm, solana, move", "evm")
@@ -194,7 +194,7 @@ jobs:
           node-version: "20"
 
       - name: Install Sentri
-        run: npm install -g @sentri/cli
+        run: npm install -g @dextonicx/cli
 
       - name: Run invariant checks
         run: sentri check ./contracts --chain evm --fail-on high
@@ -217,7 +217,7 @@ jobs:
 sentri:
   image: node:20
   script:
-    - npm install -g @sentri/cli
+    - npm install -g @dextonicx/cli
     - sentri check ./contracts --chain evm --fail-on high
   artifacts:
     reports:
@@ -227,7 +227,7 @@ sentri:
 ### Local Testing
 
 ```bash
-npm install @sentri/cli
+npm install @dextonicx/cli
 npx sentri check ./contracts --chain evm
 ```
 
@@ -254,7 +254,7 @@ Example — use an existing Cargo install instead of downloading:
 
 ```bash
 export SENTRI_BINARY_PATH=/usr/local/bin/sentri
-npx @sentri/cli check ./contracts --chain evm
+npx @dextonicx/cli check ./contracts --chain evm
 ```
 
 ## Invariants
@@ -330,7 +330,7 @@ sentri check ./contracts --chain evm --config .sentri.toml
 The programmatic API allows building custom tools:
 
 ```javascript
-const { analyze } = require("@sentri/cli");
+const { analyze } = require("@dextonicx/cli");
 
 async function customAnalyzer(contractPath) {
   const report = await analyze({
@@ -362,14 +362,14 @@ The postinstall script may have been skipped (e.g., `npm install --ignore-script
 **Solution**: Reinstall:
 
 ```bash
-npm install @sentri/cli
+npm install @dextonicx/cli
 ```
 
 Or provide your own binary:
 
 ```bash
 export SENTRI_BINARY_PATH=/path/to/sentri
-npx @sentri/cli check ./contracts --chain evm
+npx @dextonicx/cli check ./contracts --chain evm
 ```
 
 ### Permission denied on Linux/macOS
@@ -379,8 +379,8 @@ The extracted binary may have lost executable permission.
 **Solution**: Reinstall:
 
 ```bash
-npm uninstall @sentri/cli
-npm install @sentri/cli
+npm uninstall @dextonicx/cli
+npm install @dextonicx/cli
 ```
 
 ### Unsupported platform error
@@ -392,7 +392,7 @@ Your OS/architecture combination is not yet supported.
 ```bash
 cargo install sentri-cli
 export SENTRI_BINARY_PATH=$(which sentri)
-npx @sentri/cli check ./contracts --chain evm
+npx @dextonicx/cli check ./contracts --chain evm
 ```
 
 ## Performance
