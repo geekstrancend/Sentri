@@ -5,11 +5,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/dextonicx/Sentri.git"
+    "url": "git+https://github.com/geekstrancend/Sentri.git"
   },
-  "homepage": "https://github.com/dextonicx/Sentri",
+  "homepage": "https://github.com/geekstrancend/Sentri",
   "bugs": {
-    "url": "https://github.com/dextonicx/Sentri/issues"
+    "url": "https://github.com/geekstrancend/Sentri/issues"
   },
   "keywords": [
     "solidity",

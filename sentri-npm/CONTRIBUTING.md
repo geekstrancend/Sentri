@@ -188,7 +188,7 @@ Found a bug? Open an issue with:
    - OS: macOS 12.0
    - Node.js: 18.0.0
    - npm: 9.0.0
-   - @sentri/cli: 0.1.3
+   - @dextonicx/cli: Latest
    ```
 3. **Steps to reproduce**: Exact commands to trigger the bug
 4. **Expected vs actual behavior**

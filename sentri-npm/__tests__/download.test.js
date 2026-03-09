@@ -5,11 +5,12 @@ const { downloadBinary } = require("../../lib/download");
 describe("Binary Download", () => {
   test("skips download if binary already exists and force=false", async () => {
     // Mock a platform info object
+    const { version } = require("../package.json");
     const platformInfo = {
       binaryName: "sentri",
       target: "x86_64-unknown-linux-gnu",
       archiveFormat: "tar.gz",
-      archiveName: "sentri-0.1.3-x86_64-unknown-linux-gnu.tar.gz",
+      archiveName: `sentri-${version}-x86_64-unknown-linux-gnu.tar.gz`,
       downloadUrl: "https://example.com/sentri.tar.gz",
     };
 
@@ -21,11 +22,12 @@ describe("Binary Download", () => {
   });
 
   test("handles network errors gracefully", async () => {
+    const { version } = require("../package.json");
     const platformInfo = {
       binaryName: "sentri",
       target: "x86_64-unknown-linux-gnu",
       archiveFormat: "tar.gz",
-      archiveName: "sentri-0.1.3-x86_64-unknown-linux-gnu.tar.gz",
+      archiveName: `sentri-${version}-x86_64-unknown-linux-gnu.tar.gz`,
       downloadUrl: "https://invalid-domain-12345.example.com/sentri.tar.gz",
     };
 

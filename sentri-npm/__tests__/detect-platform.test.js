@@ -69,7 +69,8 @@ describe("Platform Detection", () => {
   });
 
   test("exports correct version", () => {
-    expect(SENTRI_VERSION).toBe("0.1.3");
+    const { version } = require("../package.json");
+    expect(SENTRI_VERSION).toBe(version);
   });
 
   test("exports correct GitHub repo", () => {
@@ -81,6 +82,7 @@ describe("Platform Detection", () => {
   });
 
   test("download URL is correctly formatted", () => {
+    const { version } = require("../package.json");
     os.platform = jest.fn(() => "linux");
     os.arch = jest.fn(() => "x64");
 
@@ -88,7 +90,7 @@ describe("Platform Detection", () => {
 
     expect(info.downloadUrl).toContain("https://github.com");
     expect(info.downloadUrl).toContain("releases/download");
-    expect(info.downloadUrl).toContain("v0.1.3");
+    expect(info.downloadUrl).toContain(`v${version}`);
     expect(info.downloadUrl).toContain("x86_64-unknown-linux-gnu");
   });
 });

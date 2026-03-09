@@ -37,7 +37,7 @@ async function main() {
 
     // Detect platform
     const platformInfo = detectPlatform();
-    console.log(`Downloading Sentri v${platformInfo.version || "0.1.3"} for ${platformInfo.platform}-${platformInfo.arch}...`);
+    console.log(`Downloading Sentri v${platformInfo.version} for ${platformInfo.platform}-${platformInfo.arch}...`);
 
     // Download binary
     const binaryPath = await downloadBinary(platformInfo, { verbose: false });
@@ -45,7 +45,7 @@ async function main() {
     // Verify executable works
     await verifyBinaryExecutable(binaryPath);
 
-    console.log(`✓ Sentri v${platformInfo.version || "0.1.3"} installed successfully (${platformInfo.platform}-${platformInfo.arch})`);
+    console.log(`✓ Sentri v${platformInfo.version} installed successfully (${platformInfo.platform}-${platformInfo.arch})`);
     console.log(`Run: sentri --version`);
   } catch (error) {
     // Non-fatal error — warn but don't break npm install

@@ -352,7 +352,7 @@ https://github.com/geekstrancend/Sentri/releases
 
 Install a different version:
 ```bash
-npm install @dextonicx/cli@0.1.2
+npm install @dextonicx/cli@latest
 ```
 
 Or install via Cargo:
