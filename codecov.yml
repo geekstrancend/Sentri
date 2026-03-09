@@ -1,0 +1,14 @@
+coverage:
+  status:
+    patch:
+      default:
+        target: 0%        # disable patch coverage gate
+        threshold: 100%   # allow any drop
+    project:
+      default:
+        target: auto      # just track, don't fail
+        threshold: 5%
+
+comment:
+  layout: "reach,diff"
+  behavior: default

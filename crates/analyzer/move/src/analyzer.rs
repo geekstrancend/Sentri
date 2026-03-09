@@ -250,3 +250,104 @@ fn analyze_move_function_body(
 
     (reads, mutates)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_analyze_move_module() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("token.move");
+        fs::write(
+            &path,
+            r#"module 0x1::token {
+    use std::signer;
+
+    struct TokenStore has key {
+        amount: u64,
+    }
+
+    public fun initialize(account: &signer) {
+        let token_store = TokenStore { amount: 0 };
+        move_to(account, token_store);
+    }
+
+    public fun transfer(from: &signer, to: address, amount: u64) acquires TokenStore {
+        let from_store = borrow_global_mut<TokenStore>(signer::address_of(from));
+        from_store.amount = from_store.amount - amount;
+        
+        let to_store = borrow_global_mut<TokenStore>(to);
+        to_store.amount = to_store.amount + amount;
+    }
+}"#,
+        )
+        .unwrap();
+
+        let analyzer = MoveAnalyzer;
+        let result = analyzer.analyze(&path).unwrap();
+
+        assert_eq!(result.chain, "move");
+        assert!(!result.functions.is_empty());
+        assert!(result.functions.iter().any(|(_, f)| f.name == "initialize"));
+        assert!(result.functions.iter().any(|(_, f)| f.name == "transfer"));
+    }
+
+    #[test]
+    fn test_analyze_empty_move_file() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("empty.move");
+        fs::write(&path, "").unwrap();
+
+        let analyzer = MoveAnalyzer;
+        let result = analyzer.analyze(&path).unwrap();
+
+        assert_eq!(result.functions.len(), 0);
+    }
+
+    #[test]
+    fn test_analyze_nonexistent_move_path() {
+        let analyzer = MoveAnalyzer;
+        let result = analyzer.analyze(std::path::Path::new("/nonexistent/path/module.move"));
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_extract_module_name() {
+        let source = r#"module 0x1::MyModule {
+    fun test() {}
+}"#;
+        let name = extract_module_name(source);
+        assert!(name.is_some());
+    }
+
+    #[test]
+    fn test_extract_resource_types() {
+        let source = r#"module 0x1::token {
+    struct Coin has key { value: u64 }
+    struct CoinStore has key { coin: Coin }
+}"#;
+        let resources = extract_resource_types(source);
+        // Just verify we found some resources - exact parsing depends on whitespace
+        assert!(!resources.is_empty());
+    }
+
+    #[test]
+    fn test_extract_move_function_params() {
+        let signature = "transfer(from: &signer, to: address, amount: u64)";
+        let params = extract_move_function_params(signature);
+        // Function parameters are extracted - verify structure
+        assert_eq!(params.len(), 3);
+        assert!(params[0].contains("from") || params[0].contains(":"));
+    }
+
+    #[test]
+    fn test_chain_identifier() {
+        let analyzer = MoveAnalyzer;
+        assert_eq!(analyzer.chain(), "move");
+    }
+}
+

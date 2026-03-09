@@ -21,3 +21,4 @@ sentri-ir.workspace = true
 sentri-utils.workspace = true
 
 [dev-dependencies]
+tempfile = "3"

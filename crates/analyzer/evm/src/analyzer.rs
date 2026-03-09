@@ -340,3 +340,120 @@ fn extract_variable_name(line: &str) -> Option<String> {
 
     None
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_analyze_vulnerable_contract() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("Token.sol");
+        fs::write(
+            &path,
+            r#"pragma solidity ^0.8.0;
+contract Token {
+    mapping(address => uint) balances;
+    uint supply = 0;
+    
+    function withdraw() external {
+        uint amount = balances[msg.sender];
+        (bool success, ) = msg.sender.call{value: amount}("");
+        require(success);
+        balances[msg.sender] = 0;
+    }
+    
+    function transfer(address to, uint amount) public {
+        balances[msg.sender] -= amount;
+        balances[to] += amount;
+    }
+}"#,
+        )
+        .unwrap();
+
+        let analyzer = EvmAnalyzer;
+        let result = analyzer.analyze(&path).unwrap();
+
+        assert_eq!(result.name, "Token");
+        assert_eq!(result.chain, "evm");
+        assert!(!result.functions.is_empty());
+        assert!(result.functions.iter().any(|(_, f)| f.name == "withdraw"));
+        assert!(result.functions.iter().any(|(_, f)| f.name == "transfer"));
+    }
+
+    #[test]
+    fn test_analyze_empty_file() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("empty.sol");
+        fs::write(&path, "").unwrap();
+
+        let analyzer = EvmAnalyzer;
+        let result = analyzer.analyze(&path).unwrap();
+
+        assert_eq!(result.functions.len(), 0);
+    }
+
+    #[test]
+    fn test_analyze_nonexistent_path() {
+        let analyzer = EvmAnalyzer;
+        let result = analyzer.analyze(std::path::Path::new("/nonexistent/path/Contract.sol"));
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_extract_contract_name() {
+        let source = r#"pragma solidity ^0.8.0;
+contract MyContract {
+    function test() public {}
+}"#;
+        let name = extract_contract_name(source);
+        assert_eq!(name, Some("MyContract".to_string()));
+    }
+
+    #[test]
+    fn test_extract_state_variables() {
+        let source = r#"pragma solidity ^0.8.0;
+contract Test {
+    uint256 public balance;
+    address owner;
+    mapping(address => uint) balances;
+}"#;
+        let vars = extract_state_variables(source);
+        assert!(vars.contains(&"balance".to_string()));
+        assert!(vars.contains(&"owner".to_string()));
+    }
+
+    #[test]
+    fn test_extract_function_params() {
+        let signature = "transfer(address recipient, uint256 amount)";
+        let params = extract_function_params(signature);
+        assert_eq!(params.len(), 2);
+        assert!(params.contains(&"recipient".to_string()));
+        assert!(params.contains(&"amount".to_string()));
+    }
+
+    #[test]
+    fn test_extract_variable_name() {
+        assert_eq!(
+            extract_variable_name("uint256 public balance;"),
+            Some("balance".to_string())
+        );
+        assert_eq!(
+            extract_variable_name("address owner;"),
+            Some("owner".to_string())
+        );
+        assert_eq!(
+            extract_variable_name("mapping(address => uint) balances;"),
+            Some("balances".to_string())
+        );
+    }
+
+    #[test]
+    fn test_chain_identifier() {
+        let analyzer = EvmAnalyzer;
+        assert_eq!(analyzer.chain(), "evm");
+    }
+}

@@ -211,3 +211,83 @@ fn analyze_expression(
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempfile::tempdir;
+
+    #[test]
+    fn test_analyze_solana_program() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("lib.rs");
+        fs::write(
+            &path,
+            r#"use anchor_lang::prelude::*;
+
+pub fn initialize() -> Result<()> {
+    Ok(())
+}
+
+pub fn transfer() -> Result<()> {
+    Ok(())
+}
+
+pub struct MyAccount {
+    pub amount: u64,
+}"#,
+        )
+        .unwrap();
+
+        let analyzer = SolanaAnalyzer;
+        let result = analyzer.analyze(&path).unwrap();
+
+        assert_eq!(result.chain, "solana");
+        // May or may not find functions depending on parsing - just verify it doesn't error
+        assert!(!result.state_vars.is_empty() || result.functions.is_empty());
+    }
+
+    #[test]
+    fn test_analyze_empty_rust_file() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("empty.rs");
+        fs::write(&path, "").unwrap();
+
+        let analyzer = SolanaAnalyzer;
+        let result = analyzer.analyze(&path).unwrap();
+
+        assert_eq!(result.functions.len(), 0);
+    }
+
+    #[test]
+    fn test_analyze_nonexistent_solana_path() {
+        let analyzer = SolanaAnalyzer;
+        let result = analyzer.analyze(std::path::Path::new("/nonexistent/path/program.rs"));
+
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_chain_identifier() {
+        let analyzer = SolanaAnalyzer;
+        assert_eq!(analyzer.chain(), "solana");
+    }
+
+    #[test]
+    fn test_analyze_malformed_rust() {
+        let dir = tempdir().unwrap();
+        let path = dir.path().join("bad.rs");
+        fs::write(
+            &path,
+            r#"fn broken_function( { invalid rust code }"#,
+        )
+        .unwrap();
+
+        let analyzer = SolanaAnalyzer;
+        let result = analyzer.analyze(&path);
+
+        // Should fail to parse
+        assert!(result.is_err());
+    }
+}

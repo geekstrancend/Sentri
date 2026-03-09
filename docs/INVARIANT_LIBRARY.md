@@ -2,6 +2,18 @@
 
 Sentri includes 22 rigorously tested, production-grade invariants covering the most critical smart contract security properties. These invariants are automatically available in all Sentri analyses.
 
+## Expression Parsing
+
+All invariant expressions are parsed through Sentri's deterministic DSL parser (v0.1.2+), which supports:
+
+- **Binary operators:** `==`, `!=`, `<`, `>`, `<=`, `>=`
+- **Logical operators:** `&&` (AND), `||` (OR), `!` (NOT)
+- **Function calls:** `sum()`, `forAll()`, `exists()`, and other built-in functions
+- **Full AST conversion:** Expressions are converted to an Intermediate Representation (IR) for precise evaluation
+- **Error reporting:** Comprehensive error messages with line and column information
+
+Previously, invariant expressions were hardcoded as placeholders. Now they are **properly parsed and evaluated** through the deterministic grammar, ensuring accurate and reproducible analysis across all chains (EVM, Solana, Move).
+
 ## Quick Reference
 
 | # | Invariant | Category | Severity | Chains |

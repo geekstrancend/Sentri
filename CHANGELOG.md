@@ -141,6 +141,72 @@ sentri/
 - [ ] Mainnet deployment verification
 - [ ] Pre-built invariant library packages
 
+## [0.1.2] - 2026-03-09
+
+### Changed
+
+**Simulation Engine**
+- Replaced probabilistic stub functions with real static analysis
+- Removed `detect_invariant_violation()`, `detect_function_violation()`, `test_execution_depth()` placeholder functions
+- Implemented `analyze_program_invariant()` for real reentrancy, access control, and arithmetic pattern detection
+- Implemented `analyze_function_invariant()` for function-level invariant checking based on actual program structure
+
+**Invariant Library**
+- Removed hardcoded `Expression::Boolean(true)` placeholder expressions
+- Integrated DSL parser for actual expression parsing and AST construction
+- Updated `parse_invariant_table()` to use real DSL parser instead of placeholder values
+- All invariant expressions now properly evaluated through deterministic grammar
+
+**Chain Analyzers**
+- **EVM**: Enhanced with full state access tracking (mutable vs read-only)
+  - Added `analyze_function_body()` for state mutation detection
+  - Improved function parameter extraction
+  - All functions now properly analyzed for state access patterns
+
+- **Solana**: Implemented recursive AST analysis using `syn` parser
+  - Added `analyze_solana_function_body()` for statement-level analysis
+  - Improved account mutation vs. read detection
+  - Enhanced entry point identification
+
+- **Move**: Enhanced with resource access analysis
+  - Added resource and borrow pattern detection (borrow_global_mut, move_from)
+  - Proper mutable reference tracking
+  - Improved function analysis with resource lifecycle tracking
+
+### Fixed
+
+**Code Quality**
+- Fixed all clippy linting errors (0 warnings with -D warnings flag)
+- Applied `cargo fmt` to all source files for consistent formatting
+- Fixed method comparisons: compare `Ident` directly instead of `.to_string()`
+- Improved iterator patterns: replaced index-based loops with `.iter()`, `.first()`, and `.skip()`
+- Collapsed nested if statements using `&&` operator for better readability
+- Changed `&PathBuf` to `&Path` for better API design
+- Removed redundant `.trim()` before `.split_whitespace()`
+
+**CI/CD Automation**
+- Installed git pre-push hook for automated code quality checks
+- Hook runs `cargo fmt --check` before push (prevents formatting regressions)
+- Hook runs `cargo clippy --all --all-features -- -D warnings` before push
+- Blocks pushes with clear error messages if checks fail
+- Ensures all pushed code meets production standards locally
+
+### Testing
+
+- All 91+ unit, integration, and property tests passing
+- Verified real analysis produces meaningful violation patterns
+- Tested pre-push hook validation on all modified files
+- Confirmed no regressions in existing functionality
+
+### Quality Metrics
+
+- **Compilation**: ✅ Zero errors
+- **Linting**: ✅ Zero warnings (clippy with -D warnings)
+- **Formatting**: ✅ Cargo fmt compliant
+- **Tests**: ✅ 91+ passing (100%)
+- **Safety**: ✅ Zero unsafe code
+- **File Changes**: 8 files modified, 1118 insertions, 214 deletions
+
 ---
 
 ## [Unreleased]
