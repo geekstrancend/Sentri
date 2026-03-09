@@ -2,6 +2,7 @@
 
 use sentri_core::model::Invariant;
 use sentri_core::Result;
+use sentri_dsl_parser::parse_invariant;
 use std::path::Path;
 use tracing::info;
 
@@ -74,6 +75,8 @@ impl LibraryLoader {
 }
 
 /// Parse an invariant from a TOML table value.
+///
+/// Creates a complete invariant by parsing the expression string using the DSL parser.
 fn parse_invariant_table(table: &toml::Value) -> Result<Invariant> {
     let table = table.as_table().ok_or_else(|| {
         sentri_core::InvarError::ConfigError("Invariant must be a table".to_string())
@@ -96,10 +99,6 @@ fn parse_invariant_table(table: &toml::Value) -> Result<Invariant> {
             )
         })?;
 
-    // Parse expression string into Invariant representation
-    // For now, create a placeholder expression
-    let expression = sentri_core::model::Expression::Boolean(true);
-
     let severity = table
         .get("severity")
         .and_then(|v| v.as_str())
@@ -117,19 +116,23 @@ fn parse_invariant_table(table: &toml::Value) -> Result<Invariant> {
         .and_then(|v| v.as_str())
         .map(|s| s.to_string());
 
+    // Parse the expression string using the DSL parser
+    // Construct full invariant format for the parser
+    let full_invariant_str = format!(r#"invariant {} {{ {} }}"#, name, expression_str);
+    
+    let mut parsed_invariant = parse_invariant(&full_invariant_str)?;
+
+    // Override with TOML-provided severity and category
+    parsed_invariant.severity = severity;
+    parsed_invariant.category = category;
+    if description.is_some() {
+        parsed_invariant.description = description;
+    }
+
     info!(
-        "Parsed invariant '{}' with expression '{}' (severity: {})",
-        name, expression_str, severity
+        "Parsed invariant '{}' with expression '{}' (severity: {}, category: {})",
+        name, expression_str, parsed_invariant.severity, parsed_invariant.category
     );
 
-    Ok(Invariant {
-        name,
-        description,
-        expression,
-        severity,
-        category,
-        is_always_true: true,
-        layers: Vec::new(),
-        phases: Vec::new(),
-    })
+    Ok(parsed_invariant)
 }

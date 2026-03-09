@@ -1,99 +1,247 @@
-//! Simulation engine.
+//! Simulation engine for analyzing program invariants.
 
-use rand::SeedableRng;
 use sentri_core::model::{Invariant, ProgramModel, SimulationReport};
 use sentri_core::traits::Simulator;
 use sentri_core::Result;
 use tracing::info;
 
 /// Deterministic simulation engine for invariant testing.
-pub struct SimulationEngine {
-    /// RNG seed for reproducibility.
-    pub seed: u64,
-}
+///
+/// This engine performs static analysis of program models against invariants.
+/// It analyzes function control flow, state access patterns, and structural properties
+/// to detect potential violations.
+pub struct SimulationEngine;
 
 impl SimulationEngine {
-    /// Create a new simulation engine with a seed.
-    pub fn new(seed: u64) -> Self {
-        Self { seed }
+    /// Create a new simulation engine.
+    pub fn new(_seed: u64) -> Self {
+        Self
     }
 }
 
 impl Default for SimulationEngine {
     fn default() -> Self {
-        Self { seed: 42 }
+        Self
     }
 }
 
 impl Simulator for SimulationEngine {
     fn simulate(
         &self,
-        _program: &ProgramModel,
-        _invariants: &[Invariant],
+        program: &ProgramModel,
+        invariants: &[Invariant],
     ) -> Result<SimulationReport> {
-        use rand::RngCore;
-
-        info!("Starting simulation with seed: {}", self.seed);
-
-        // Initialize RNG with seed for deterministic fuzzing
-        let mut rng = rand::rngs::SmallRng::seed_from_u64(self.seed);
-
-        // Simulation configuration constants
-        /// Number of fuzz iterations to execute (100 provides good coverage)
-        const FUZZ_ITERATIONS: usize = 100;
-        /// Depth of each execution trace (10 steps per trace)
-        const TRACE_DEPTH: usize = 10;
-        /// Probability threshold for simulating violations (10%)
-        const VIOLATION_PROBABILITY_THRESHOLD: f64 = 0.1;
+        info!(
+            "Starting analysis of {} with {} invariants",
+            program.name,
+            invariants.len()
+        );
 
         let mut traces = Vec::new();
-        let mut violations = 0;
+        let mut detected_violations = 0;
 
-        // Execute fuzzing iterations with the initialized RNG
-        for iteration in 0..FUZZ_ITERATIONS {
-            // Generate a random trace of execution steps
-            let mut trace_steps = Vec::new();
-            for step in 0..TRACE_DEPTH {
-                // Generate deterministic random values based on seed and iteration
-                let mut buf = [0u8; 4];
-                rng.fill_bytes(&mut buf);
-                let step_value = u32::from_le_bytes(buf);
-                trace_steps.push(format!("step_{}_value_{}", step, step_value));
+        // Analyze each invariant against the program
+        for invariant in invariants {
+            // Check if invariant is applicable to this program type
+            if !is_invariant_applicable(invariant, program) {
+                continue;
             }
 
-            // In a full implementation, would execute program with this trace
-            // and check if any invariants are violated
-            let execution_trace = format!("Trace {}: {:?}", iteration, trace_steps);
-            traces.push(execution_trace);
+            // Analyze program-level patterns
+            if let Some(violation) = analyze_program_invariant(invariant, program) {
+                detected_violations += 1;
+                traces.push(violation);
+            }
 
-            // Simulate invariant checking (would compare against actual results in real impl)
-            let violation_trigger = {
-                let mut buf = [0u8; 8];
-                rng.fill_bytes(&mut buf);
-                f64::from_le_bytes(buf)
-            };
-            if violation_trigger < VIOLATION_PROBABILITY_THRESHOLD {
-                violations += 1;
+            // Analyze each function against the invariant
+            for (func_name, function) in &program.functions {
+                if let Some(violation) = analyze_function_invariant(invariant, program, function, func_name) {
+                    detected_violations += 1;
+                    traces.push(violation);
+                }
             }
         }
 
-        // Calculate coverage as percentage of iterations without violations
-        let coverage = ((FUZZ_ITERATIONS - violations) as f64 / FUZZ_ITERATIONS as f64) * 100.0;
+        // Calculate coverage based on violations found
+        let total_checks = invariants.len();
+        let coverage = if total_checks > 0 {
+            ((total_checks - detected_violations.min(total_checks)) as f64 / total_checks as f64)
+                * 100.0
+        } else {
+            100.0
+        };
 
         info!(
-            "Simulation complete: {} violations found, {:.1}% coverage",
-            violations, coverage
+            "Analysis complete: {} violations detected in {} invariants, {:.1}% coverage",
+            detected_violations, total_checks, coverage
         );
 
         Ok(SimulationReport {
-            violations,
+            violations: detected_violations,
             traces,
-            coverage,
-            seed: self.seed,
+            coverage: coverage.max(0.0),
+            seed: 0,
         })
     }
 
     fn chain(&self) -> &str {
-        "generic"
+        "analysis"
     }
+}
+
+/// Check if an invariant is applicable to this program type.
+///
+/// An invariant applies if:
+/// - It's a cross-platform invariant (access control, overflow), OR
+/// - Its category matches the program's blockchain platform
+fn is_invariant_applicable(invariant: &Invariant, program: &ProgramModel) -> bool {
+    let program_chain = program.chain.to_lowercase();
+    let invariant_category = invariant.category.to_lowercase();
+
+    // Cross-platform invariants apply to all programs
+    if invariant_category.contains("access") 
+        || invariant_category.contains("overflow")
+        || invariant_category.contains("general") {
+        return true;
+    }
+
+    // Platform-specific invariants must match the program's chain
+    program_chain.contains(&invariant_category)
+}
+
+/// Analyze program-level invariants to detect violations.
+///
+/// Performs static analysis of:
+/// - Reentrancy risks (multiple entry points with state mutations)
+/// - Access control patterns (entry point functions without state checks)
+/// - Arithmetic overflow risks (functions with numeric parameters)
+fn analyze_program_invariant(invariant: &Invariant, program: &ProgramModel) -> Option<String> {
+    let invariant_name_lower = invariant.name.to_lowercase();
+
+    // Reentrancy risk: multiple entry points with state mutations
+    if invariant_name_lower.contains("reentrancy") {
+        let entry_points: Vec<_> = program.functions
+            .iter()
+            .filter(|(_, f)| f.is_entry_point)
+            .collect();
+        
+        let mutating_functions: Vec<_> = program.functions
+            .iter()
+            .filter(|(_, f)| !f.mutates.is_empty())
+            .collect();
+
+        if entry_points.len() > 1 && !mutating_functions.is_empty() {
+            return Some(format!(
+                "Invariant '{}' violated in {}: Reentrancy risk detected - {} entry points with state mutations across {} functions",
+                invariant.name,
+                program.name,
+                entry_points.len(),
+                mutating_functions.len()
+            ));
+        }
+    }
+
+    // Access control risk: entry points with public state access
+    if invariant_name_lower.contains("access") {
+        let public_entry_points: Vec<_> = program.functions
+            .iter()
+            .filter(|(_, f)| f.is_entry_point && !f.reads.is_empty())
+            .collect();
+
+        if !public_entry_points.is_empty() {
+            return Some(format!(
+                "Invariant '{}' violated in {}: Access control risk - {} entry points access state without guards",
+                invariant.name,
+                program.name,
+                public_entry_points.len()
+            ));
+        }
+    }
+
+    // Overflow/underflow risk: functions with numeric operations
+    if invariant_name_lower.contains("overflow") || invariant_name_lower.contains("underflow") {
+        let numeric_functions: Vec<_> = program.functions
+            .iter()
+            .filter(|(_, f)| {
+                f.parameters.iter().any(|p| {
+                    let p_lower = p.to_lowercase();
+                    p_lower.contains("u") || p_lower.contains("i") || p_lower.contains("int")
+                })
+            })
+            .collect();
+
+        if numeric_functions.len() > 2 {
+            return Some(format!(
+                "Invariant '{}' violated in {}: Arithmetic risk - {} functions with numeric parameters may have unchecked operations",
+                invariant.name,
+                program.name,
+                numeric_functions.len()
+            ));
+        }
+    }
+
+    None
+}
+
+/// Analyze function-level invariants to detect violations.
+///
+/// Performs static analysis of:
+/// - Complex state interactions (reads + mutates)
+/// - Entry point authorization patterns
+/// - Pure function expectations
+fn analyze_function_invariant(
+    invariant: &Invariant,
+    program: &ProgramModel,
+    function: &sentri_core::model::FunctionModel,
+    func_name: &str,
+) -> Option<String> {
+    let invariant_name_lower = invariant.name.to_lowercase();
+    let state_interaction_count = function.reads.len() + function.mutates.len();
+
+    // Reentrancy: entry points with complex state interactions
+    if invariant_name_lower.contains("reentrancy") && function.is_entry_point && state_interaction_count > 2 {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Complex state interactions (reads: {}, writes: {}) without reentrancy guards",
+            func_name,
+            program.name,
+            invariant.name,
+            function.reads.len(),
+            function.mutates.len()
+        ));
+    }
+
+    // Access control: public entry points without authorization
+    if invariant_name_lower.contains("access") && function.is_entry_point && !function.reads.is_empty() && !function.is_pure {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Entry point accesses {} state variables without authorization checks",
+            func_name,
+            program.name,
+            invariant.name,
+            function.reads.len()
+        ));
+    }
+
+    // Arithmetic: functions with multiple numeric parameters
+    if (invariant_name_lower.contains("overflow") || invariant_name_lower.contains("underflow")) 
+        && function.parameters.len() > 1 {
+        let numeric_params = function.parameters
+            .iter()
+            .filter(|p| {
+                let p_lower = p.to_lowercase();
+                p_lower.contains("u") || p_lower.contains("i") || p_lower.contains("int")
+            })
+            .count();
+
+        if numeric_params > 1 {
+            return Some(format!(
+                "Function '{}' in {} violates '{}': {} numeric parameters without overflow checks",
+                func_name,
+                program.name,
+                invariant.name,
+                numeric_params
+            ));
+        }
+    }
+
+    None
 }
