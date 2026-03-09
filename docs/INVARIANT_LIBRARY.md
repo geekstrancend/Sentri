@@ -17,7 +17,7 @@ Previously, invariant expressions were hardcoded as placeholders. Now they are *
 ## Quick Reference
 
 | # | Invariant | Category | Severity | Chains |
-|---|-----------|----------|----------|--------|
+| --- | --- | --- | --- | --- |
 | 1 | balance_conservation | Balance & Arithmetic | CRITICAL | All |
 | 2 | no_integer_overflow | Balance & Arithmetic | CRITICAL | All |
 | 3 | no_integer_underflow | Balance & Arithmetic | CRITICAL | All |
@@ -55,18 +55,21 @@ Previously, invariant expressions were hardcoded as placeholders. Now they are *
 Ensures that the total supply of tokens remains constant across all operations, except during explicit mint/burn phases. This prevents unauthorized value creation or destruction.
 
 **Condition:**
-```
+
+```javascript
 (msg.value + minted == burned + transferred_out) &&
 (sum(balances) == totalSupply)
 ```
 
 **When It Triggers:**
+
 - Transfer operation changes recipient balance differently than sender
 - Mint operation without updating total supply
 - Burn operation without reducing total supply
 - Balance update that breaks sum equality
 
 **Example Violation:**
+
 ```solidity
 function transfer(address to, uint256 amount) public {
     balances[msg.sender] -= amount;
@@ -77,6 +80,7 @@ function transfer(address to, uint256 amount) public {
 ```
 
 **Fix:**
+
 ```solidity
 function transfer(address to, uint256 amount) public {
     balances[msg.sender] -= amount;
@@ -86,6 +90,7 @@ function transfer(address to, uint256 amount) public {
 ```
 
 **Test Case:**
+
 Test that `balances[A] + balances[B] + ... = totalSupply` after each transaction.
 
 ---
@@ -100,30 +105,35 @@ Test that `balances[A] + balances[B] + ... = totalSupply` after each transaction
 Prevents arithmetic operations from exceeding maximum representable values. This is especially critical in Solana and Move where overflow behavior differs from EVM.
 
 **Condition:**
-```
+
+```javascript
 forAll(additions, safeAdd(a, b) <= MAX_INT) &&
 forAll(multiplications, safeMul(a, b) <= MAX_INT)
 ```
 
 **When It Triggers:**
+
 - Addition result exceeds MAX_UINT256 (EVM) or equivalent
 - Multiplication result overflows
 - Unchecked math operations in Solana/Move programs
 - Missing overflow checks in loop accumulations
 
 **Example Violation (EVM):**
+
 ```solidity
 uint256 balance = 2**256 - 1;
 balance += 1;  // Overflows to 0!
 ```
 
 **Example Violation (Solana):**
+
 ```rust
 let mut total: u64 = u64::MAX;
 total = total.checked_add(1).unwrap();  // Panics!
 ```
 
 **Fix:**
+
 ```solidity
 // EVM - Use SafeMath or checked operations
 balance = SafeMath.add(balance, amount);
@@ -134,6 +144,7 @@ let total = current.checked_add(amount)
 ```
 
 **Prevention:**
+
 - Use SafeMath library or built-in checked operations
 - Always validate inputs won't overflow
 - Add compile-time assertions for constants
@@ -151,12 +162,14 @@ let total = current.checked_add(amount)
 Prevents subtraction operations from going below zero, which can wrap to very large numbers (in unsigned arithmetic).
 
 **Condition:**
-```
+
+```javascript
 forAll(subtractions, a >= b) &&
 forAll(decrements, value >= decrement_amount)
 ```
 
 **When It Triggers:**
+
 - Subtraction where minuend < subtrahend
 - Decrement operations that go negative
 - Balance transfers exceeding available balance

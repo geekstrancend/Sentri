@@ -5,7 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.3] - 2026-03-08
+## [0.1.6] - 2026-03-09
+
+### Fixed
+- **CRITICAL FIX**: Resolved npm wrapper hanging issue caused by infinite recursion in binary path resolution
+  - Removed unsafe `spawnSync("which", ["sentri"])` call that caused the wrapper to spawn itself recursively
+  - Binary path now safely resolves without subprocess spawning: env var → .sentri-bin/ → PATH fallback
+  - All commands (`sentri check`, `sentri doctor`, etc.) now execute immediately without hanging
+  - Users experiencing hangs on `npm install @dextonicx/cli` should upgrade to this version
+- Enhanced download robustness with timeout handling
+  - Added 30-second socket timeout for network requests
+  - Added 60-second hard timeout for entire downloads
+  - Prevents postinstall from hanging on stalled network connections
+
+### Verified
+- ✅ `sentri --version` executes immediately
+- ✅ `sentri doctor` completes in ~100ms
+- ✅ `sentri check` works on EVM/Solana/Move contracts
+- ✅ `npm install @dextonicx/cli` completes without hanging
+- ✅ All commands work when binary is installed locally
+- ✅ Graceful error handling when binary is missing
+
+## [0.1.5] - 2026-03-09
 
 ### Added
 - Initial npm package release for `@sentri/cli`
