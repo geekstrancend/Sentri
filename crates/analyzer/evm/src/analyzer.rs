@@ -5,7 +5,7 @@ use sentri_core::traits::ChainAnalyzer;
 use sentri_core::Result;
 use std::collections::BTreeSet;
 use std::path::Path;
-use tracing::{info, debug};
+use tracing::{debug, info};
 
 /// Analyzer for EVM (Solidity) smart contracts.
 ///
@@ -87,15 +87,28 @@ fn extract_state_variables(source: &str) -> Vec<String> {
     for line in source.lines() {
         let trimmed = line.trim_start();
         // Skip comments and function/contract declarations
-        if trimmed.starts_with("//") || trimmed.starts_with("/*") || trimmed.contains("function ")
-            || trimmed.contains("contract ") {
+        if trimmed.starts_with("//")
+            || trimmed.starts_with("/*")
+            || trimmed.contains("function ")
+            || trimmed.contains("contract ")
+        {
             continue;
         }
 
         // Match state variable types
         let solidity_types = [
-            "uint", "int", "address", "bool", "bytes", "string", "mapping",
-            "struct", "enum", "bool[]", "uint[]", "address[]",
+            "uint",
+            "int",
+            "address",
+            "bool",
+            "bytes",
+            "string",
+            "mapping",
+            "struct",
+            "enum",
+            "bool[]",
+            "uint[]",
+            "address[]",
         ];
 
         if solidity_types.iter().any(|t| trimmed.starts_with(t)) {
@@ -118,17 +131,20 @@ fn extract_functions_with_analysis(source: &str, state_vars: &[String]) -> Vec<F
         let trimmed = line.trim_start();
 
         // Look for function signatures
-        if (trimmed.contains("public ") || trimmed.contains("external ") 
-            || trimmed.contains("internal ") || trimmed.contains("private "))
-            && trimmed.contains("function ") {
+        if (trimmed.contains("public ")
+            || trimmed.contains("external ")
+            || trimmed.contains("internal ")
+            || trimmed.contains("private "))
+            && trimmed.contains("function ")
+        {
             // Extract function name and details
             if let Some(func_part) = trimmed.split("function ").nth(1) {
                 if let Some(name) = func_part.split('(').next() {
                     let func_name = name.trim().to_string();
 
                     // Extract modifiers
-                    let has_guards = trimmed.contains("require(") 
-                        || trimmed.contains("onlyOwner") 
+                    let has_guards = trimmed.contains("require(")
+                        || trimmed.contains("onlyOwner")
                         || trimmed.contains("nonReentrant")
                         || trimmed.to_lowercase().contains("modifier");
 
@@ -150,8 +166,8 @@ fn extract_functions_with_analysis(source: &str, state_vars: &[String]) -> Vec<F
                     };
 
                     // Determine if function is pure (no state mutations or views)
-                    let is_pure = !trimmed.contains("constant") 
-                        && !trimmed.contains("view") 
+                    let is_pure = !trimmed.contains("constant")
+                        && !trimmed.contains("view")
                         && mutates.is_empty();
 
                     let func = FunctionModel {
@@ -190,11 +206,11 @@ fn extract_function_params(signature: &str) -> Vec<String> {
                 .split(',')
                 .map(|p| {
                     // Each param is like "uint256 amount" or "address indexed user"
-                    let parts: Vec<&str> = p.trim().split_whitespace().collect();
+                    let parts: Vec<&str> = p.split_whitespace().collect();
                     if parts.len() >= 2 {
                         parts[parts.len() - 1].to_string()
                     } else {
-                        parts.get(0).unwrap_or(&"").to_string()
+                        parts.first().unwrap_or(&"").to_string()
                     }
                 })
                 .filter(|p| !p.is_empty())
@@ -219,8 +235,7 @@ fn analyze_function_body(
     let mut brace_count = 0;
     let mut in_function = false;
 
-    for i in start_idx..lines.len() {
-        let line = lines[i];
+    for line in lines.iter().skip(start_idx) {
         let trimmed = line.trim();
 
         // Count braces to detect function body
@@ -247,7 +262,8 @@ fn analyze_function_body(
                 if trimmed.contains(&format!("{} =", var))
                     || trimmed.contains(&format!("{}[", var))
                     || trimmed.contains(&format!("{}.push", var))
-                    || trimmed.contains(&format!("{}.pop", var)) {
+                    || trimmed.contains(&format!("{}.pop", var))
+                {
                     mutates.insert(var.clone());
                 } else {
                     reads.insert(var.clone());
@@ -272,23 +288,42 @@ fn analyze_function_body(
 /// Extract variable name from declaration (e.g., "uint256 public balance;" → "balance").
 fn extract_variable_name(line: &str) -> Option<String> {
     let words: Vec<&str> = line.split_whitespace().collect();
-    
+
     // Skip type and visibility keywords
     let solidity_keywords = [
-        "uint", "int", "address", "bool", "bytes", "string", "mapping",
-        "public", "private", "internal", "external", "constant", "immutable",
-        "struct", "enum", "indexed", "memory", "storage", "calldata",
+        "uint",
+        "int",
+        "address",
+        "bool",
+        "bytes",
+        "string",
+        "mapping",
+        "public",
+        "private",
+        "internal",
+        "external",
+        "constant",
+        "immutable",
+        "struct",
+        "enum",
+        "indexed",
+        "memory",
+        "storage",
+        "calldata",
     ];
 
-    for (_idx, word) in words.iter().enumerate() {
+    for word in words.iter() {
         // Skip numbers after types (e.g., 256 in uint256)
         if word.chars().all(|c| c.is_ascii_digit()) {
             continue;
         }
 
         let word_lower = word.to_lowercase();
-        let is_keyword = solidity_keywords.iter().any(|kw| word_lower.starts_with(kw))
-            || word_lower == "mapping" || word_lower.starts_with("mapping");
+        let is_keyword = solidity_keywords
+            .iter()
+            .any(|kw| word_lower.starts_with(kw))
+            || word_lower == "mapping"
+            || word_lower.starts_with("mapping");
 
         if !is_keyword {
             // Extract the actual variable name, removing semicolons and other symbols

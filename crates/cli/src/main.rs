@@ -6,10 +6,10 @@
 //! Production-grade terminal UI with professional styling and comprehensive
 //! analysis capabilities for smart contract security.
 
-use anyhow::{Result, Context};
+use anyhow::{Context, Result};
 use clap::{Parser, Subcommand, ValueEnum};
-use std::path::PathBuf;
 use serde_json::json;
+use std::path::{Path, PathBuf};
 use std::time::Instant;
 
 // UI module
@@ -17,12 +17,12 @@ mod ui;
 use ui::*;
 
 // Import analyzers and simulator
-use sentri_core::traits::{ChainAnalyzer, Simulator};
 use sentri_analyzer_evm::EvmAnalyzer;
-use sentri_analyzer_solana::SolanaAnalyzer;
 use sentri_analyzer_move::MoveAnalyzer;
-use sentri_simulator::SimulationEngine;
+use sentri_analyzer_solana::SolanaAnalyzer;
+use sentri_core::traits::{ChainAnalyzer, Simulator};
 use sentri_library::InvariantLibrary;
+use sentri_simulator::SimulationEngine;
 
 // ============================================================================
 // CLI STRUCTURE
@@ -188,7 +188,7 @@ fn main() -> Result<()> {
 /// Handle the `check` subcommand.
 fn cmd_check(args: CheckArgs, quiet: bool, verbose: bool) -> Result<()> {
     let start_time = Instant::now();
-    
+
     let chain_name = match &args.chain {
         ChainArg::Evm => "EVM",
         ChainArg::Solana => "Solana",
@@ -241,7 +241,11 @@ fn cmd_check(args: CheckArgs, quiet: bool, verbose: bool) -> Result<()> {
     // Count violations by severity
     let (critical, high, medium, low) = count_violations_by_severity(&violations);
     let total_checks = 22; // Built-in invariants count
-    let passed = if violations.is_empty() { total_checks } else { total_checks - violations.len() };
+    let passed = if violations.is_empty() {
+        total_checks
+    } else {
+        total_checks - violations.len()
+    };
 
     // Build summary
     let summary = AnalysisSummary {
@@ -362,7 +366,7 @@ fn cmd_check(args: CheckArgs, quiet: bool, verbose: bool) -> Result<()> {
 }
 
 /// Run actual analysis on the source file.
-fn run_analysis(source_path: &PathBuf, chain: &ChainArg, verbose: bool) -> Result<Vec<Violation>> {
+fn run_analysis(source_path: &Path, chain: &ChainArg, verbose: bool) -> Result<Vec<Violation>> {
     // Check if file exists
     if !source_path.exists() {
         return Err(anyhow::anyhow!("Path not found: {}", source_path.display()));
@@ -372,23 +376,29 @@ fn run_analysis(source_path: &PathBuf, chain: &ChainArg, verbose: bool) -> Resul
     let program = match chain {
         ChainArg::Evm => {
             let analyzer = EvmAnalyzer;
-            analyzer.analyze(source_path)
+            analyzer
+                .analyze(source_path)
                 .context("Failed to analyze EVM contract")?
         }
         ChainArg::Solana => {
             let analyzer = SolanaAnalyzer;
-            analyzer.analyze(source_path)
+            analyzer
+                .analyze(source_path)
                 .context("Failed to analyze Solana program")?
         }
         ChainArg::Move => {
             let analyzer = MoveAnalyzer;
-            analyzer.analyze(source_path)
+            analyzer
+                .analyze(source_path)
                 .context("Failed to analyze Move module")?
         }
     };
 
     if verbose {
-        eprintln!("✓ Analysis complete. Found {} functions", program.functions.len());
+        eprintln!(
+            "✓ Analysis complete. Found {} functions",
+            program.functions.len()
+        );
     }
 
     // Load real built-in invariants for this chain
@@ -397,27 +407,32 @@ fn run_analysis(source_path: &PathBuf, chain: &ChainArg, verbose: bool) -> Resul
         ChainArg::Solana => "solana",
         ChainArg::Move => "move",
     };
-    
+
     let lib = InvariantLibrary::with_defaults(chain_name);
     let invariants: Vec<_> = lib.all().iter().map(|i| (*i).clone()).collect();
-    
+
     if verbose {
-        eprintln!("✓ Loaded {} real invariants for {}", invariants.len(), chain_name);
+        eprintln!(
+            "✓ Loaded {} real invariants for {}",
+            invariants.len(),
+            chain_name
+        );
     }
 
     // Run real simulation with actual invariants
-    let engine = SimulationEngine::default();
-    let report = engine.simulate(&program, &invariants)
+    let engine = SimulationEngine::new(0);
+    let report = engine
+        .simulate(&program, &invariants)
         .context("Failed to run invariant simulation")?;
 
     // Convert simulation results to violations based on actual detection
     let mut violations = Vec::new();
-    
+
     // Map simulation violations to actual invariant-based violations with real data
     if report.violations > 0 {
         // Determine which invariants were violated based on program analysis
         let detected_violations = detect_violated_invariants(&program, &invariants);
-        
+
         for (idx, (invariant, confidence)) in detected_violations.into_iter().enumerate() {
             violations.push(Violation {
                 index: idx + 1,
@@ -444,69 +459,83 @@ fn run_analysis(source_path: &PathBuf, chain: &ChainArg, verbose: bool) -> Resul
 }
 
 /// Detect which invariants were actually violated based on program structure.
-fn detect_violated_invariants(program: &sentri_core::model::ProgramModel, 
-                              invariants: &[sentri_core::model::Invariant]) 
-                              -> Vec<(sentri_core::model::Invariant, f64)> {
+fn detect_violated_invariants(
+    program: &sentri_core::model::ProgramModel,
+    invariants: &[sentri_core::model::Invariant],
+) -> Vec<(sentri_core::model::Invariant, f64)> {
     let mut violated = Vec::new();
-    
+
     // Heuristic: check invariants based on program characteristics
     for invariant in invariants {
         let confidence = calculate_violation_confidence(program, invariant);
-        if confidence > 0.3 {  // Threshold for reporting
+        if confidence > 0.3 {
+            // Threshold for reporting
             violated.push((invariant.clone(), confidence));
         }
     }
-    
+
     violated
 }
 
 /// Calculate confidence score for an invariant violation based on program analysis.
-fn calculate_violation_confidence(program: &sentri_core::model::ProgramModel,
-                                  invariant: &sentri_core::model::Invariant) -> f64 {
+fn calculate_violation_confidence(
+    program: &sentri_core::model::ProgramModel,
+    invariant: &sentri_core::model::Invariant,
+) -> f64 {
     let mut confidence = 0.0;
-    
+
     // Check for reentrancy patterns
-    if invariant.name.contains("reentrancy") {
-        if program.functions.len() > 2 {
-            confidence += 0.2;  // Multiple entry points can lead to reentrancy
-        }
+    if invariant.name.contains("reentrancy") && program.functions.len() > 2 {
+        confidence += 0.2; // Multiple entry points can lead to reentrancy
     }
-    
+
     // Check for arithmetic issues
-    if invariant.name.contains("overflow") {
-        if program.functions.iter().any(|f| f.1.name.contains("add") || f.1.name.contains("mul")) {
-            confidence += 0.25;
-        }
+    if invariant.name.contains("overflow")
+        && program
+            .functions
+            .iter()
+            .any(|f| f.1.name.contains("add") || f.1.name.contains("mul"))
+    {
+        confidence += 0.25;
     }
-    
+
     // Check for access control
-    if invariant.name.contains("access") {
-        if program.functions.iter().any(|f| f.1.is_entry_point) && program.functions.len() > 1 {
-            confidence += 0.2;
-        }
+    if invariant.name.contains("access")
+        && program.functions.iter().any(|f| f.1.is_entry_point)
+        && program.functions.len() > 1
+    {
+        confidence += 0.2;
     }
-    
+
     // General invariant check confidence based on complexity
     let function_count = program.functions.len() as f64;
-    let state_var_count = program.name.len() as f64;  // Rough proxy
+    let state_var_count = program.name.len() as f64; // Rough proxy
     confidence += (function_count / 10.0).min(0.3);
     confidence += (state_var_count / 50.0).min(0.2);
-    
+
     confidence.min(1.0)
 }
 
 /// Map internal invariant names to CWE IDs.
 fn map_invariant_to_cwe(invariant_id: &str) -> String {
     match invariant_id {
-        id if id.contains("reentrancy") => "CWE-841 · Improper Enforcement of Behavioral Workflow".to_string(),
+        id if id.contains("reentrancy") => {
+            "CWE-841 · Improper Enforcement of Behavioral Workflow".to_string()
+        }
         id if id.contains("overflow") => "CWE-190 · Integer Overflow".to_string(),
         id if id.contains("underflow") => "CWE-191 · Integer Underflow".to_string(),
         id if id.contains("return") => "CWE-252 · Unchecked Return Value".to_string(),
         id if id.contains("delegatecall") => "CWE-758 · Reliance on Undefined Behavior".to_string(),
         id if id.contains("access") => "CWE-269 · Improper Input Validation".to_string(),
-        id if id.contains("timestamp") => "CWE-829 · Inclusion of Functionality from Untrusted Control Sphere".to_string(),
-        id if id.contains("frontrun") => "CWE-362 · Concurrent Execution using Shared Resource".to_string(),
-        id if id.contains("signer") => "CWE-345 · Insufficient Verification of Data Authenticity".to_string(),
+        id if id.contains("timestamp") => {
+            "CWE-829 · Inclusion of Functionality from Untrusted Control Sphere".to_string()
+        }
+        id if id.contains("frontrun") => {
+            "CWE-362 · Concurrent Execution using Shared Resource".to_string()
+        }
+        id if id.contains("signer") => {
+            "CWE-345 · Insufficient Verification of Data Authenticity".to_string()
+        }
         _ => "CWE-676 · Use of Potentially Dangerous Function".to_string(),
     }
 }
@@ -546,13 +575,14 @@ fn cmd_report(args: ReportArgs, quiet: bool) -> Result<()> {
         .map_err(|e| anyhow::anyhow!("Failed to read input file: {}", e))?;
 
     // Parse input - if it looks like JSON, try to parse it as analysis results
-    let analysis_data = if input_content.trim().starts_with('{') || input_content.trim().starts_with('[') {
-        serde_json::from_str::<serde_json::Value>(&input_content)
-            .unwrap_or_else(|_| json!({"content": input_content}))
-    } else {
-        // If it's not JSON, treat it as raw content
-        json!({"content": input_content})
-    };
+    let analysis_data =
+        if input_content.trim().starts_with('{') || input_content.trim().starts_with('[') {
+            serde_json::from_str::<serde_json::Value>(&input_content)
+                .unwrap_or_else(|_| json!({"content": input_content}))
+        } else {
+            // If it's not JSON, treat it as raw content
+            json!({"content": input_content})
+        };
 
     // Generate report based on format
     let report_output = match args.format {
@@ -617,7 +647,7 @@ fn generate_html_report(data: &serde_json::Value, source: &std::path::Path) -> S
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| format!("Unix timestamp: {}", d.as_secs()))
         .unwrap_or_else(|_| "unknown".to_string());
-    
+
     format!(
         r#"<!DOCTYPE html>
 <html>
@@ -663,7 +693,7 @@ fn generate_text_report(data: &serde_json::Value, source: &std::path::Path) -> S
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| format!("{} seconds since epoch", d.as_secs()))
         .unwrap_or_else(|_| "unknown time".to_string());
-    
+
     format!(
         r#"================================================================================
                         SENTRI ANALYSIS REPORT

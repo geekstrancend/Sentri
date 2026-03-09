@@ -114,11 +114,11 @@ fn extract_functions_with_analysis(source: &str, resources: &[String]) -> Vec<Fu
         let trimmed = line.trim_start();
 
         // Look for function declarations
-        if (trimmed.contains("public fun ") 
+        if (trimmed.contains("public fun ")
             || trimmed.contains("fun ")
             || trimmed.contains("entry fun "))
-            && !trimmed.contains("//") {
-            
+            && !trimmed.contains("//")
+        {
             // Extract visibility
             let is_public = trimmed.contains("public ");
             let is_entry = trimmed.contains("entry ");
@@ -140,7 +140,8 @@ fn extract_functions_with_analysis(source: &str, resources: &[String]) -> Vec<Fu
                     let params = extract_move_function_params(func_part);
 
                     // Check if function has mutable parameter (acquires or &mut)
-                    let has_mutable_ref = func_part.contains("&mut ") || func_part.contains("acquires ");
+                    let has_mutable_ref =
+                        func_part.contains("&mut ") || func_part.contains("acquires ");
 
                     // Analyze function body for resource access
                     let (reads, mutates) = analyze_move_function_body(&lines, i, resources);
@@ -183,8 +184,8 @@ fn extract_move_function_params(signature: &str) -> Vec<String> {
                 .split(',')
                 .map(|p| {
                     // Each param is like "account: &mut signer" or "amount: u64"
-                    let parts: Vec<&str> = p.trim().split_whitespace().collect();
-                    parts.get(0).unwrap_or(&"").to_string()
+                    let parts: Vec<&str> = p.split_whitespace().collect();
+                    parts.first().unwrap_or(&"").to_string()
                 })
                 .filter(|p| !p.is_empty())
                 .collect()
@@ -208,8 +209,7 @@ fn analyze_move_function_body(
     let mut brace_count = 0;
     let mut in_function = false;
 
-    for i in start_idx..lines.len() {
-        let line = lines[i];
+    for line in lines.iter().skip(start_idx) {
         let trimmed = line.trim();
 
         // Count braces to detect function body
@@ -233,13 +233,15 @@ fn analyze_move_function_body(
         for resource in resources {
             if trimmed.contains(resource) {
                 // Check for mutations
-                if trimmed.contains("move_from") 
+                if trimmed.contains("move_from")
                     || trimmed.contains("borrow_global_mut")
-                    || trimmed.contains("global_mut") {
+                    || trimmed.contains("global_mut")
+                {
                     mutates.insert(resource.clone());
                 } else if trimmed.contains("borrow_global")
                     || trimmed.contains("global")
-                    || trimmed.contains("assert!") {
+                    || trimmed.contains("assert!")
+                {
                     reads.insert(resource.clone());
                 }
             }
