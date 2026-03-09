@@ -822,6 +822,7 @@ dependencies = [
  "sentri-utils",
  "serde",
  "serde_json",
+ "tempfile",
  "thiserror",
  "tracing",
 ]
@@ -836,6 +837,7 @@ dependencies = [
  "sentri-utils",
  "serde",
  "serde_json",
+ "tempfile",
  "thiserror",
  "tracing",
 ]
@@ -853,6 +855,7 @@ dependencies = [
  "serde",
  "serde_json",
  "syn",
+ "tempfile",
  "thiserror",
  "tracing",
 ]
