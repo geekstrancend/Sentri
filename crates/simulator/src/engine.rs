@@ -55,7 +55,9 @@ impl Simulator for SimulationEngine {
 
             // Analyze each function against the invariant
             for (func_name, function) in &program.functions {
-                if let Some(violation) = analyze_function_invariant(invariant, program, function, func_name) {
+                if let Some(violation) =
+                    analyze_function_invariant(invariant, program, function, func_name)
+                {
                     detected_violations += 1;
                     traces.push(violation);
                 }
@@ -99,9 +101,10 @@ fn is_invariant_applicable(invariant: &Invariant, program: &ProgramModel) -> boo
     let invariant_category = invariant.category.to_lowercase();
 
     // Cross-platform invariants apply to all programs
-    if invariant_category.contains("access") 
+    if invariant_category.contains("access")
         || invariant_category.contains("overflow")
-        || invariant_category.contains("general") {
+        || invariant_category.contains("general")
+    {
         return true;
     }
 
@@ -120,12 +123,14 @@ fn analyze_program_invariant(invariant: &Invariant, program: &ProgramModel) -> O
 
     // Reentrancy risk: multiple entry points with state mutations
     if invariant_name_lower.contains("reentrancy") {
-        let entry_points: Vec<_> = program.functions
+        let entry_points: Vec<_> = program
+            .functions
             .iter()
             .filter(|(_, f)| f.is_entry_point)
             .collect();
-        
-        let mutating_functions: Vec<_> = program.functions
+
+        let mutating_functions: Vec<_> = program
+            .functions
             .iter()
             .filter(|(_, f)| !f.mutates.is_empty())
             .collect();
@@ -143,7 +148,8 @@ fn analyze_program_invariant(invariant: &Invariant, program: &ProgramModel) -> O
 
     // Access control risk: entry points with public state access
     if invariant_name_lower.contains("access") {
-        let public_entry_points: Vec<_> = program.functions
+        let public_entry_points: Vec<_> = program
+            .functions
             .iter()
             .filter(|(_, f)| f.is_entry_point && !f.reads.is_empty())
             .collect();
@@ -160,7 +166,8 @@ fn analyze_program_invariant(invariant: &Invariant, program: &ProgramModel) -> O
 
     // Overflow/underflow risk: functions with numeric operations
     if invariant_name_lower.contains("overflow") || invariant_name_lower.contains("underflow") {
-        let numeric_functions: Vec<_> = program.functions
+        let numeric_functions: Vec<_> = program
+            .functions
             .iter()
             .filter(|(_, f)| {
                 f.parameters.iter().any(|p| {
@@ -199,7 +206,10 @@ fn analyze_function_invariant(
     let state_interaction_count = function.reads.len() + function.mutates.len();
 
     // Reentrancy: entry points with complex state interactions
-    if invariant_name_lower.contains("reentrancy") && function.is_entry_point && state_interaction_count > 2 {
+    if invariant_name_lower.contains("reentrancy")
+        && function.is_entry_point
+        && state_interaction_count > 2
+    {
         return Some(format!(
             "Function '{}' in {} violates '{}': Complex state interactions (reads: {}, writes: {}) without reentrancy guards",
             func_name,
@@ -211,7 +221,11 @@ fn analyze_function_invariant(
     }
 
     // Access control: public entry points without authorization
-    if invariant_name_lower.contains("access") && function.is_entry_point && !function.reads.is_empty() && !function.is_pure {
+    if invariant_name_lower.contains("access")
+        && function.is_entry_point
+        && !function.reads.is_empty()
+        && !function.is_pure
+    {
         return Some(format!(
             "Function '{}' in {} violates '{}': Entry point accesses {} state variables without authorization checks",
             func_name,
@@ -222,9 +236,11 @@ fn analyze_function_invariant(
     }
 
     // Arithmetic: functions with multiple numeric parameters
-    if (invariant_name_lower.contains("overflow") || invariant_name_lower.contains("underflow")) 
-        && function.parameters.len() > 1 {
-        let numeric_params = function.parameters
+    if (invariant_name_lower.contains("overflow") || invariant_name_lower.contains("underflow"))
+        && function.parameters.len() > 1
+    {
+        let numeric_params = function
+            .parameters
             .iter()
             .filter(|p| {
                 let p_lower = p.to_lowercase();
@@ -235,10 +251,7 @@ fn analyze_function_invariant(
         if numeric_params > 1 {
             return Some(format!(
                 "Function '{}' in {} violates '{}': {} numeric parameters without overflow checks",
-                func_name,
-                program.name,
-                invariant.name,
-                numeric_params
+                func_name, program.name, invariant.name, numeric_params
             ));
         }
     }

@@ -37,16 +37,56 @@ impl InvariantLibrary {
     /// Add EVM-specific invariants.
     fn add_evm_defaults(&mut self) {
         let evm_invariants = vec![
-            ("evm_reentrancy_protection", "Reentrancy Protection", "call_order_respected AND no_recursive_calls"),
-            ("evm_integer_overflow", "Integer Overflow", "arithmetic_values_bounded AND checked_arithmetic"),
-            ("evm_integer_underflow", "Integer Underflow", "subtraction_checked AND minimum_value_respected"),
-            ("evm_unchecked_returns", "Unchecked Return Values", "all_external_calls_checked AND return_validation"),
-            ("evm_delegatecall_injection", "Delegatecall Injection", "delegatecall_target_whitelist AND no_user_delegatecall"),
-            ("evm_access_control", "Access Control", "caller_authentication AND permission_respected"),
-            ("evm_timestamp_dependence", "Timestamp Dependence", "no_timestamp_for_security AND block_properties_consistent"),
-            ("evm_frontrunning", "Front-running", "state_order_independent AND tx_ordering_irrelevant"),
-            ("evm_uninitialized_pointers", "Uninitialized Pointers", "memory_initialized_before_use AND storage_initialized"),
-            ("evm_division_by_zero", "Division by Zero", "divisor_nonzero AND modulo_nonzero"),
+            (
+                "evm_reentrancy_protection",
+                "Reentrancy Protection",
+                "call_order_respected AND no_recursive_calls",
+            ),
+            (
+                "evm_integer_overflow",
+                "Integer Overflow",
+                "arithmetic_values_bounded AND checked_arithmetic",
+            ),
+            (
+                "evm_integer_underflow",
+                "Integer Underflow",
+                "subtraction_checked AND minimum_value_respected",
+            ),
+            (
+                "evm_unchecked_returns",
+                "Unchecked Return Values",
+                "all_external_calls_checked AND return_validation",
+            ),
+            (
+                "evm_delegatecall_injection",
+                "Delegatecall Injection",
+                "delegatecall_target_whitelist AND no_user_delegatecall",
+            ),
+            (
+                "evm_access_control",
+                "Access Control",
+                "caller_authentication AND permission_respected",
+            ),
+            (
+                "evm_timestamp_dependence",
+                "Timestamp Dependence",
+                "no_timestamp_for_security AND block_properties_consistent",
+            ),
+            (
+                "evm_frontrunning",
+                "Front-running",
+                "state_order_independent AND tx_ordering_irrelevant",
+            ),
+            (
+                "evm_uninitialized_pointers",
+                "Uninitialized Pointers",
+                "memory_initialized_before_use AND storage_initialized",
+            ),
+            (
+                "evm_division_by_zero",
+                "Division by Zero",
+                "divisor_nonzero AND modulo_nonzero",
+            ),
         ];
 
         for (id, name, _constraint) in evm_invariants {
@@ -69,13 +109,41 @@ impl InvariantLibrary {
     /// Add Solana-specific invariants.
     fn add_solana_defaults(&mut self) {
         let solana_invariants = vec![
-            ("sol_signer_checks", "Signer Checks", "all_required_signers_present AND signatures_valid"),
-            ("sol_account_validation", "Account Validation", "expected_accounts_provided AND account_state_valid"),
-            ("sol_integer_overflow", "Integer Overflow", "arithmetic_checked AND values_within_bounds"),
-            ("sol_rent_exemption", "Rent Exemption", "rent_paid_or_exempt AND account_cleanup_proper"),
-            ("sol_pda_derivation", "PDA Derivation", "pda_seeds_deterministic AND derivation_consistent"),
-            ("sol_lamport_balance", "Lamport Balance", "lamports_conserved AND no_lamport_leaks"),
-            ("sol_instruction_parsing", "Instruction Parsing", "instruction_data_valid AND account_order_correct"),
+            (
+                "sol_signer_checks",
+                "Signer Checks",
+                "all_required_signers_present AND signatures_valid",
+            ),
+            (
+                "sol_account_validation",
+                "Account Validation",
+                "expected_accounts_provided AND account_state_valid",
+            ),
+            (
+                "sol_integer_overflow",
+                "Integer Overflow",
+                "arithmetic_checked AND values_within_bounds",
+            ),
+            (
+                "sol_rent_exemption",
+                "Rent Exemption",
+                "rent_paid_or_exempt AND account_cleanup_proper",
+            ),
+            (
+                "sol_pda_derivation",
+                "PDA Derivation",
+                "pda_seeds_deterministic AND derivation_consistent",
+            ),
+            (
+                "sol_lamport_balance",
+                "Lamport Balance",
+                "lamports_conserved AND no_lamport_leaks",
+            ),
+            (
+                "sol_instruction_parsing",
+                "Instruction Parsing",
+                "instruction_data_valid AND account_order_correct",
+            ),
         ];
 
         for (id, name, _constraint) in solana_invariants {
@@ -98,11 +166,31 @@ impl InvariantLibrary {
     /// Add Move-specific invariants.
     fn add_move_defaults(&mut self) {
         let move_invariants = vec![
-            ("move_access_control", "Access Control", "caller_has_required_capability AND resource_protected"),
-            ("move_integer_overflow", "Integer Overflow", "addition_checked AND values_bounded"),
-            ("move_resource_leaks", "Resource Leaks", "all_resources_returned AND no_abort_without_cleanup"),
-            ("move_type_safety", "Type Safety", "types_match_at_boundaries AND resources_typed"),
-            ("move_signer_requirement", "Signer Requirement", "signer_passed_and_verified AND signer_not_optional"),
+            (
+                "move_access_control",
+                "Access Control",
+                "caller_has_required_capability AND resource_protected",
+            ),
+            (
+                "move_integer_overflow",
+                "Integer Overflow",
+                "addition_checked AND values_bounded",
+            ),
+            (
+                "move_resource_leaks",
+                "Resource Leaks",
+                "all_resources_returned AND no_abort_without_cleanup",
+            ),
+            (
+                "move_type_safety",
+                "Type Safety",
+                "types_match_at_boundaries AND resources_typed",
+            ),
+            (
+                "move_signer_requirement",
+                "Signer Requirement",
+                "signer_passed_and_verified AND signer_not_optional",
+            ),
         ];
 
         for (id, name, _constraint) in move_invariants {

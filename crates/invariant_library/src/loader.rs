@@ -119,7 +119,7 @@ fn parse_invariant_table(table: &toml::Value) -> Result<Invariant> {
     // Parse the expression string using the DSL parser
     // Construct full invariant format for the parser
     let full_invariant_str = format!(r#"invariant {} {{ {} }}"#, name, expression_str);
-    
+
     let mut parsed_invariant = parse_invariant(&full_invariant_str)?;
 
     // Override with TOML-provided severity and category

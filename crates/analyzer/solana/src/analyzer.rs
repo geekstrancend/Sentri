@@ -5,7 +5,7 @@ use sentri_core::traits::ChainAnalyzer;
 use sentri_core::Result;
 use std::collections::BTreeSet;
 use std::path::Path;
-use tracing::{info, debug};
+use tracing::{debug, info};
 
 /// Analyzer for Solana Rust programs.
 ///
@@ -40,7 +40,7 @@ impl ChainAnalyzer for SolanaAnalyzer {
         for item in &file.items {
             if let syn::Item::Struct(item_struct) = item {
                 let struct_name = item_struct.ident.to_string();
-                
+
                 // Add as state variable
                 let state_var = StateVar {
                     name: struct_name.clone(),
@@ -56,16 +56,13 @@ impl ChainAnalyzer for SolanaAnalyzer {
         for item in &file.items {
             if let syn::Item::Fn(item_fn) = item {
                 let func_name = item_fn.sig.ident.to_string();
-                
+
                 // Check if this is an entrypoint (has #[entrypoint] or #[program] macro)
-                let is_entrypoint = item_fn
-                    .attrs
-                    .iter()
-                    .any(|attr| {
-                        attr.path().is_ident("entrypoint") 
-                            || attr.path().is_ident("program")
-                            || attr.path().is_ident("instruction")
-                    });
+                let is_entrypoint = item_fn.attrs.iter().any(|attr| {
+                    attr.path().is_ident("entrypoint")
+                        || attr.path().is_ident("program")
+                        || attr.path().is_ident("instruction")
+                });
 
                 // Extract parameters to determine account access
                 let params: Vec<String> = item_fn
@@ -171,12 +168,13 @@ fn analyze_expression(
                 let path = &path_expr.path;
                 if let Some(last_segment) = path.segments.last() {
                     let name = last_segment.ident.to_string();
-                    
+
                     // Check if method name suggests mutation
-                    if call.method.to_string().contains("mut") 
-                        || call.method.to_string() == "set_inner"
-                        || call.method.to_string() == "serialize" 
-                        || call.method.to_string() == "save" {
+                    if call.method.to_string().contains("mut")
+                        || call.method == "set_inner"
+                        || call.method == "serialize"
+                        || call.method == "save"
+                    {
                         mutates.insert(name);
                     } else {
                         reads.insert(name);
