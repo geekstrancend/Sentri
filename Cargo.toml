@@ -20,7 +20,7 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.1.3"
+version = "0.1.7"
 edition = "2021"
 rust-version = "1.75"
 authors = ["Sentri Contributors"]
@@ -30,20 +30,20 @@ repository = "https://github.com/geekstrancend/Sentri"
 
 [workspace.dependencies]
 # Internal crates
-sentri-core = { path = "crates/core", version = "0.1.3" }
-sentri-utils = { path = "crates/utils", version = "0.1.3" }
-sentri-ir = { path = "crates/ir", version = "0.1.3" }
-sentri-dsl-parser = { path = "crates/dsl_parser", version = "0.1.3" }
-sentri-analyzer-solana = { path = "crates/analyzer/solana", version = "0.1.3" }
-sentri-analyzer-evm = { path = "crates/analyzer/evm", version = "0.1.3" }
-sentri-analyzer-move = { path = "crates/analyzer/move", version = "0.1.3" }
-sentri-generator-solana = { path = "crates/generator/solana", version = "0.1.3" }
-sentri-solana-macro = { path = "crates/generator/solana_macro", version = "0.1.3" }
-sentri-generator-evm = { path = "crates/generator/evm", version = "0.1.3" }
-sentri-generator-move = { path = "crates/generator/move", version = "0.1.3" }
-sentri-library = { path = "crates/invariant_library", version = "0.1.3" }
-sentri-report = { path = "crates/report", version = "0.1.3" }
-sentri-simulator = { path = "crates/simulator", version = "0.1.3" }
+sentri-core = { path = "crates/core", version = "0.1.7" }
+sentri-utils = { path = "crates/utils", version = "0.1.7" }
+sentri-ir = { path = "crates/ir", version = "0.1.7" }
+sentri-dsl-parser = { path = "crates/dsl_parser", version = "0.1.7" }
+sentri-analyzer-solana = { path = "crates/analyzer/solana", version = "0.1.7" }
+sentri-analyzer-evm = { path = "crates/analyzer/evm", version = "0.1.7" }
+sentri-analyzer-move = { path = "crates/analyzer/move", version = "0.1.7" }
+sentri-generator-solana = { path = "crates/generator/solana", version = "0.1.7" }
+sentri-solana-macro = { path = "crates/generator/solana_macro", version = "0.1.7" }
+sentri-generator-evm = { path = "crates/generator/evm", version = "0.1.7" }
+sentri-generator-move = { path = "crates/generator/move", version = "0.1.7" }
+sentri-library = { path = "crates/invariant_library", version = "0.1.7" }
+sentri-report = { path = "crates/report", version = "0.1.7" }
+sentri-simulator = { path = "crates/simulator", version = "0.1.7" }
 
 # Core dependencies
 anyhow = "1.0"
