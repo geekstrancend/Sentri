@@ -74,8 +74,10 @@ function detectPlatform() {
   }
 
   const info = mapping[mappingKey];
-  const archiveName = `sentri-${SENTRI_VERSION}-${info.target}.${info.archiveFormat}`;
-  const downloadUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${SENTRI_VERSION}/${archiveName}`;
+  // Use v0.1.3 binary which is known to exist on GitHub
+  const binaryVersion = "0.1.3";
+  const archiveName = `sentri-${binaryVersion}-${info.target}.${info.archiveFormat}`;
+  const downloadUrl = `https://github.com/${GITHUB_REPO}/releases/download/v${binaryVersion}/${archiveName}`;
 
   return {
     platform: info.platform,
