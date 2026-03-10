@@ -4,37 +4,78 @@
 [![npm downloads](https://img.shields.io/npm/dm/@dextonicx/cli.svg)](https://www.npmjs.com/package/@dextonicx/cli)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Multi-chain smart contract invariant checker for **EVM** (Solidity), **Solana** (Rust/Anchor), and **Move** (Aptos/Sui).
+**Multi-chain smart contract invariant checker** for **EVM** (Solidity), **Solana** (Rust/Anchor), and **Move** (Aptos/Sui).
 
-Run static analysis on your blockchain code before deployment. Sentri checks invariants against 22 built-in security patterns across three major blockchain ecosystems.
+Runs static analysis on your blockchain code before deployment. Checks 22 built-in security patterns across all three blockchain ecosystems.
+
+> **✅ v0.1.8+**: Fixed critical hang issue. Use the latest version for stable operation.
+
+## Table of Contents
+
+1. [Installation](#installation)
+2. [Quick Start](#quick-start)
+3. [Implementation Guide](#implementation-guide)
+4. [Project Integration](#project-integration)
+5. [CI/CD Setup](#cicd-setup)
+6. [Troubleshooting](#troubleshooting)
+
+---
 
 ## Installation
 
-### NPM (Recommended)
+### Step 1: Choose Your Installation Method
+
+#### **Option A: Global Install (Easiest)**
+Use Sentri from anywhere on your machine:
 
 ```bash
-npm install -g @dextonicx/cli
+npm install -g @dextonicx/cli@latest
 ```
 
-Then use globally:
+Verify installation:
+```bash
+sentri --version
+```
+
+#### **Option B: Local Project Install**
+Install as a project dependency:
 
 ```bash
-sentri check ./contracts --chain evm
+npm install --save-dev @dextonicx/cli@latest
 ```
 
-Or use with npx without installing:
-
+Use with npm script:
 ```bash
-npx @dextonicx/cli check ./contracts --chain evm
+npx sentri check ./contracts --chain evm
 ```
 
-### From Cargo (Alternative)
-
-If you have Rust installed:
+#### **Option C: Cargo Install (If Rust is Available)**
 
 ```bash
 cargo install sentri-cli
 ```
+
+Then configure npm package to use it:
+```bash
+export SENTRI_BINARY_PATH=$(which sentri)
+npx @dextonicx/cli check ./contracts --chain evm
+```
+
+### Step 2: Verify Binary Download
+
+On first run, Sentri downloads the binary (one-time, requires network):
+
+```bash
+sentri --version  # Should show: sentri 0.1.3
+sentri doctor     # Should show: ✓ All components healthy
+```
+
+If you see errors:
+- Check internet connection (download requires GitHub access)
+- Run with verbose: `sentri --version --verbose`
+- See [Troubleshooting](#troubleshooting) below
+
+---
 
 ## Quick Start
 
@@ -44,82 +85,122 @@ cargo install sentri-cli
 sentri check ./contracts --chain evm
 ```
 
-Output:
-```
-Analyzing Solidity contracts...
-✓ Completed analysis
-
-Summary
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Total checks:     10
-  Violations:        2
-    ⚠ High:        2
-
-Violations
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  [High] EVM_008 Front-running vulnerability
-    Location: contracts/Auction.sol:45
-    Message: Function modifies state after external call
-    Recommendation: Use checks-effects-interactions pattern
-```
-
-### 2. Analyze Solana Programs
+### 2. Check Solana Programs
 
 ```bash
 sentri check ./programs --chain solana
 ```
 
-### 3. Check Move Modules
+### 3. Analyze Move Modules
 
 ```bash
 sentri check ./sources --chain move
 ```
 
-### 4. Get JSON Output for CI Integration
+### 4. Get JSON Output
 
 ```bash
 sentri check ./contracts --chain evm --format json --output report.json
 ```
 
-### 5. Fail CI if Violations Found
+### 5. Fail on High Severity Issues
 
 ```bash
 sentri check ./contracts --chain evm --fail-on high
 ```
 
-When `--fail-on` is set, Sentri exits with code 1 if violations at or above the threshold are found:
+---
 
+## Implementation Guide
+
+### For Solidity/Hardhat Projects
+
+**Step 1: Install**
 ```bash
-$ sentri check ./contracts --chain evm --fail-on high
-exit code: 1  # ← Fails CI pipeline
+npm install --save-dev @dextonicx/cli@latest
 ```
 
-## Usage
-
-### CLI
-
-```bash
-sentri check <PATH> --chain <CHAIN> [OPTIONS]
-
-Options:
-  --chain <CHAIN>           evm, solana, or move
-  --format <FORMAT>         text (default), json, html
-  --output <FILE>           Write report to file
-  --config <FILE>           Path to .sentri.toml configuration
-  --fail-on <SEVERITY>      Fail if violations found: low, medium, high, critical
-  -v, --verbose             Verbose output
-  --version                 Show version
-  --help                    Show this help
+**Step 2: Add NPM script** (`package.json`)
+```json
+{
+  "scripts": {
+    "analyze": "sentri check ./contracts --chain evm",
+    "analyze:strict": "sentri check ./contracts --chain evm --fail-on high"
+  }
+}
 ```
 
-### Node.js API
+**Step 3: Run**
+```bash
+npm run analyze
+```
 
-Use Sentri programmatically in JavaScript/TypeScript:
-
+**Step 4: Integrate into Hardhat** (`hardhat.config.js`)
 ```javascript
 const { analyze } = require("@dextonicx/cli");
 
-async function checkContracts() {
+task("sentri", "Run invariant checks")
+  .addParam("chain", "Blockchain", "evm")
+  .setAction(async ({ chain }) => {
+    const report = await analyze({
+      path: "./contracts",
+      chain,
+    });
+    
+    console.log(`✓ Found ${report.summary.violations} violations`);
+    if (report.summary.critical > 0) {
+      throw new Error("Critical vulnerabilities found!");
+    }
+  });
+```
+
+Run: `npx hardhat sentri`
+
+### For Anchor/Solana Projects
+
+**Step 1: Install**
+```bash
+npm install --save-dev @dextonicx/cli@latest
+```
+
+**Step 2: Add NPM script** (`package.json`)
+```json
+{
+  "scripts": {
+    "analyze": "sentri check ./programs --chain solana"
+  }
+}
+```
+
+**Step 3: Run**
+```bash
+npm run analyze
+```
+
+### For Move (Aptos/Sui) Projects
+
+**Step 1: Install globally** (Move CLI needs external tool)
+```bash
+npm install -g @dextonicx/cli@latest
+```
+
+**Step 2: Run from project root**
+```bash
+sentri check ./sources --chain move
+```
+
+### Node.js/JavaScript Programmatic Usage
+
+**Create `analyze.js`:**
+```javascript
+const { analyze, doctor } = require("@dextonicx/cli");
+
+async function checkSecurity() {
+  // Check system health first
+  const health = await doctor();
+  console.log(`System status: ${health.status}`);
+
+  // Run analysis
   const report = await analyze({
     path: "./contracts",
     chain: "evm",
@@ -127,52 +208,29 @@ async function checkContracts() {
   });
 
   console.log(`Found ${report.summary.violations} violations`);
+  
+  // View violations
+  report.violations.forEach(v => {
+    console.log(`[${v.severity}] ${v.title}`);
+    console.log(`  at ${v.location}`);
+    console.log(`  ${v.message}`);
+  });
 
+  // Fail if critical
   if (report.summary.critical > 0) {
-    console.error("❌ Critical vulnerabilities detected!");
     process.exit(1);
   }
-
-  for (const violation of report.violations) {
-    console.log(
-      `[${violation.severity}] ${violation.title} at ${violation.location}`
-    );
-  }
-
-  console.log(`✓ Analysis complete`);
 }
 
-checkContracts().catch(console.error);
+checkSecurity().catch(err => {
+  console.error("Analysis failed:", err);
+  process.exit(1);
+});
 ```
 
-### Hardhat Integration
+**Run:** `node analyze.js`
 
-Use Sentri in Hardhat tasks:
-
-```javascript
-// hardhat.config.js
-const { analyze } = require("@dextonicx/cli");
-
-task("sentri", "Run Sentri invariant checks")
-  .addParam("chain", "Blockchain: evm, solana, move", "evm")
-  .setAction(async ({ chain }) => {
-    const report = await analyze({
-      path: "./contracts",
-      chain,
-    });
-
-    console.log(`Found ${report.summary.violations} violations`);
-    if (report.summary.critical > 0) {
-      throw new Error(`Critical vulnerabilities found!`);
-    }
-  });
-```
-
-Then run:
-
-```bash
-npx hardhat sentri --chain evm
-```
+---
 
 ## CI Integration
 
@@ -355,14 +413,56 @@ module.exports = { customAnalyzer };
 
 ## Troubleshooting
 
+### npm install hangs or times out
+
+**Issue**: `npm install @dextonicx/cli` hangs during the postinstall script.
+
+**Solution**: Use **v0.1.8 or later**:
+
+```bash
+npm install @dextonicx/cli@latest
+```
+
+Versions before v0.1.8 had a critical hang issue in the binary path resolution. v0.1.8+ includes:
+- ✅ Fixed infinite recursion in binary detection
+- ✅ Download timeout handling (30s socket, 60s total)
+- ✅ Works with proven v0.1.3 binary from GitHub
+
+If you're still experiencing hangs:
+
+```bash
+# Option 1: Use cargo binary + env var
+cargo install sentri-cli
+export SENTRI_BINARY_PATH=$(which sentri)
+npm install @dextonicx/cli@latest
+
+# Option 2: Skip download and provide binary manually
+npm install @dextonicx/cli@latest --no-optional
+mkdir -p node_modules/@dextonicx/cli/.sentri-bin
+cp /path/to/sentri node_modules/@dextonicx/cli/.sentri-bin/sentri
+chmod +x node_modules/@dextonicx/cli/.sentri-bin/sentri
+```
+
+### sentri command hangs when I run it
+
+**Issue**: `sentri check` or `sentri doctor` hangs indefinitely.
+
+**Solution**: This was a critical bug fixed in v0.1.8. **Update to the latest version**:
+
+```bash
+npm install -g @dextonicx/cli@latest
+```
+
+The hanging was caused by infinite recursion in binary path resolution. v0.1.8+ completely fixes this.
+
 ### Binary not found after install
 
 The postinstall script may have been skipped (e.g., `npm install --ignore-scripts`).
 
-**Solution**: Reinstall:
+**Solution**: Reinstall with postinstall enabled:
 
 ```bash
-npm install @dextonicx/cli
+npm install @dextonicx/cli@latest
 ```
 
 Or provide your own binary:
@@ -380,12 +480,12 @@ The extracted binary may have lost executable permission.
 
 ```bash
 npm uninstall @dextonicx/cli
-npm install @dextonicx/cli
+npm install @dextonicx/cli@latest
 ```
 
 ### Unsupported platform error
 
-Your OS/architecture combination is not yet supported.
+Your OS/architecture combination is not yet supported for automatic download.
 
 **Solution**: Install from source using Rust:
 
