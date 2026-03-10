@@ -15,9 +15,8 @@ Runs static analysis on your blockchain code before deployment. Checks 22 built-
 1. [Installation](#installation)
 2. [Quick Start](#quick-start)
 3. [Implementation Guide](#implementation-guide)
-4. [Project Integration](#project-integration)
-5. [CI/CD Setup](#cicd-setup)
-6. [Troubleshooting](#troubleshooting)
+4. [CI Integration](#ci-integration)
+5. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -25,7 +24,8 @@ Runs static analysis on your blockchain code before deployment. Checks 22 built-
 
 ### Step 1: Choose Your Installation Method
 
-#### **Option A: Global Install (Easiest)**
+#### Option A: Global Install (Easiest)
+
 Use Sentri from anywhere on your machine:
 
 ```bash
@@ -33,11 +33,13 @@ npm install -g @dextonicx/cli@latest
 ```
 
 Verify installation:
+
 ```bash
 sentri --version
 ```
 
-#### **Option B: Local Project Install**
+#### Option B: Local Project Install
+
 Install as a project dependency:
 
 ```bash
@@ -45,17 +47,19 @@ npm install --save-dev @dextonicx/cli@latest
 ```
 
 Use with npm script:
+
 ```bash
 npx sentri check ./contracts --chain evm
 ```
 
-#### **Option C: Cargo Install (If Rust is Available)**
+#### Option C: Cargo Install (If Rust is Available)
 
 ```bash
 cargo install sentri-cli
 ```
 
 Then configure npm package to use it:
+
 ```bash
 export SENTRI_BINARY_PATH=$(which sentri)
 npx @dextonicx/cli check ./contracts --chain evm
@@ -71,6 +75,7 @@ sentri doctor     # Should show: ✓ All components healthy
 ```
 
 If you see errors:
+
 - Check internet connection (download requires GitHub access)
 - Run with verbose: `sentri --version --verbose`
 - See [Troubleshooting](#troubleshooting) below
@@ -78,6 +83,8 @@ If you see errors:
 ---
 
 ## Quick Start
+
+---
 
 ### 1. Run on EVM Contracts
 
@@ -115,12 +122,14 @@ sentri check ./contracts --chain evm --fail-on high
 
 ### For Solidity/Hardhat Projects
 
-**Step 1: Install**
+#### Step 1: Install
+
 ```bash
 npm install --save-dev @dextonicx/cli@latest
 ```
 
-**Step 2: Add NPM script** (`package.json`)
+#### Step 2: Configure NPM script
+
 ```json
 {
   "scripts": {
@@ -130,13 +139,16 @@ npm install --save-dev @dextonicx/cli@latest
 }
 ```
 
-**Step 3: Run**
+#### Step 3: Run
+
 ```bash
 npm run analyze
 ```
 
-**Step 4: Integrate into Hardhat** (`hardhat.config.js`)
+#### Step 4: Add Hardhat task
+
 ```javascript
+// hardhat.config.js
 const { analyze } = require("@dextonicx/cli");
 
 task("sentri", "Run invariant checks")
@@ -158,12 +170,14 @@ Run: `npx hardhat sentri`
 
 ### For Anchor/Solana Projects
 
-**Step 1: Install**
+#### Step 1: Install in Solana project
+
 ```bash
 npm install --save-dev @dextonicx/cli@latest
 ```
 
-**Step 2: Add NPM script** (`package.json`)
+#### Step 2: Configure scripts
+
 ```json
 {
   "scripts": {
@@ -172,26 +186,32 @@ npm install --save-dev @dextonicx/cli@latest
 }
 ```
 
-**Step 3: Run**
+#### Step 3: Run Solana analysis
+
 ```bash
 npm run analyze
 ```
 
 ### For Move (Aptos/Sui) Projects
 
-**Step 1: Install globally** (Move CLI needs external tool)
+#### Step 1: Install globally for Move
+
+Move CLI needs external tool
+
 ```bash
 npm install -g @dextonicx/cli@latest
 ```
 
-**Step 2: Run from project root**
+#### Step 2: Run from project root
+
 ```bash
 sentri check ./sources --chain move
 ```
 
 ### Node.js/JavaScript Programmatic Usage
 
-**Create `analyze.js`:**
+#### Create `analyze.js`
+
 ```javascript
 const { analyze, doctor } = require("@dextonicx/cli");
 
@@ -228,11 +248,13 @@ checkSecurity().catch(err => {
 });
 ```
 
-**Run:** `node analyze.js`
+Run: `node analyze.js`
 
 ---
 
 ## CI Integration
+
+---
 
 ### GitHub Actions
 
@@ -292,17 +314,17 @@ npx sentri check ./contracts --chain evm
 ## Supported Platforms
 
 | Platform | Architecture | Status |
-|----------|--------------|--------|
-| Linux    | x86_64       | ✅ Supported |
-| Linux    | ARM64        | ✅ Supported |
-| macOS    | x86_64       | ✅ Supported |
-| macOS    | ARM64 (M1/M2)| ✅ Supported |
-| Windows  | x86_64       | ✅ Supported |
+| -------- | ------------ | ------ |
+| Linux | x86_64 | ✅ Supported |
+| Linux | ARM64 | ✅ Supported |
+| macOS | x86_64 | ✅ Supported |
+| macOS | ARM64 (M1) | ✅ Supported |
+| Windows | x86_64 | ✅ Supported |
 
 ## Environment Variables
 
 | Variable | Default | Description |
-|----------|---------|-------------|
+| -------- | --------- | --------- |
 | `SENTRI_SKIP_DOWNLOAD` | (unset) | Set to `1` to skip binary download in postinstall |
 | `SENTRI_BINARY_PATH` | (auto-detect) | Override path to Sentri binary |
 | `HTTPS_PROXY` | (unset) | HTTP proxy for binary download |
@@ -424,6 +446,7 @@ npm install @dextonicx/cli@latest
 ```
 
 Versions before v0.1.8 had a critical hang issue in the binary path resolution. v0.1.8+ includes:
+
 - ✅ Fixed infinite recursion in binary detection
 - ✅ Download timeout handling (30s socket, 60s total)
 - ✅ Works with proven v0.1.3 binary from GitHub
@@ -507,9 +530,9 @@ Times vary with code size and system speed.
 
 ## Documentation
 
-- **GitHub**: https://github.com/geekstrancend/Sentri
-- **Crates.io**: https://crates.io/crates/sentri-cli
-- **API Docs**: https://docs.rs/sentri-cli
+- **GitHub**: [github.com/geekstrancend/Sentri](https://github.com/geekstrancend/Sentri)
+- **Crates.io**: [crates.io/crates/sentri-cli](https://crates.io/crates/sentri-cli)
+- **API Docs**: [docs.rs/sentri-cli](https://docs.rs/sentri-cli)
 
 ## License
 
@@ -517,9 +540,9 @@ MIT — See [LICENSE](LICENSE)
 
 ## Support
 
-- **Issues**: https://github.com/geekstrancend/Sentri/issues
-- **Discussions**: https://github.com/geekstrancend/Sentri/discussions
-- **Security**: https://github.com/geekstrancend/Sentri/security/policy
+- **Issues**: [github.com/geekstrancend/Sentri/issues](https://github.com/geekstrancend/Sentri/issues)
+- **Discussions**: [github.com/geekstrancend/Sentri/discussions](https://github.com/geekstrancend/Sentri/discussions)
+- **Security**: [github.com/geekstrancend/Sentri/security/policy](https://github.com/geekstrancend/Sentri/security/policy)
 
 ---
 
