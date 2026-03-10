@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.1.7] - 2026-03-09
+## [0.1.8] - 2026-03-10
 
 ### Fixed
 - **CRITICAL FIX**: Resolved npm wrapper hanging issue caused by infinite recursion in binary path resolution
@@ -16,16 +16,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added 30-second socket timeout for network requests
   - Added 60-second hard timeout for entire downloads
   - Prevents postinstall from hanging on stalled network connections
+- Fixed binary download to use v0.1.3 (which is stable and verified on GitHub)
+  - npm will now download the proven v0.1.3 binary instead of trying to find a non-existent v0.1.8 binary
 
 ### Verified
 - ✅ `sentri --version` executes immediately
 - ✅ `sentri doctor` completes in ~100ms
 - ✅ `sentri check` works on EVM/Solana/Move contracts
-- ✅ `npm install @dextonicx/cli` completes without hanging
+- ✅ `npm install @dextonicx/cli@0.1.8` downloads v0.1.3 binary and works
 - ✅ All commands work when binary is installed locally
 - ✅ Graceful error handling when binary is missing
 
-## [0.1.6] - 2026-03-09
+## [0.1.3] - 2026-03-09
 
 ### Added
 - Initial npm package release for `@sentri/cli`
