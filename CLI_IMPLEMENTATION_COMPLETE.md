@@ -132,7 +132,7 @@ const health = await doctor();
 
 ## Architecture
 
-```
+```text
 Source Code (.sol/.rs/.move)
     ↓
 [Chain-Specific Analyzer]
@@ -173,6 +173,7 @@ Source Code (.sol/.rs/.move)
 ## Test Results
 
 All functionality verified:
+
 - ✅ EVM analyzer detects 5 public functions in Token.sol
 - ✅ Simulator detects 82 potential invariant violations
 - ✅ JSON properly serializes violations with full details
