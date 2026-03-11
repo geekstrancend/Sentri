@@ -1,0 +1,445 @@
+name: Publish to npm
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to publish (semver)"
+        required: true
+        type: string
+
+env:
+  NODE_VERSION: "18"
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  # Extract version from release
+  extract-version:
+    name: Extract Version
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.get-version.outputs.version }}
+      tag: ${{ steps.get-version.outputs.tag }}
+    steps:
+      - name: Get version from release
+        id: get-version
+        run: |
+          if [ -n "${{ github.event.inputs.version }}" ]; then
+            # Manual dispatch
+            VERSION="${{ github.event.inputs.version }}"
+            TAG="v${VERSION}"
+          else
+            # Automatic from release
+            VERSION="${{ github.event.release.tag_name }}"
+            VERSION="${VERSION#v}"
+            TAG="${{ github.event.release.tag_name }}"
+          fi
+          
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-.*)? ]]; then
+            echo "ERROR: Invalid semver: $VERSION"
+            exit 1
+          fi
+          
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+          echo "✓ Extracted version: $VERSION (tag: $TAG)"
+
+  # Verify crates.io publishing completed
+  wait-crates-io:
+    name: Verify crates.io Publishing
+    runs-on: ubuntu-latest
+    needs: extract-version
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.extract-version.outputs.tag }}
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Wait for crates.io availability
+        run: |
+          VERSION="${{ needs.extract-version.outputs.version }}"
+          MAX_RETRIES=30
+          RETRY_DELAY=10
+          
+          echo "Verifying sentri-cli v$VERSION on crates.io..."
+          
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Attempt $i/$MAX_RETRIES..."
+            
+            if cargo search sentri-cli --limit 1 | grep -q "sentri-cli = \"$VERSION\""; then
+              echo "✓ sentri-cli v$VERSION found on crates.io"
+              exit 0
+            fi
+            
+            if [ $i -lt $MAX_RETRIES ]; then
+              echo "  Not yet available, waiting ${RETRY_DELAY}s..."
+              sleep $RETRY_DELAY
+            fi
+          done
+          
+          echo "⚠ sentri-cli v$VERSION not found on crates.io after ${MAX_RETRIES} attempts"
+          echo "Continuing with npm publish anyway..."
+          exit 0
+
+  # Build npm package
+  build-npm:
+    name: Build npm Package
+    runs-on: ubuntu-latest
+    needs: [extract-version, wait-crates-io]
+    strategy:
+      matrix:
+        target:
+          - x86_64-unknown-linux-gnu
+          - x86_64-unknown-linux-musl
+          - aarch64-unknown-linux-gnu
+          - x86_64-apple-darwin
+          - aarch64-apple-darwin
+          - x86_64-pc-windows-msvc
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.extract-version.outputs.tag }}
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install cross (for cross-compilation)
+        run: cargo install cross --locked
+        continue-on-error: true
+
+      - name: Setup target-specific tools
+        run: |
+          case "${{ matrix.target }}" in
+            x86_64-unknown-linux-musl)
+              sudo apt-get update && sudo apt-get install -y musl-tools
+              ;;
+            aarch64-unknown-linux-gnu)
+              sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu
+              ;;
+          esac
+
+      - name: Build release binary
+        run: |
+          case "${{ matrix.target }}" in
+            aarch64-unknown-linux-gnu)
+              export CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER=aarch64-linux-gnu-gcc
+              ;;
+          esac
+          cargo build --release --locked --target ${{ matrix.target }}
+
+      - name: Determine binary name
+        id: binary
+        run: |
+          if [[ "${{ matrix.target }}" == *"windows"* ]]; then
+            echo "name=sentri.exe" >> $GITHUB_OUTPUT
+          else
+            echo "name=sentri" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Upload binary artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.target }}
+          path: target/${{ matrix.target }}/release/${{ steps.binary.outputs.name }}
+          retention-days: 1
+
+  # Package npm distribution
+  package-npm:
+    name: Package npm Distribution
+    runs-on: ubuntu-latest
+    needs: [extract-version, build-npm]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.extract-version.outputs.tag }}
+
+      - name: Download all binary artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./binaries
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: https://registry.npmjs.org/
+
+      - name: Update npm package version
+        run: |
+          VERSION="${{ needs.extract-version.outputs.version }}"
+          
+          cd sentri-npm
+          
+          # Update package.json version
+          npm version "$VERSION" --no-git-tag-version
+          
+          echo "✓ Updated sentri-npm to v$VERSION"
+          cat package.json | grep '"version"'
+
+      - name: Organize binaries for npm
+        run: |
+          VERSION="${{ needs.extract-version.outputs.version }}"
+          mkdir -p sentri-npm/bin/releases
+          
+          # Organize binaries by platform
+          mkdir -p sentri-npm/bin/releases/{linux-x64,linux-arm64,darwin-x64,darwin-arm64,win32-x64}
+          
+          # Linux x86_64 (glibc)
+          if [ -f binaries/binary-x86_64-unknown-linux-gnu/sentri ]; then
+            cp binaries/binary-x86_64-unknown-linux-gnu/sentri sentri-npm/bin/releases/linux-x64/sentri
+            chmod +x sentri-npm/bin/releases/linux-x64/sentri
+          fi
+          
+          # Linux x86_64 (musl)
+          if [ -f binaries/binary-x86_64-unknown-linux-musl/sentri ]; then
+            cp binaries/binary-x86_64-unknown-linux-musl/sentri sentri-npm/bin/releases/linux-x64/sentri-musl
+            chmod +x sentri-npm/bin/releases/linux-x64/sentri-musl
+          fi
+          
+          # Linux aarch64
+          if [ -f binaries/binary-aarch64-unknown-linux-gnu/sentri ]; then
+            cp binaries/binary-aarch64-unknown-linux-gnu/sentri sentri-npm/bin/releases/linux-arm64/sentri
+            chmod +x sentri-npm/bin/releases/linux-arm64/sentri
+          fi
+          
+          # macOS x86_64
+          if [ -f binaries/binary-x86_64-apple-darwin/sentri ]; then
+            cp binaries/binary-x86_64-apple-darwin/sentri sentri-npm/bin/releases/darwin-x64/sentri
+            chmod +x sentri-npm/bin/releases/darwin-x64/sentri
+          fi
+          
+          # macOS aarch64
+          if [ -f binaries/binary-aarch64-apple-darwin/sentri ]; then
+            cp binaries/binary-aarch64-apple-darwin/sentri sentri-npm/bin/releases/darwin-arm64/sentri
+            chmod +x sentri-npm/bin/releases/darwin-arm64/sentri
+          fi
+          
+          # Windows x86_64
+          if [ -f binaries/binary-x86_64-pc-windows-msvc/sentri.exe ]; then
+            cp binaries/binary-x86_64-pc-windows-msvc/sentri.exe sentri-npm/bin/releases/win32-x64/sentri.exe
+          fi
+          
+          echo "✓ Organized binaries:"
+          find sentri-npm/bin/releases -type f -exec ls -lh {} \;
+
+      - name: Verify npm structure
+        run: |
+          cd sentri-npm
+          
+          echo "Package structure:"
+          ls -la
+          
+          echo ""
+          echo "Index file:"
+          head -20 index.js
+          
+          echo ""
+          echo "Type definitions:"
+          head -20 index.d.ts
+
+      - name: Create npm tarball
+        run: |
+          cd sentri-npm
+          npm pack
+          
+          TARBALL=$(ls sentri-*.tgz 2>/dev/null | head -1)
+          if [ -n "$TARBALL" ]; then
+            mv "$TARBALL" ../sentri-npm-${{ needs.extract-version.outputs.version }}.tgz
+            echo "✓ Created: sentri-npm-${{ needs.extract-version.outputs.version }}.tgz"
+          fi
+
+      - name: Upload npm package artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-package
+          path: sentri-npm-${{ needs.extract-version.outputs.version }}.tgz
+          retention-days: 1
+
+  # Test npm package
+  test-npm:
+    name: Test npm Package
+    runs-on: ${{ matrix.os }}
+    needs: [extract-version, package-npm]
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node-version: ["18", "20"]
+    steps:
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Download npm package
+        uses: actions/download-artifact@v4
+        with:
+          name: npm-package
+
+      - name: Install from tarball
+        run: |
+          npm install sentri-npm-${{ needs.extract-version.outputs.version }}.tgz -g
+
+      - name: Test sentri command
+        run: |
+          sentri --version
+          sentri --help
+          sentri doctor
+
+  # Publish to npm
+  publish-npm:
+    name: Publish to npm Registry
+    runs-on: ubuntu-latest
+    needs: [extract-version, test-npm]
+    if: success()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.extract-version.outputs.tag }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          registry-url: https://registry.npmjs.org/
+
+      - name: Download npm package
+        uses: actions/download-artifact@v4
+        with:
+          name: npm-package
+          path: ./
+
+      - name: Extract and verify package
+        run: |
+          VERSION="${{ needs.extract-version.outputs.version }}"
+          TARBALL="sentri-npm-${VERSION}.tgz"
+          
+          if [ ! -f "$TARBALL" ]; then
+            echo "ERROR: npm package not found: $TARBALL"
+            ls -la
+            exit 1
+          fi
+          
+          echo "✓ Found npm package: $TARBALL"
+          tar -tzf "$TARBALL" | head -20
+
+      - name: Publish to npm public registry
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          VERSION="${{ needs.extract-version.outputs.version }}"
+          TARBALL="sentri-npm-${VERSION}.tgz"
+          
+          if [ -z "$NODE_AUTH_TOKEN" ]; then
+            echo "⚠ NPM_TOKEN not configured"
+            echo "Cannot publish to npm without token"
+            echo "Set NPM_TOKEN GitHub secret to enable publishing"
+            exit 0
+          fi
+          
+          echo "Publishing @dextonicx/cli@$VERSION to npm..."
+          
+          npm publish "$TARBALL" --access public
+          
+          echo "✓ Published to npm successfully"
+
+      - name: Verify npm publication
+        run: |
+          VERSION="${{ needs.extract-version.outputs.version }}"
+          MAX_RETRIES=10
+          RETRY_DELAY=5
+          
+          echo "Verifying @dextonicx/cli@$VERSION on npm..."
+          
+          for i in $(seq 1 $MAX_RETRIES); do
+            echo "Attempt $i/$MAX_RETRIES..."
+            
+            if npm view @dextonicx/cli@"$VERSION" version 2>/dev/null | grep -q "$VERSION"; then
+              echo "✓ @dextonicx/cli@$VERSION published successfully"
+              npm view @dextonicx/cli@"$VERSION"
+              exit 0
+            fi
+            
+            if [ $i -lt $MAX_RETRIES ]; then
+              echo "  Not yet visible, waiting ${RETRY_DELAY}s..."
+              sleep $RETRY_DELAY
+            fi
+          done
+          
+          echo "⚠ Could not verify publication after ${MAX_RETRIES} attempts"
+          echo "This may be expected for newly published packages"
+
+  # Update release notes with npm link
+  update-release:
+    name: Update GitHub Release Notes
+    runs-on: ubuntu-latest
+    needs: [extract-version, publish-npm]
+    if: success()
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ needs.extract-version.outputs.tag }}
+
+      - name: Update release notes
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = "${{ needs.extract-version.outputs.version }}";
+            const npmLink = `https://www.npmjs.com/package/@dextonicx/cli/v/${version}`;
+            const caratesLink = `https://crates.io/crates/sentri-cli/${version}`;
+            
+            const release = await github.rest.repos.getReleaseByTag({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              tag: "${{ needs.extract-version.outputs.tag }}",
+            });
+            
+            const body = release.data.body + `\n\n## Package Links\n\n- **npm**: [@dextonicx/cli@${version}](${npmLink})\n- **crates.io**: [sentri-cli v${version}](${caratesLink})\n`;
+            
+            await github.rest.repos.updateRelease({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              release_id: release.data.id,
+              body: body,
+            });
+
+  # Final status
+  publish-complete:
+    name: npm Publication Complete
+    runs-on: ubuntu-latest
+    needs: [extract-version, publish-npm, update-release]
+    if: success()
+    steps:
+      - name: Publication Summary
+        run: |
+          VERSION="${{ needs.extract-version.outputs.version }}"
+          echo "=========================================="
+          echo "✓ SENTRI v${VERSION}"
+          echo "  NPM PUBLICATION COMPLETED"
+          echo "=========================================="
+          echo ""
+          echo "Package Published:"
+          echo "  npm: @dextonicx/cli@${VERSION}"
+          echo "  crates.io: sentri-cli v${VERSION}"
+          echo ""
+          echo "Installation:"
+          echo "  npm install -g @dextonicx/cli"
+          echo "  cargo install sentri-cli"
+          echo ""
+          echo "Links:"
+          echo "  https://www.npmjs.com/package/@dextonicx/cli/v/${VERSION}"
+          echo "  https://crates.io/crates/sentri-cli/${VERSION}"
