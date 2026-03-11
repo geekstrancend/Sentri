@@ -209,7 +209,7 @@ fn analyze_move_function_body(
     let mut brace_count = 0;
     let mut in_function = false;
 
-    for line in lines.iter().skip(start_idx) {
+    for (i, line) in lines.iter().enumerate().skip(start_idx) {
         let trimmed = line.trim();
 
         // Count braces to detect function body
@@ -220,6 +220,8 @@ fn analyze_move_function_body(
             } else if ch == '}' {
                 brace_count -= 1;
                 if in_function && brace_count == 0 {
+                    // Analyze for Move-specific vulnerabilities
+                    analyze_move_vulnerabilities(lines, start_idx, i, &mut mutates);
                     return (reads, mutates);
                 }
             }
@@ -249,6 +251,74 @@ fn analyze_move_function_body(
     }
 
     (reads, mutates)
+}
+
+/// Detect Move-specific security vulnerabilities.
+fn analyze_move_vulnerabilities(
+    lines: &[&str],
+    start_idx: usize,
+    end_idx: usize,
+    mutates: &mut BTreeSet<String>,
+) {
+    let body = lines[start_idx..=end_idx].join("\n");
+    let body_lower = body.to_lowercase();
+
+    // === RESOURCE LEAK VULNERABILITIES ===
+    if body.contains("move_from") && !body.contains("_") {
+        // move_from without variable binding or discarding - potential resource leak
+        mutates.insert("MOVE_RESOURCE_LEAK".to_string());
+    }
+
+    // === MISSING_ABILITY_CHECKS ===
+    if body.contains("move_to")
+        && !body_lower.contains("has key")
+        && !body_lower.contains("has store")
+    {
+        mutates.insert("MOVE_MISSING_ABILITY".to_string());
+    }
+
+    // === UNSAFE ARITHMETIC (no overflow check) ===
+    if (body.contains("+") || body.contains("-") || body.contains("*"))
+        && !body.contains("overflow")
+        && !body.contains("checked")
+        && !body_lower.contains("assert_")
+        && !body.contains("invariant")
+    {
+        mutates.insert("MOVE_UNCHECKED_ARITHMETIC".to_string());
+    }
+
+    // === MISSING SIGNER VERIFICATION ===
+    if body.contains("move_to") && !body.contains("&signer") && !body.contains("signer::") {
+        mutates.insert("MOVE_MISSING_SIGNER".to_string());
+    }
+
+    // === UNGUARDED STATE MUTATION ===
+    if body.contains("borrow_global_mut") && !body.contains("assert!") && !body.contains("require")
+    {
+        mutates.insert("MOVE_UNGUARDED_MUTATION".to_string());
+    }
+
+    // === PRIVILEGE ESCALATION ===
+    if body.contains("signer")
+        && body.contains("address_of")
+        && !body.contains("require")
+        && !body.contains("assert!")
+    {
+        mutates.insert("MOVE_PRIVILEGE_ESCALATION".to_string());
+    }
+
+    // === FLOATING POINT OPERATIONS (if any) ===
+    if body_lower.contains("f32") || body_lower.contains("f64") {
+        mutates.insert("MOVE_FLOATING_POINT".to_string());
+    }
+
+    // === ABORT WITHOUT REASON ===
+    if body.contains("abort")
+        && !body_lower.contains("error_code")
+        && !body_lower.contains("reason")
+    {
+        mutates.insert("MOVE_UNSAFE_ABORT".to_string());
+    }
 }
 
 #[cfg(test)]
