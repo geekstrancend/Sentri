@@ -196,6 +196,7 @@ fn analyze_program_invariant(invariant: &Invariant, program: &ProgramModel) -> O
 /// - Complex state interactions (reads + mutates)
 /// - Entry point authorization patterns
 /// - Pure function expectations
+/// - Solana-specific vulnerabilities (lamport manipulation, unsafe arithmetic)
 fn analyze_function_invariant(
     invariant: &Invariant,
     program: &ProgramModel,
@@ -204,6 +205,319 @@ fn analyze_function_invariant(
 ) -> Option<String> {
     let invariant_name_lower = invariant.name.to_lowercase();
     let state_interaction_count = function.reads.len() + function.mutates.len();
+
+    // Solana-specific: Unsafe lamport manipulation
+    if program.chain.to_lowercase().contains("solana")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("SOLANA_LAMPORT_UNSAFE"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Unsafe direct lamport manipulation detected",
+            func_name, program.name, "Solana: Safe Lamport Operations"
+        ));
+    }
+
+    // EVM-specific: Reentrancy vulnerability
+    if program.chain.to_lowercase().contains("evm")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("EVM_REENTRANCY"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Reentrancy vulnerability - state mutation after external call",
+            func_name, program.name, "EVM: Reentrancy Guard"
+        ));
+    }
+
+    // EVM-specific: Unchecked external calls
+    if program.chain.to_lowercase().contains("evm")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("EVM_UNCHECKED_CALL"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Unchecked external call return value",
+            func_name, program.name, "EVM: Checked Calls"
+        ));
+    }
+
+    // EVM-specific: Integer overflow/underflow
+    if program.chain.to_lowercase().contains("evm")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("EVM_UNCHECKED_ARITHMETIC"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Integer overflow/underflow risk",
+            func_name, program.name, "EVM: Safe Arithmetic"
+        ));
+    }
+
+    // EVM-specific: Delegatecall abuse
+    if program.chain.to_lowercase().contains("evm")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("EVM_DELEGATECALL_ABUSE"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Unsafe delegatecall to untrusted contract",
+            func_name, program.name, "EVM: Delegatecall Safety"
+        ));
+    }
+
+    // EVM-specific: Timestamp dependency
+    if program.chain.to_lowercase().contains("evm")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("EVM_TIMESTAMP_DEPENDENCY"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Logic depends on block.timestamp (mutable)",
+            func_name, program.name, "EVM: Timestamp Independence"
+        ));
+    }
+
+    // EVM-specific: Front-running vulnerability
+    if program.chain.to_lowercase().contains("evm")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("EVM_FRONT_RUNNING"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Vulnerable to front-running attacks",
+            func_name, program.name, "EVM: Front-run Protection"
+        ));
+    }
+
+    // EVM-specific: Missing access control
+    if program.chain.to_lowercase().contains("evm")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("EVM_ACCESS_CONTROL"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Missing access control checks",
+            func_name, program.name, "EVM: Access Control"
+        ));
+    }
+
+    // EVM-specific: Input validation
+    if program.chain.to_lowercase().contains("evm")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("EVM_INPUT_VALIDATION"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Missing input validation",
+            func_name, program.name, "EVM: Input Validation"
+        ));
+    }
+
+    // Move-specific: Resource leak
+    if program.chain.to_lowercase().contains("move")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("MOVE_RESOURCE_LEAK"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Potential resource leak - move_from result not bound",
+            func_name, program.name, "Move: Resource Safety"
+        ));
+    }
+
+    // Move-specific: Missing ability checks
+    if program.chain.to_lowercase().contains("move")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("MOVE_MISSING_ABILITY"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Resource moves without required abilities",
+            func_name, program.name, "Move: Ability Requirements"
+        ));
+    }
+
+    // Move-specific: Unchecked arithmetic
+    if program.chain.to_lowercase().contains("move")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("MOVE_UNCHECKED_ARITHMETIC"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Unchecked arithmetic operation",
+            func_name, program.name, "Move: Safe Arithmetic"
+        ));
+    }
+
+    // Move-specific: Missing signer verification
+    if program.chain.to_lowercase().contains("move")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("MOVE_MISSING_SIGNER"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Resource moved without signer verification",
+            func_name, program.name, "Move: Signer Verification"
+        ));
+    }
+
+    // Move-specific: Unguarded state mutation
+    if program.chain.to_lowercase().contains("move")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("MOVE_UNGUARDED_MUTATION"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Unguarded global state mutation",
+            func_name, program.name, "Move: Guarded Mutations"
+        ));
+    }
+
+    // Move-specific: Privilege escalation
+    if program.chain.to_lowercase().contains("move")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("MOVE_PRIVILEGE_ESCALATION"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Potential privilege escalation through signer extraction",
+            func_name, program.name, "Move: Privilege Control"
+        ));
+    }
+
+    // Move-specific: Unsafe abort
+    if program.chain.to_lowercase().contains("move")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("MOVE_UNSAFE_ABORT"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Abort without error code explanation",
+            func_name, program.name, "Move: Error Handling"
+        ));
+    }
+
+    // Solana-specific: Missing signer check
+    if program.chain.to_lowercase().contains("solana")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("SOLANA_MISSING_SIGNER"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Missing Signer requirement - SOL_001 (Missing Signer Check)",
+            func_name,
+            program.name,
+            "Solana: Required Signers"
+        ));
+    }
+
+    // Solana-specific: Unchecked arithmetic with overflow risk
+    if program.chain.to_lowercase().contains("solana")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("SOLANA_UNCHECKED_ARITHMETIC"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Unchecked arithmetic operation detected - SOL_003 (Integer Overflow)",
+            func_name,
+            program.name,
+            "Solana: Safe Arithmetic Operations"
+        ));
+    }
+
+    // Solana-specific: Missing account validation
+    if program.chain.to_lowercase().contains("solana")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("SOLANA__MISSING_VALIDATION"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Missing account validation - SOL_002 (Lack of Account Ownership Validation)",
+            func_name,
+            program.name,
+            "Solana: Account Validation"
+        ));
+    }
+
+    // Solana-specific: Rent exemption violations
+    if program.chain.to_lowercase().contains("solana")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("SOLANA_RENT_EXEMPTION"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Potential rent exemption violation - SOL_004 (Rent Exemption)",
+            func_name,
+            program.name,
+            "Solana: Rent Exemption"
+        ));
+    }
+
+    // Solana-specific: PDA derivation issues
+    if program.chain.to_lowercase().contains("solana")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("SOLANA_PDA_DERIVATION"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Potential PDA derivation issue - SOL_005 (PDA Derivation)",
+            func_name,
+            program.name,
+            "Solana: PDA Derivation"
+        ));
+    }
+
+    // Solana-specific: Unsafe deserialization
+    if program.chain.to_lowercase().contains("solana")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("SOLANA_UNSAFE_DESERIALIZATION"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Unsafe deserialization of account data - SOL_007 (Account Deserialization)",
+            func_name,
+            program.name,
+            "Solana: Safe Deserialization"
+        ));
+    }
+
+    // Solana-specific: Unchecked token transfers
+    if program.chain.to_lowercase().contains("solana")
+        && function
+            .mutates
+            .iter()
+            .any(|m| m.contains("SOLANA_UNCHECKED_TOKEN_TRANSFER"))
+    {
+        return Some(format!(
+            "Function '{}' in {} violates '{}': Unchecked token transfer operation - SOL_008 (Token Transfer Overflow)",
+            func_name,
+            program.name,
+            "Solana: Safe Token Operations"
+        ));
+    }
 
     // Reentrancy: entry points with complex state interactions
     if invariant_name_lower.contains("reentrancy")

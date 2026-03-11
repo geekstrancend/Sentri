@@ -235,7 +235,8 @@ fn analyze_function_body(
     let mut brace_count = 0;
     let mut in_function = false;
 
-    for line in lines.iter().skip(start_idx) {
+    for i in start_idx..lines.len() {
+        let line = lines[i];
         let trimmed = line.trim();
 
         // Count braces to detect function body
@@ -246,6 +247,8 @@ fn analyze_function_body(
             } else if ch == '}' {
                 brace_count -= 1;
                 if in_function && brace_count == 0 {
+                    // Analyze accumulated vulnerabilities before returning
+                    analyze_evm_vulnerabilities(lines, start_idx, i, &mut mutates);
                     return (reads, mutates);
                 }
             }
@@ -283,6 +286,101 @@ fn analyze_function_body(
     }
 
     (reads, mutates)
+}
+
+/// Detect Solidity-specific security vulnerabilities.
+fn analyze_evm_vulnerabilities(
+    lines: &[&str],
+    start_idx: usize,
+    end_idx: usize,
+    mutates: &mut BTreeSet<String>,
+) {
+    let body = lines[start_idx..=end_idx].join("\n");
+    let body_lower = body.to_lowercase();
+
+    // === REENTRANCY VULNERABILITIES ===
+    if (body.contains(".call{")
+        || body.contains(".call(")
+        || body.contains("delegatecall")
+        || body_lower.contains("transfer("))
+        && (mutates.iter().any(|m| !m.is_empty())
+            || body.contains("state change")
+            || body_lower.contains("Balance")
+            || body_lower.contains("allowance"))
+    {
+        // Check if there's state change before call (good) or after (bad)
+        let call_pos = body.find(".call").unwrap_or(0);
+        let state_change = body[..call_pos].contains("=");
+        if !state_change || body[call_pos..].contains("=") {
+            mutates.insert("EVM_REENTRANCY".to_string());
+        }
+    }
+
+    // === UNCHECKED RETURN VALUES ===
+    if (body.contains(".call(")
+        || body.contains(".transfer(")
+        || body.contains(".send(")
+        || body_lower.contains("delegatecall"))
+        && !body.contains("require(")
+        && !body.contains("assert(")
+    {
+        mutates.insert("EVM_UNCHECKED_CALL".to_string());
+    }
+
+    // === INTEGER OVERFLOW/UNDERFLOW ===
+    if (body.contains("+") || body.contains("-") || body.contains("*") || body.contains("/"))
+        && !body_lower.contains("safemath")
+        && !body_lower.contains("checked")
+        && !body_lower.contains("openZeppelin")
+        && !body_lower.contains("openzeppelin")
+    {
+        mutates.insert("EVM_UNCHECKED_ARITHMETIC".to_string());
+    }
+
+    // === FRONT-RUNNING VULNERABILITY ===
+    if (body_lower.contains("gaslimit")
+        || body_lower.contains("gasprice")
+        || body_lower.contains("nonce"))
+        && (body_lower.contains("visible in mempool") || body_lower.contains("pending"))
+    {
+        mutates.insert("EVM_FRONT_RUNNING".to_string());
+    }
+
+    // === FRONT-RUNNING (mempool ordering attacks) ===
+    if body_lower.contains("tx.gasprice")
+        && (mutates.iter().any(|m| m.contains("allowance"))
+            || mutates.iter().any(|m| m.contains("balance")))
+    {
+        mutates.insert("EVM_FRONT_RUNNING".to_string());
+    }
+
+    // === DELEGATECALL VULNERABILITY ===
+    if body.contains("delegatecall") {
+        // Any delegatecall to untrusted code is dangerous
+        if body.contains("delegatecall(") && !body.contains("require(") {
+            mutates.insert("EVM_DELEGATECALL_ABUSE".to_string());
+        }
+    }
+
+    // === TIMESTAMP DEPENDENCY ===
+    if body_lower.contains("block.timestamp") || body_lower.contains("now") {
+        mutates.insert("EVM_TIMESTAMP_DEPENDENCY".to_string());
+    }
+
+    // === ACCESS CONTROL MISSING ===
+    if (body_lower.contains("msg.sender") || body_lower.contains("caller"))
+        && !body.contains("require(")
+        && !body.contains("onlyOwner")
+        && !body.contains("modifier")
+        && !body.contains("assert(")
+    {
+        mutates.insert("EVM_ACCESS_CONTROL".to_string());
+    }
+
+    // === INSUFFICIENT INPUT VALIDATION ===
+    if body.contains("function") && !body.contains("require(") && !body.contains("assert(") {
+        mutates.insert("EVM_INPUT_VALIDATION".to_string());
+    }
 }
 
 /// Extract variable name from declaration (e.g., "uint256 public balance;" → "balance").
