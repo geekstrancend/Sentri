@@ -7,146 +7,340 @@ Sentri is a **production-grade invariant enforcement system** for smart contract
 It lets you:
 - Define invariants in a simple DSL
 - Automatically verify them across chain interactions
+- Run security checks for common vulnerabilities
 - Get clear violation reports
 - Prevent bugs before they happen
 
-## Installation
+## Choose Your Path
 
-### From GitHub Releases
+Sentri supports two main workflows:
 
-```bash
-# Download latest release
-curl -L https://github.com/geekstrancend/Sentri/releases/download/latest/sentri-linux-x86_64 \
-  -o /usr/local/bin/sentri
-chmod +x /usr/local/bin/sentri
+1. **Security Analysis** (Recommended for first-time users) — Quickly scan smart contracts for common security vulnerabilities
+2. **Invariant Definition** (Advanced) — Define custom properties that your contracts must always satisfy
 
-# Verify installation
-sentri --version
-```
+---
 
-### From Source
+## Path 1: Security Analysis (First-Time Users)
 
-```bash
-git clone https://github.com/geekstrancend/Sentri.git
-cd Sentri
-cargo install --path crates/cli
+### Installation
 
-# Verify
-sentri --version
-```
+### Step 1: Install Sentri
 
-### With Cargo
-
+#### **Option A: Cargo (Recommended for Rust Projects)**
 ```bash
 cargo install sentri
 ```
 
-## Quick Start
+This installs sentri globally and adds it to your PATH (usually `~/.cargo/bin/sentri`).
 
-### 1. Initialize a Project
-
+#### **Option B: Homebrew (macOS)**
 ```bash
-sentri init my-vault
-cd my-vault
+brew install sentri
 ```
 
-Creates:
-```
-my-vault/
-├── sentri.toml         # Project configuration
-├── invariants/         # Invariant definitions
-│   └── vault.invar
-├── src/                # Your contract code
-└── tests/              # Test files
+#### **Option C: Build from Source**
+```bash
+git clone https://github.com/geekstrancend/sentri.git
+cd sentri
+cargo install --path .
 ```
 
-### 2. Write an Invariant
+#### **Option D: Download Pre-built Binary**
+Visit the [Sentri Releases](https://github.com/geekstrancend/sentri/releases) page and download the binary for your OS (Linux, macOS, Windows).
 
-Create `invariants/vault.invar`:
+Extract and add to PATH:
+```bash
+# Example for Linux
+tar -xzf sentri-v0.1.10-x86_64-unknown-linux-gnu.tar.gz
+sudo mv sentri /usr/local/bin/
+```
 
-```invar
-invariant: vault_conservation
-description: "Total deposits always equal vault balance"
-category: finance
+### Step 2: Verify Installation
+```bash
+sentri --version
+```
 
-context {
-    state: VaultState,
-    chain: Solana
+Expected output:
+```
+sentri 0.1.10
+```
+
+Verify sentri is accessible:
+```bash
+which sentri
+# Output: /home/user/.cargo/bin/sentri (or similar)
+```
+
+If command not found, add to PATH:
+```bash
+# For Cargo installation
+export PATH="$HOME/.cargo/bin:$PATH"
+
+# Make permanent (add to ~/.bashrc or ~/.zshrc)
+echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.bashrc
+source ~/.bashrc
+```
+
+### Step 3: Verify Dependencies
+```bash
+sentri doctor
+```
+
+This checks that all Sentri components are working correctly. Output example:
+```
+✓ Analyzer ready
+✓ Database loaded
+✓ Config parser working
+```
+
+### Step 4: Navigate to Your Project
+```bash
+cd /path/to/your/solana-project
+```
+
+Ensure your project has:
+- Smart contract code (Solana `.rs` files, EVM `.sol` files, etc.)
+- Cargo.toml or appropriate build configuration
+
+### Step 5: Initialize Configuration
+```bash
+sentri init
+```
+
+This creates .sentri.toml in your project root with default settings. Edit it to match your project:
+
+```toml
+[checks]
+# Solana-specific invariants
+enabled = [
+  "SOL_001",  # Missing signer checks
+  "SOL_002",  # Account validation failures
+  "SOL_003",  # Integer overflow
+  "SOL_004",  # Rent exemption violations
+  "SOL_005",  # PDA derivation errors
+  "SOL_006",  # Lamport balance issues
+  "SOL_007",  # Instruction parsing failures
+]
+
+[report]
+format = "json"
+output = "sentri-report.json"
+fail_on = "high"
+
+[ignore]
+files = ["target/**", "node_modules/**", "tests/**"]
+```
+
+**Configuration Options:**
+
+| Section | Option | Values | Purpose |
+|---------|--------|--------|---------|
+| **[checks]** | enabled | `SOL_001` - `SOL_007` (Solana) | Which security checks to run |
+| **[report]** | format | `json`, `text`, `html` | Output format |
+| **[report]** | output | file path | Where to save report |
+| **[report]** | fail_on | `low`, `medium`, `high`, `critical` | Exit code threshold |
+| **[ignore]** | files | glob patterns | Directories to skip |
+
+### Step 6: Run Initial Analysis
+
+#### **Basic Command**
+```bash
+sentri check <PATH> --chain <BLOCKCHAIN>
+```
+
+#### **For Solana Projects**
+```bash
+sentri check ./programs/geekslibrary/src/lib.rs --chain solana
+```
+
+#### **With Options**
+```bash
+# Human-readable output with details
+sentri check ./programs/geekslibrary/src/lib.rs --chain solana --verbose
+
+# Save JSON report
+sentri check ./programs/geekslibrary/src/lib.rs --chain solana --format json --output sentri-report.json
+
+# Fail if violations found
+sentri check ./programs/geekslibrary/src/lib.rs --chain solana --fail-on high
+```
+
+**Supported Chains:**
+- `solana` — Solana smart contracts
+- `evm` — Ethereum and EVM-compatible chains (default)
+- `move` — Move (Aptos, Sui)
+
+**Output Format Options:**
+- `--format text` — Colored, boxed human-readable (default)
+- `--format json` — Machine-readable, one object per line
+- `--format html` — HTML report with styling
+
+### Step 7: Analyze Results
+
+Output structure:
+```
+Sentri · Multi-chain Invariant Checker · v0.1.10
+
+Target  ./programs/geekslibrary/src/lib.rs
+Chain  Solana
+
+✓ 22 checks in 0.0s
+
+Violations (7)
+├─ 1. Solana invariant: Signer Checks [HIGH]
+├─ 2. Solana invariant: Account Validation [HIGH]
+├─ 3. Solana invariant: Integer Overflow [HIGH]
+├─ 4. Solana invariant: Rent Exemption [HIGH]
+├─ 5. Solana invariant: PDA Derivation [HIGH]
+├─ 6. Solana invariant: Lamport Balance [HIGH]
+└─ 7. Solana invariant: Instruction Parsing [HIGH]
+
+Passed Checks (15)
+✓ balance_conservation, access_control_present, etc.
+
+Analysis Summary
+├─ Target: ./programs/geekslibrary/src/lib.rs
+├─ Chain: Solana
+├─ Checks: 22 total · 7 violations · 15 passed
+└─ Status: ✗ FAIL — violations found
+```
+
+For each violation, examine:
+1. **Location** — File path and line number
+2. **Severity** — CRITICAL/HIGH/MEDIUM/LOW
+3. **CWE** — Common Weakness Enumeration reference
+4. **Vulnerable Code** — Actual code snippet showing the issue
+5. **Recommendation** — Detailed fix with code examples
+6. **Reference** — Links to official documentation
+
+### Step 8: Fix Each Violation
+
+Example fix for **Missing Signer Checks**:
+
+**Before (Vulnerable):**
+```rust
+#[derive(Accounts)]
+pub struct AddBook<'info> {
+    #[account(mut)]
+    pub book: Account<'info, Book>,
+    pub library: Account<'info, Library>,
 }
-
-// The core invariant: conservation law
-global:
-    sum(state.deposits[*].amount) == state.vault_balance
-
-// Individual deposit constraints
-forall deposit in state.deposits:
-    deposit.amount > 0 &&
-    deposit.created_at <= now()
 ```
 
-### 3. Add Your Contract Code
-
-Place your Rust/Solidity/Move code in `src/`:
-
-```bash
-# Copy your contract
-cp ~/my-contract/lib.rs src/
-
-# Or write a new one
-cat > src/vault.rs << 'EOF'
-pub struct Vault {
-    pub deposits: Vec<Deposit>,
+**After (Fixed):**
+```rust
+#[derive(Accounts)]
+pub struct AddBook<'info> {
+    #[account(mut)]
+    pub book: Account<'info, Book>,
+    #[account(mut, signer)]  // ← Add signer requirement
+    pub library: Account<'info, Library>,
 }
-
-pub struct Deposit {
-    pub owner: String,
-    pub amount: u64,
-}
-EOF
 ```
 
-### 4. Run Analysis
+Common fixes:
+- Add `signer` constraint: `#[account(mut, signer)]`
+- Add explicit checks: `require!(account.is_signer, ErrorCode::MustBeSigner)?`
+- Use checked arithmetic: `amount.checked_add(fee)?`
+- Validate ownership: `require!(account.owner == &system_program::ID)?`
+
+### Step 9: Re-run Analysis
+
+After making fixes:
+```bash
+sentri check ./programs/geekslibrary/src/lib.rs --chain solana --verbose
+```
+
+Verify:
+- Violation count decreases
+- High-severity issues are resolved
+- Status changes to ✓ PASS
+
+### Step 10: Generate Final Report
+
+Create a JSON report for documentation/CI:
+```bash
+sentri check ./programs/geekslibrary/src/lib.rs --chain solana --format json --output sentri-report.json
+```
+
+View the report:
+```bash
+cat sentri-report.json
+```
+
+### Step 11: Set Up for CI/CD (Optional)
+
+Add to your build pipeline (GitHub Actions, GitLab CI, etc.):
+
+```yaml
+# GitHub Actions example
+- name: Run Sentri Security Analysis
+  run: |
+    sentri check ./programs/geekslibrary/src/lib.rs \
+      --chain solana \
+      --fail-on high \
+      --format json \
+      --output sentri-report.json
+```
+
+Exit codes:
+- `0` — All checks passed
+- `1` — Violations found at/above `fail_on` threshold
+
+### Step 12: Continuous Monitoring
+
+Track violations over time:
+```bash
+# Run daily and save timestamped reports
+sentri check ./programs/geekslibrary/src/lib.rs \
+  --chain solana \
+  --format json \
+  --output reports/sentri-$(date +%Y%m%d).json
+```
+
+---
+
+## Quick Reference: Security Analysis Commands
 
 ```bash
-sentri check invariants/vault.invar
+# 1. Install
+cargo install sentri
+
+# 2. Verify
+sentri --version
+sentri doctor
+
+# 3. Navigate to project
+cd /path/to/project
+
+# 4. Initialize config
+sentri init
+
+# 5. Run analysis
+sentri check ./path/to/contract.rs --chain solana --verbose
+
+# 6. Save report
+sentri check ./path/to/contract.rs --chain solana --format json --output sentri-report.json
+
+# 7. Re-verify after fixes
+sentri check ./path/to/contract.rs --chain solana --fail-on high
 ```
 
-Output:
-```
-vault_conservation
-   Status: PASS
-   Time: 2.3ms
+---
 
-Analysis complete: 1 invariant, 1 passed
-```
+## Troubleshooting
 
-## Common Commands
+| Problem | Solution |
+|---------|----------|
+| `sentri: command not found` | Add `~/.cargo/bin` to PATH or reinstall with `cargo install sentri` |
+| `Failed to analyze EVM contract` | Use correct `--chain` flag; specify file not directory |
+| `FAIL — violations found` | Exit code 1; check sentri-report.json for details |
+| `Is a directory` error | Provide path to `.rs` or `.sol` file, not folder |
+| Config file not found | Run `sentri init` in project root to create .sentri.toml |
 
-### Check Invariants
+---
 
-```bash
-# Check single file
-sentri check vault.invar
-
-# Check entire directory
-sentri check invariants/
-
-# Verbose output
-sentri check --verbose invariants/
-```
-
-### Generate Reports
-
-```bash
-# JSON report
-sentri report --format json invariants/vault.invar > report.json
-
-# Markdown report
-sentri report --format markdown invariants/vault.invar > report.md
-
-# Plain text
-sentri report --format text invariants/vault.invar
-```
+## Path 2: Invariant Definition (Advanced Users)
 
 ### Initialize New Projects
 
