@@ -2,7 +2,7 @@
 
 use sentri_core::model::{FunctionModel, ProgramModel};
 use sentri_core::traits::ChainAnalyzer;
-use sentri_core::Result;
+use sentri_core::{AnalysisContext, Result};
 use std::collections::BTreeSet;
 use std::path::Path;
 use tracing::info;
@@ -61,6 +61,96 @@ impl ChainAnalyzer for MoveAnalyzer {
 
     fn chain(&self) -> &str {
         "move"
+    }
+}
+
+impl MoveAnalyzer {
+    /// Analyze a Move program and return context with warnings.
+    pub fn analyze_with_context(&self, path: &Path) -> Result<AnalysisContext> {
+        let program = self.analyze(path)?;
+        let mut context = AnalysisContext::new(program);
+
+        // Read source for warning collection
+        let source = std::fs::read_to_string(path).map_err(sentri_core::InvarError::IoError)?;
+        let lines: Vec<&str> = source.lines().collect();
+
+        // Scan for common Move vulnerability patterns
+        for (line_idx, line) in lines.iter().enumerate() {
+            let line_num = line_idx + 1;
+
+            // Warning: Unsafe resource destruction
+            if line.contains("move_to") || line.contains("move_from") {
+                if !lines
+                    .iter()
+                    .skip(line_idx.saturating_sub(2))
+                    .take(5)
+                    .any(|l| l.contains("assert") || l.contains("require"))
+                {
+                    context.add_warning(
+                        "Resource operation without validation detected".to_string(),
+                        path.to_string_lossy().to_string(),
+                        line_num,
+                        None,
+                        Some(line.to_string()),
+                    );
+                }
+            }
+
+            // Warning: Missing type checking
+            if line.contains("as u64") || line.contains("as u128") || line.contains("as u256") {
+                context.add_warning(
+                    "Type cast detected - verify bounds".to_string(),
+                    path.to_string_lossy().to_string(),
+                    line_num,
+                    None,
+                    Some(line.to_string()),
+                );
+            }
+
+            // Warning: Direct field access without validation
+            if line.contains(".") && (line.contains("=") || line.contains(".value")) {
+                if !lines
+                    .iter()
+                    .skip(line_idx.saturating_sub(1))
+                    .take(2)
+                    .any(|l| l.contains("assert"))
+                {
+                    context.add_warning(
+                        "Field access without validation".to_string(),
+                        path.to_string_lossy().to_string(),
+                        line_num,
+                        None,
+                        Some(line.to_string()),
+                    );
+                }
+            }
+
+            // Warning: Unchecked arithmetic
+            if (line.contains("+") || line.contains("-"))
+                && (line.contains("amount") || line.contains("balance"))
+            {
+                context.add_warning(
+                    "Unchecked arithmetic operation detected".to_string(),
+                    path.to_string_lossy().to_string(),
+                    line_num,
+                    None,
+                    Some(line.to_string()),
+                );
+            }
+        }
+
+        // Mark invalid if critical issues found
+        let critical_warnings = context
+            .warnings
+            .iter()
+            .filter(|w| w.message.contains("validation") || w.message.contains("Unchecked"))
+            .count();
+
+        if critical_warnings > 1 {
+            context.mark_invalid();
+        }
+
+        Ok(context)
     }
 }
 

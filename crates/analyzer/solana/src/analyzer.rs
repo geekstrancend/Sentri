@@ -3,7 +3,7 @@
 use quote::quote;
 use sentri_core::model::{FunctionModel, ProgramModel, StateVar};
 use sentri_core::traits::ChainAnalyzer;
-use sentri_core::Result;
+use sentri_core::{AnalysisContext, Result};
 use std::collections::BTreeSet;
 use std::path::Path;
 use tracing::{debug, info};
@@ -171,6 +171,96 @@ impl ChainAnalyzer for SolanaAnalyzer {
 
     fn chain(&self) -> &str {
         "solana"
+    }
+}
+
+impl SolanaAnalyzer {
+    /// Analyze a Solana program and return context with warnings.
+    pub fn analyze_with_context(&self, path: &Path) -> Result<AnalysisContext> {
+        let program = self.analyze(path)?;
+        let mut context = AnalysisContext::new(program);
+
+        // Read source for warning collection
+        let source = std::fs::read_to_string(path).map_err(sentri_core::InvarError::IoError)?;
+        let lines: Vec<&str> = source.lines().collect();
+
+        // Scan for common vulnerability patterns and add warnings
+        for (line_idx, line) in lines.iter().enumerate() {
+            let line_num = line_idx + 1;
+
+            // Warning: Direct lamports manipulation
+            if line.contains("lamports")
+                && (line.contains("=") || line.contains("-=") || line.contains("+="))
+            {
+                if !line.contains("//")
+                    || line.find("//").unwrap_or(0) > line.find("lamports").unwrap_or(0)
+                {
+                    context.add_warning(
+                        "Potential unsafe lamports manipulation detected".to_string(),
+                        path.to_string_lossy().to_string(),
+                        line_num,
+                        None,
+                        Some(line.to_string()),
+                    );
+                }
+            }
+
+            // Warning: Missing signer check
+            if line.contains("Account<") && line.contains(">") {
+                if !line.contains("signer")
+                    && !lines
+                        .iter()
+                        .skip(line_idx.saturating_sub(2))
+                        .take(5)
+                        .any(|l| l.contains("signer"))
+                {
+                    context.add_warning(
+                        "Account field may be missing signer validation".to_string(),
+                        path.to_string_lossy().to_string(),
+                        line_num,
+                        None,
+                        Some(line.to_string()),
+                    );
+                }
+            }
+
+            // Warning: Unsafe arithmetic patterns
+            if (line.contains("saturating_add") || line.contains("saturating_sub"))
+                && !line.contains("//")
+            {
+                context.add_warning(
+                    "Found saturating arithmetic - verify overflow/underflow handling".to_string(),
+                    path.to_string_lossy().to_string(),
+                    line_num,
+                    None,
+                    Some(line.to_string()),
+                );
+            }
+
+            // Warning: borrow_mut without validation
+            if line.contains("borrow_mut()") && !line.contains("//") {
+                context.add_warning(
+                    "Direct borrow_mut() usage - ensure proper validation".to_string(),
+                    path.to_string_lossy().to_string(),
+                    line_num,
+                    None,
+                    Some(line.to_string()),
+                );
+            }
+        }
+
+        // Mark invalid if critical issues found
+        let critical_warnings = context
+            .warnings
+            .iter()
+            .filter(|w| w.message.contains("unsafe") || w.message.contains("Direct"))
+            .count();
+
+        if critical_warnings > 0 {
+            context.mark_invalid();
+        }
+
+        Ok(context)
     }
 }
 
