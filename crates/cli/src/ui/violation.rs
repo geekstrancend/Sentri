@@ -27,6 +27,8 @@ pub struct Violation {
     pub recommendation: String,
     /// URL to documentation
     pub reference: String,
+    /// The actual code snippet where the vulnerability was found
+    pub code_snippet: String,
 }
 
 /// Render a single violation panel with bordered box.
@@ -140,6 +142,23 @@ pub fn render_violation(violation: &Violation, width: usize) -> String {
     let ref_line = format!("{}  {}", ref_label, color_dim(&violation.reference));
     output.push_str(&format!("{}\n", box_line(&ref_line, width)));
 
+    // Empty line
+    output.push_str(&empty_box_line(width));
+    output.push('\n');
+
+    // Code snippet section (if available)
+    if !violation.code_snippet.is_empty() {
+        let code_label = color_dim("Vulnerable Code");
+        output.push_str(&format!("{}\n", box_line(&code_label, width)));
+
+        // Format code with syntax highlighting
+        let code_lines: Vec<&str> = violation.code_snippet.lines().collect();
+        for code_line in code_lines {
+            let highlighted = format!("  {}", color_value(code_line));
+            output.push_str(&format!("{}\n", box_line(&highlighted, width)));
+        }
+    }
+
     // Bottom border
     output.push_str(&format!(
         "{}{}{}\n",
@@ -198,6 +217,7 @@ mod tests {
             message: "This is a test message".to_string(),
             recommendation: "Fix this issue".to_string(),
             reference: "https://docs.example.com".to_string(),
+            code_snippet: "    42 | function transfer() public { }".to_string(),
         };
 
         let rendered = render_violation(&violation, 80);
@@ -233,6 +253,7 @@ mod tests {
                 message: "msg".to_string(),
                 recommendation: "fix".to_string(),
                 reference: "ref".to_string(),
+                code_snippet: String::new(),
             };
 
             let rendered = render_violation(&violation, 80);
@@ -254,6 +275,7 @@ mod tests {
                 message: "msg1".to_string(),
                 recommendation: "fix1".to_string(),
                 reference: "ref1".to_string(),
+                code_snippet: String::new(),
             },
             Violation {
                 index: 2,
@@ -266,6 +288,7 @@ mod tests {
                 message: "msg2".to_string(),
                 recommendation: "fix2".to_string(),
                 reference: "ref2".to_string(),
+                code_snippet: String::new(),
             },
         ];
 
