@@ -5,6 +5,7 @@
 Sentri is a **production-grade invariant enforcement system** for smart contracts across Solana, EVM, and Move chains.
 
 It lets you:
+
 - Define invariants in a simple DSL
 - Automatically verify them across chain interactions
 - Run security checks for common vulnerabilities
@@ -22,11 +23,10 @@ Sentri supports two main workflows:
 
 ## Path 1: Security Analysis (First-Time Users)
 
-### Installation
-
 ### Step 1: Install Sentri
 
 #### **Option A: Cargo (Recommended for Rust Projects)**
+
 ```bash
 cargo install sentri
 ```
@@ -34,11 +34,13 @@ cargo install sentri
 This installs sentri globally and adds it to your PATH (usually `~/.cargo/bin/sentri`).
 
 #### **Option B: Homebrew (macOS)**
+
 ```bash
 brew install sentri
 ```
 
 #### **Option C: Build from Source**
+
 ```bash
 git clone https://github.com/geekstrancend/sentri.git
 cd sentri
@@ -46,9 +48,11 @@ cargo install --path .
 ```
 
 #### **Option D: Download Pre-built Binary**
+
 Visit the [Sentri Releases](https://github.com/geekstrancend/sentri/releases) page and download the binary for your OS (Linux, macOS, Windows).
 
 Extract and add to PATH:
+
 ```bash
 # Example for Linux
 tar -xzf sentri-v0.1.10-x86_64-unknown-linux-gnu.tar.gz
@@ -56,22 +60,26 @@ sudo mv sentri /usr/local/bin/
 ```
 
 ### Step 2: Verify Installation
+
 ```bash
 sentri --version
 ```
 
 Expected output:
-```
+
+```text
 sentri 0.1.10
 ```
 
 Verify sentri is accessible:
+
 ```bash
 which sentri
 # Output: /home/user/.cargo/bin/sentri (or similar)
 ```
 
 If command not found, add to PATH:
+
 ```bash
 # For Cargo installation
 export PATH="$HOME/.cargo/bin:$PATH"
@@ -82,27 +90,32 @@ source ~/.bashrc
 ```
 
 ### Step 3: Verify Dependencies
+
 ```bash
 sentri doctor
 ```
 
 This checks that all Sentri components are working correctly. Output example:
-```
+
+```text
 ✓ Analyzer ready
 ✓ Database loaded
 ✓ Config parser working
 ```
 
 ### Step 4: Navigate to Your Project
+
 ```bash
 cd /path/to/your/solana-project
 ```
 
 Ensure your project has:
+
 - Smart contract code (Solana `.rs` files, EVM `.sol` files, etc.)
 - Cargo.toml or appropriate build configuration
 
 ### Step 5: Initialize Configuration
+
 ```bash
 sentri init
 ```
@@ -133,27 +146,30 @@ files = ["target/**", "node_modules/**", "tests/**"]
 
 **Configuration Options:**
 
-| Section | Option | Values | Purpose |
-|---------|--------|--------|---------|
-| **[checks]** | enabled | `SOL_001` - `SOL_007` (Solana) | Which security checks to run |
-| **[report]** | format | `json`, `text`, `html` | Output format |
-| **[report]** | output | file path | Where to save report |
-| **[report]** | fail_on | `low`, `medium`, `high`, `critical` | Exit code threshold |
-| **[ignore]** | files | glob patterns | Directories to skip |
+| Section      | Option  | Values                              | Purpose                       |
+| ------------ | ------- | ----------------------------------- | ----------------------------- |
+| **[checks]** | enabled | `SOL_001` - `SOL_007`               | Which security checks to run  |
+| **[report]** | format  | `json`, `text`, `html`              | Output format                 |
+| **[report]** | output  | file path                           | Where to save report          |
+| **[report]** | fail_on | `low`, `medium`, `high`, `critical` | Exit code threshold           |
+| **[ignore]** | files   | glob patterns                       | Directories to skip           |
 
 ### Step 6: Run Initial Analysis
 
 #### **Basic Command**
+
 ```bash
 sentri check <PATH> --chain <BLOCKCHAIN>
 ```
 
 #### **For Solana Projects**
+
 ```bash
 sentri check ./programs/geekslibrary/src/lib.rs --chain solana
 ```
 
 #### **With Options**
+
 ```bash
 # Human-readable output with details
 sentri check ./programs/geekslibrary/src/lib.rs --chain solana --verbose
@@ -166,11 +182,13 @@ sentri check ./programs/geekslibrary/src/lib.rs --chain solana --fail-on high
 ```
 
 **Supported Chains:**
+
 - `solana` — Solana smart contracts
 - `evm` — Ethereum and EVM-compatible chains (default)
 - `move` — Move (Aptos, Sui)
 
 **Output Format Options:**
+
 - `--format text` — Colored, boxed human-readable (default)
 - `--format json` — Machine-readable, one object per line
 - `--format html` — HTML report with styling
@@ -178,7 +196,8 @@ sentri check ./programs/geekslibrary/src/lib.rs --chain solana --fail-on high
 ### Step 7: Analyze Results
 
 Output structure:
-```
+
+```text
 Sentri · Multi-chain Invariant Checker · v0.1.10
 
 Target  ./programs/geekslibrary/src/lib.rs
@@ -206,6 +225,7 @@ Analysis Summary
 ```
 
 For each violation, examine:
+
 1. **Location** — File path and line number
 2. **Severity** — CRITICAL/HIGH/MEDIUM/LOW
 3. **CWE** — Common Weakness Enumeration reference
@@ -218,6 +238,7 @@ For each violation, examine:
 Example fix for **Missing Signer Checks**:
 
 **Before (Vulnerable):**
+
 ```rust
 #[derive(Accounts)]
 pub struct AddBook<'info> {
@@ -228,6 +249,7 @@ pub struct AddBook<'info> {
 ```
 
 **After (Fixed):**
+
 ```rust
 #[derive(Accounts)]
 pub struct AddBook<'info> {
@@ -239,6 +261,7 @@ pub struct AddBook<'info> {
 ```
 
 Common fixes:
+
 - Add `signer` constraint: `#[account(mut, signer)]`
 - Add explicit checks: `require!(account.is_signer, ErrorCode::MustBeSigner)?`
 - Use checked arithmetic: `amount.checked_add(fee)?`
@@ -247,11 +270,13 @@ Common fixes:
 ### Step 9: Re-run Analysis
 
 After making fixes:
+
 ```bash
 sentri check ./programs/geekslibrary/src/lib.rs --chain solana --verbose
 ```
 
 Verify:
+
 - Violation count decreases
 - High-severity issues are resolved
 - Status changes to ✓ PASS
@@ -259,11 +284,13 @@ Verify:
 ### Step 10: Generate Final Report
 
 Create a JSON report for documentation/CI:
+
 ```bash
 sentri check ./programs/geekslibrary/src/lib.rs --chain solana --format json --output sentri-report.json
 ```
 
 View the report:
+
 ```bash
 cat sentri-report.json
 ```
@@ -284,12 +311,14 @@ Add to your build pipeline (GitHub Actions, GitLab CI, etc.):
 ```
 
 Exit codes:
+
 - `0` — All checks passed
 - `1` — Violations found at/above `fail_on` threshold
 
 ### Step 12: Continuous Monitoring
 
 Track violations over time:
+
 ```bash
 # Run daily and save timestamped reports
 sentri check ./programs/geekslibrary/src/lib.rs \
@@ -331,9 +360,9 @@ sentri check ./path/to/contract.rs --chain solana --fail-on high
 ## Troubleshooting
 
 | Problem | Solution |
-|---------|----------|
+| --- | --- |
 | `sentri: command not found` | Add `~/.cargo/bin` to PATH or reinstall with `cargo install sentri` |
-| `Failed to analyze EVM contract` | Use correct `--chain` flag; specify file not directory |
+| `Failed to analyze EVM` | Use correct `--chain` flag; specify file not directory |
 | `FAIL — violations found` | Exit code 1; check sentri-report.json for details |
 | `Is a directory` error | Provide path to `.rs` or `.sol` file, not folder |
 | Config file not found | Run `sentri init` in project root to create .sentri.toml |
@@ -466,6 +495,7 @@ echo "Invariants passed"
 ```
 
 Make executable:
+
 ```bash
 chmod +x .git/hooks/pre-commit
 ```
@@ -498,7 +528,7 @@ colorize = true
 
 ### Parse Error
 
-```
+```text
 Error: Failed to parse invariants/vault.invar
   Line 4: Missing colon after 'invariant'
   
@@ -507,13 +537,14 @@ Error: Failed to parse invariants/vault.invar
 ```
 
 **Fix:** Add colon after invariant name:
+
 ```invar
 invariant: vault_conservation
 ```
 
 ### Type Error
 
-```
+```text
 Error: Type mismatch in vault.invar:9
   Cannot compare string to integer
   
@@ -526,7 +557,7 @@ Error: Type mismatch in vault.invar:9
 
 ### Evaluation Error
 
-```
+```text
 Error: Invariant violated in vault.invar:5
   vault_conservation failed
   
@@ -537,7 +568,7 @@ Error: Invariant violated in vault.invar:5
 
 **Fix:** Correct contract logic or invariant definition.
 
-## Troubleshooting
+## Common Issues with Invariant Definition
 
 ### "Command not found: sentri"
 
@@ -636,10 +667,10 @@ sentri check --threads 1
 
 ## Support Level
 
-| Component | Status |
-|-----------|--------|
-| Solana | Production Ready |
-| EVM | Production Ready |
-| Move | Beta |
-| DSL | Stable |
-| CLI | Stable |
+| Component | Status             |
+| --------- | ------------------ |
+| Solana    | Production Ready   |
+| EVM       | Production Ready   |
+| Move      | Beta               |
+| DSL       | Stable             |
+| CLI       | Stable             |
