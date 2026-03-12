@@ -2,7 +2,7 @@
 
 use sentri_core::model::{FunctionModel, ProgramModel};
 use sentri_core::traits::ChainAnalyzer;
-use sentri_core::Result;
+use sentri_core::{AnalysisContext, Result};
 use std::collections::BTreeSet;
 use std::path::Path;
 use tracing::{debug, info};
@@ -63,6 +63,93 @@ impl ChainAnalyzer for EvmAnalyzer {
 
     fn chain(&self) -> &str {
         "evm"
+    }
+}
+
+impl EvmAnalyzer {
+    /// Analyze an EVM contract and return context with warnings.
+    pub fn analyze_with_context(&self, path: &Path) -> Result<AnalysisContext> {
+        let program = self.analyze(path)?;
+        let mut context = AnalysisContext::new(program);
+
+        // Read source for warning collection
+        let source = std::fs::read_to_string(path).map_err(sentri_core::InvarError::IoError)?;
+        let lines: Vec<&str> = source.lines().collect();
+
+        // Scan for common Solidity vulnerability patterns
+        for (line_idx, line) in lines.iter().enumerate() {
+            let line_num = line_idx + 1;
+
+            // Warning: Unchecked call return value
+            if line.contains(".call") && !line.contains("require") && !line.contains("assert") {
+                context.add_warning(
+                    "Unchecked call return value detected".to_string(),
+                    path.to_string_lossy().to_string(),
+                    line_num,
+                    None,
+                    Some(line.to_string()),
+                );
+            }
+
+            // Warning: Potential integer overflow
+            if (line.contains("+ ") || line.contains("+=") || line.contains("++"))
+                && (line.contains("balance") || line.contains("amount"))
+                && !line.contains("SafeMath")
+            {
+                context.add_warning(
+                    "Potential unchecked arithmetic operation".to_string(),
+                    path.to_string_lossy().to_string(),
+                    line_num,
+                    None,
+                    Some(line.to_string()),
+                );
+            }
+
+            // Warning: Missing access control
+            if line.contains("function ")
+                && line.contains("payable")
+                && !line.contains("onlyOwner")
+                && !line.contains("require")
+            {
+                context.add_warning(
+                    "Payable function may lack access control".to_string(),
+                    path.to_string_lossy().to_string(),
+                    line_num,
+                    None,
+                    Some(line.to_string()),
+                );
+            }
+
+            // Warning: Reentrancy vulnerability pattern
+            if line.contains(".transfer")
+                && lines
+                    .iter()
+                    .skip(line_idx)
+                    .take(3)
+                    .any(|l| l.contains("state") || l.contains("="))
+            {
+                context.add_warning(
+                    "Potential reentrancy vulnerability detected".to_string(),
+                    path.to_string_lossy().to_string(),
+                    line_num,
+                    None,
+                    Some(line.to_string()),
+                );
+            }
+        }
+
+        // Mark invalid if critical issues found
+        let critical_warnings = context
+            .warnings
+            .iter()
+            .filter(|w| w.message.contains("Unchecked") || w.message.contains("reentrancy"))
+            .count();
+
+        if critical_warnings > 0 {
+            context.mark_invalid();
+        }
+
+        Ok(context)
     }
 }
 

@@ -7,6 +7,7 @@
 //! and form the foundation for all analyzers and generators.
 
 pub mod account_abstraction;
+pub mod analysis_context;
 pub mod attack_patterns;
 pub mod config;
 pub mod error;
@@ -22,6 +23,7 @@ pub use account_abstraction::{
     AAContext, AALayer, AccountState, CrossLayerCheckResult, EntryPointState, PaymasterState,
     UserOpData,
 };
+pub use analysis_context::{AnalysisContext, AnalysisWarning};
 pub use attack_patterns::AttackPatternDB;
 pub use config::{AlertConfig, ChainConfig, Config, ConfigError, InvariantConfig};
 pub use error::{InvarError, Result};
