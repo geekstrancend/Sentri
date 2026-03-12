@@ -191,18 +191,16 @@ impl SolanaAnalyzer {
             // Warning: Direct lamports manipulation
             if line.contains("lamports")
                 && (line.contains("=") || line.contains("-=") || line.contains("+="))
+                && (!line.contains("//")
+                    || line.find("//").unwrap_or(0) > line.find("lamports").unwrap_or(0))
             {
-                if !line.contains("//")
-                    || line.find("//").unwrap_or(0) > line.find("lamports").unwrap_or(0)
-                {
-                    context.add_warning(
-                        "Potential unsafe lamports manipulation detected".to_string(),
-                        path.to_string_lossy().to_string(),
-                        line_num,
-                        None,
-                        Some(line.to_string()),
-                    );
-                }
+                context.add_warning(
+                    "Potential unsafe lamports manipulation detected".to_string(),
+                    path.to_string_lossy().to_string(),
+                    line_num,
+                    None,
+                    Some(line.to_string()),
+                );
             }
 
             // Warning: Missing signer check
