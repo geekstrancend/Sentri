@@ -79,21 +79,20 @@ impl MoveAnalyzer {
             let line_num = line_idx + 1;
 
             // Warning: Unsafe resource destruction
-            if line.contains("move_to") || line.contains("move_from") {
-                if !lines
+            if (line.contains("move_to") || line.contains("move_from"))
+                && !lines
                     .iter()
                     .skip(line_idx.saturating_sub(2))
                     .take(5)
                     .any(|l| l.contains("assert") || l.contains("require"))
-                {
-                    context.add_warning(
-                        "Resource operation without validation detected".to_string(),
-                        path.to_string_lossy().to_string(),
-                        line_num,
-                        None,
-                        Some(line.to_string()),
-                    );
-                }
+            {
+                context.add_warning(
+                    "Resource operation without validation detected".to_string(),
+                    path.to_string_lossy().to_string(),
+                    line_num,
+                    None,
+                    Some(line.to_string()),
+                );
             }
 
             // Warning: Missing type checking
@@ -108,21 +107,21 @@ impl MoveAnalyzer {
             }
 
             // Warning: Direct field access without validation
-            if line.contains(".") && (line.contains("=") || line.contains(".value")) {
-                if !lines
+            if line.contains(".")
+                && (line.contains("=") || line.contains(".value"))
+                && !lines
                     .iter()
                     .skip(line_idx.saturating_sub(1))
                     .take(2)
                     .any(|l| l.contains("assert"))
-                {
-                    context.add_warning(
-                        "Field access without validation".to_string(),
-                        path.to_string_lossy().to_string(),
-                        line_num,
-                        None,
-                        Some(line.to_string()),
-                    );
-                }
+            {
+                context.add_warning(
+                    "Field access without validation".to_string(),
+                    path.to_string_lossy().to_string(),
+                    line_num,
+                    None,
+                    Some(line.to_string()),
+                );
             }
 
             // Warning: Unchecked arithmetic

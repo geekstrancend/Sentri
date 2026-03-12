@@ -206,22 +206,22 @@ impl SolanaAnalyzer {
             }
 
             // Warning: Missing signer check
-            if line.contains("Account<") && line.contains(">") {
-                if !line.contains("signer")
-                    && !lines
-                        .iter()
-                        .skip(line_idx.saturating_sub(2))
-                        .take(5)
-                        .any(|l| l.contains("signer"))
-                {
-                    context.add_warning(
-                        "Account field may be missing signer validation".to_string(),
-                        path.to_string_lossy().to_string(),
-                        line_num,
-                        None,
-                        Some(line.to_string()),
-                    );
-                }
+            if line.contains("Account<")
+                && line.contains(">")
+                && !line.contains("signer")
+                && !lines
+                    .iter()
+                    .skip(line_idx.saturating_sub(2))
+                    .take(5)
+                    .any(|l| l.contains("signer"))
+            {
+                context.add_warning(
+                    "Account field may be missing signer validation".to_string(),
+                    path.to_string_lossy().to_string(),
+                    line_num,
+                    None,
+                    Some(line.to_string()),
+                );
             }
 
             // Warning: Unsafe arithmetic patterns
