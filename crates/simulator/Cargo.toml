@@ -4,10 +4,14 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
-description = "Transaction simulator for Sentri invariant testing"
-readme = "README.md"
 homepage.workspace = true
 repository.workspace = true
+
+description = "Sentri: Transaction simulator for Sentri invariant testing and code generation validation."
+
+keywords = ["sentri", "solana", "security", "smart-contracts", "static-analysis"]
+categories = ["development-tools", "development-tools::testing"]
+readme = "README.md"
 documentation = "https://docs.rs/sentri-simulator"
 
 [dependencies]

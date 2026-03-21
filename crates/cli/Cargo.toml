@@ -4,10 +4,14 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
-description = "Sentri CLI tool for blockchain invariant checking"
-readme = "README.md"
 homepage.workspace = true
 repository.workspace = true
+
+description = "Sentri: multi-chain smart contract security analyzer with static analysis, invariant checking, and vulnerability detection for Solana, EVM, and Move programs."
+
+keywords = ["sentri", "solana", "smart-contracts", "security", "static-analysis"]
+categories = ["command-line-utilities", "development-tools", "development-tools::testing"]
+readme = "../../README.md"
 documentation = "https://docs.rs/sentri-cli"
 [[bin]]
 name = "sentri"

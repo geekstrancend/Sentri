@@ -4,10 +4,14 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
-description = "Solana analyzer for Sentri invariant checking"
-readme = "README.md"
 homepage.workspace = true
 repository.workspace = true
+
+description = "Sentri: Solana program analyzer with static analysis and invariant checking for Anchor and native Solana programs."
+
+keywords = ["sentri", "solana", "security", "smart-contracts", "static-analysis"]
+categories = ["development-tools", "development-tools::testing"]
+readme = "README.md"
 documentation = "https://docs.rs/sentri-analyzer-solana"
 
 [dependencies]

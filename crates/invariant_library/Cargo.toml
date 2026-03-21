@@ -4,10 +4,14 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
-description = "Standard library of invariants for Sentri framework"
-readme = "README.md"
 homepage.workspace = true
 repository.workspace = true
+
+description = "Sentri: Standard library of security invariants for the Sentri multi-chain security analyzer."
+
+keywords = ["sentri", "solana", "security", "smart-contracts", "static-analysis"]
+categories = ["development-tools", "development-tools::testing"]
+readme = "README.md"
 documentation = "https://docs.rs/sentri-library"
 
 [dependencies]

@@ -4,10 +4,14 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
-description = "DSL parser for Sentri invariant definitions"
-readme = "README.md"
 homepage.workspace = true
 repository.workspace = true
+
+description = "Sentri: DSL parser for Sentri invariant definitions and security specification syntax."
+
+keywords = ["sentri", "solana", "security", "smart-contracts", "static-analysis"]
+categories = ["development-tools", "development-tools::testing"]
+readme = "README.md"
 documentation = "https://docs.rs/sentri-dsl-parser"
 
 [dependencies]

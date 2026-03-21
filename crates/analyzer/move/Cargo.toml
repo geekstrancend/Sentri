@@ -4,10 +4,14 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
-description = "Move analyzer for Sentri invariant checking"
-readme = "README.md"
 homepage.workspace = true
 repository.workspace = true
+
+description = "Sentri: Move language analyzer with static analysis and invariant checking for Aptos and other Move-based networks."
+
+keywords = ["sentri", "move", "security", "smart-contracts", "static-analysis"]
+categories = ["development-tools", "development-tools::testing"]
+readme = "README.md"
 documentation = "https://docs.rs/sentri-analyzer-move"
 
 [dependencies]
