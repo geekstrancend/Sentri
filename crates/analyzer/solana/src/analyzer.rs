@@ -260,6 +260,23 @@ impl SolanaAnalyzer {
 
         Ok(context)
     }
+
+    /// Analyze Anchor accounts using AST parsing with Anchor awareness (v0.2)
+    pub fn analyze_anchor_accounts(&self, path: &Path) -> Result<Vec<crate::AnchorAccountStruct>> {
+        let source = std::fs::read_to_string(path).map_err(sentri_core::InvarError::IoError)?;
+        let file_name = path
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .to_string();
+
+        crate::parse_anchor_accounts(&source, &file_name).map_err(|e| {
+            sentri_core::InvarError::AnalysisFailed(format!(
+                "Failed to parse Anchor accounts: {}",
+                e
+            ))
+        })
+    }
 }
 
 /// Analyze a Solana function body for state access patterns and vulnerabilities.

@@ -5,6 +5,40 @@ All notable changes to the Sentri project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-03-21
+
+### Added
+
+- Real Rust AST parsing using `syn` crate for Solana programs with Anchor awareness
+- `AnchorAccountField` model for encoding Anchor account security posture
+- Support for detecting Anchor-specific security patterns:
+  - `Signer<'info>` — automatically framework-validated
+  - `Account<'info, T>` — automatically framework-validated
+  - `Program<'info, T>` — automatically framework-validated
+  - `SystemAccount<'info>` — automatically framework-validated
+  - `AccountInfo<'info>` with `seeds` constraint — PDA validation
+  - `AccountInfo<'info>` with `owner` constraint — ownership validation
+  - `AccountInfo<'info>` with `address` constraint — exact address validation
+  - `AccountInfo<'info>` with `/// CHECK:` comment — developer-verified
+- Analyzer method `analyze_anchor_accounts()` for AST-based security analysis
+- Comprehensive test suite proving false positive elimination (8 integration tests)
+
+### Fixed
+
+- **False positive**: `Signer<'info>` fields no longer trigger "missing signer check" violations
+- **False positive**: PDA accounts with `seeds` constraint no longer trigger "missing account validation" violations
+- **False positive**: External program accounts with `/// CHECK:` comment no longer trigger critical violations
+- **False positive**: `Account<'info, T>` fields no longer trigger validation violations
+
+### Changed
+
+- Solana analyzer now has AST-first security analysis for Anchor programs
+- Violation severity for constrained `AccountInfo` accounts downgraded from HIGH to LOW
+- All crates now have improved crates.io discoverability with:
+  - Keywords starting with "sentri" (crates.io fuzzy-match override)
+  - Proper categories (`development-tools`, `development-tools::testing`)
+  - Explicit descriptions mentioning Sentri
+
 ## [0.1.1] - 2026-02-18
 
 ### Fixed
