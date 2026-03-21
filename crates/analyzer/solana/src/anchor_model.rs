@@ -5,15 +5,27 @@ pub enum AccountSecurity {
     /// Signer<'info> — Anchor enforces signature automatically
     AnchorSigner,
     /// Account<'info, T> — Anchor enforces ownership + deserialization
-    AnchorTypedAccount { type_name: String },
+    AnchorTypedAccount {
+        /// The account type name
+        type_name: String,
+    },
     /// AccountInfo<'info> or UncheckedAccount<'info> with constraints
-    ConstrainedUnchecked { constraints: Vec<AnchorConstraint> },
+    ConstrainedUnchecked {
+        /// Security constraints applied
+        constraints: Vec<AnchorConstraint>,
+    },
     /// AccountInfo<'info> or UncheckedAccount<'info> with CHECK: comment
-    CheckedByDeveloper { reason: String },
+    CheckedByDeveloper {
+        /// Reason from CHECK: comment
+        reason: String,
+    },
     /// AccountInfo<'info> or UncheckedAccount<'info> with no validation
     TrulyUnchecked,
     /// Program<'info, T> — validated by Anchor
-    AnchorProgram { program_name: String },
+    AnchorProgram {
+        /// The program type name
+        program_name: String,
+    },
     /// SystemAccount<'info> — validated by Anchor
     AnchorSystemAccount,
 }
@@ -42,10 +54,15 @@ pub enum AnchorConstraint {
 /// A parsed account field from an Anchor Accounts struct
 #[derive(Debug, Clone)]
 pub struct AnchorAccountField {
+    /// Field name
     pub name: String,
+    /// Security classification of this account
     pub security: AccountSecurity,
+    /// Line number in source code
     pub line_number: usize,
+    /// Whether a CHECK: comment was present
     pub has_check_comment: bool,
+    /// Reason from CHECK: comment if present
     pub check_reason: Option<String>,
 }
 
@@ -100,6 +117,8 @@ impl AccountSecurity {
 /// A parsed Anchor Accounts struct
 #[derive(Debug, Clone)]
 pub struct AnchorAccountStruct {
+    /// Struct name
     pub name: String,
+    /// Account fields in this struct
     pub fields: Vec<AnchorAccountField>,
 }

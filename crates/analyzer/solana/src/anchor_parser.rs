@@ -343,6 +343,7 @@ fn extract_generic_inner(type_str: &str, outer: &str) -> String {
         .to_string()
 }
 
+#[allow(dead_code)]
 fn extract_constraint_value(tokens: &str, key: &str) -> Option<String> {
     if let Some(pos) = tokens.find(&format!("{key}=")) {
         let rest = &tokens[pos + key.len() + 1..];
