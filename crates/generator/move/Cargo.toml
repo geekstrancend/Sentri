@@ -4,10 +4,14 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
-description = "Code generator for Move modules using Sentri invariants"
-readme = "README.md"
 homepage.workspace = true
 repository.workspace = true
+
+description = "Sentri: Code generator for Move modules using Sentri invariants and security constraints."
+
+keywords = ["sentri", "move", "security", "smart-contracts", "codegen"]
+categories = ["development-tools", "development-tools::testing"]
+readme = "README.md"
 documentation = "https://docs.rs/sentri-generator-move"
 
 [dependencies]

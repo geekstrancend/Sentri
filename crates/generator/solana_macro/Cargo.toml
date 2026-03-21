@@ -4,10 +4,14 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
-description = "Procedural macros for Sentri Solana code generation"
-readme = "README.md"
 homepage.workspace = true
 repository.workspace = true
+
+description = "Sentri: Procedural macros for Sentri Solana code generation and security constraint injection."
+
+keywords = ["sentri", "solana", "security", "smart-contracts", "macros"]
+categories = ["development-tools", "development-tools::testing"]
+readme = "README.md"
 documentation = "https://docs.rs/sentri-solana-macro"
 
 [lib]

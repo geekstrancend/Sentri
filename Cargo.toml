@@ -20,13 +20,14 @@ members = [
 resolver = "2"
 
 [workspace.package]
-version = "0.1.10"
+version = "0.1.11"
 edition = "2021"
 rust-version = "1.75"
 authors = ["Sentri Contributors"]
 license = "MIT"
 homepage = "https://github.com/geekstrancend/Sentri"
 repository = "https://github.com/geekstrancend/Sentri"
+documentation = "https://docs.rs/sentri-cli"
 
 [workspace.dependencies]
 # Internal crates

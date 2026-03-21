@@ -4,10 +4,14 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
-description = "Intermediate representation for Sentri invariant specifications"
-readme = "README.md"
 homepage.workspace = true
 repository.workspace = true
+
+description = "Sentri: Intermediate representation for Sentri invariant specifications and security analysis."
+
+keywords = ["sentri", "solana", "security", "smart-contracts", "static-analysis"]
+categories = ["development-tools", "development-tools::testing"]
+readme = "README.md"
 documentation = "https://docs.rs/sentri-ir"
 
 [dependencies]

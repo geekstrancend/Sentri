@@ -4,10 +4,14 @@ version.workspace = true
 edition.workspace = true
 authors.workspace = true
 license.workspace = true
-description = "Report generation for Sentri invariant violations"
-readme = "README.md"
 homepage.workspace = true
 repository.workspace = true
+
+description = "Sentri: Report generation for Sentri security analysis violations and findings."
+
+keywords = ["sentri", "solana", "security", "smart-contracts", "static-analysis"]
+categories = ["development-tools", "development-tools::testing"]
+readme = "README.md"
 documentation = "https://docs.rs/sentri-report"
 
 [dependencies]
