@@ -678,37 +678,56 @@ fn find_vulnerability_line(
     invariant_name: &str,
 ) -> Option<usize> {
     let invariant_lower = invariant_name.to_lowercase();
-    let search_keywords: Vec<&str> = match invariant_lower.as_str() {
-        name if name.contains("signer") || name.contains("sol_signer") => {
-            vec!["is_signer", "signer", "require!", "missing_signer"]
-        }
-        name if name.contains("lamport") => {
-            vec!["lamports", "borrow_mut", "transfer"]
-        }
-        name if name.contains("overflow") || name.contains("arithmetic") => {
-            vec!["saturating_", "checked_", "+", "-", "*"]
-        }
-        name if name.contains("account_validation") || name.contains("account") => {
-            vec!["owner ==", "is_signer", "account_owner"]
-        }
-        name if name.contains("reentrancy") => {
-            vec![".call", "delegatecall", "external"]
-        }
-        _ => return None,
-    };
 
-    // Search in function mutates/reads for markers
+    // Search all markers for any embedded line number
     for func in program.functions.values() {
         for marker in &func.mutates {
-            let marker_lower = marker.to_lowercase();
-            // Check if any search keyword matches in the marker
-            if search_keywords
-                .iter()
-                .any(|keyword| marker_lower.contains(keyword))
-            {
-                // Return approximate line based on function index
-                // In a real implementation, you'd store line numbers during parsing
-                return Some(func.name.len() + 10); // Rough estimate
+            // Look for embedded line numbers in format: MARKER:LINE_NUMBER
+            if let Some(colon_pos) = marker.rfind(':') {
+                if let Ok(line_num) = marker[colon_pos + 1..].parse::<usize>() {
+                    // We found a marker with an embedded line number
+                    // Check if this marker is relevant to the invariant
+                    let marker_upper = marker.to_uppercase();
+                    
+                    // Match based on invariant type
+                    if invariant_lower.contains("signer") {
+                        if marker_upper.contains("SIGNER") {
+                            return Some(line_num);
+                        }
+                    } else if invariant_lower.contains("lamport") {
+                        if marker_upper.contains("LAMPORT") {
+                            return Some(line_num);
+                        }
+                    } else if invariant_lower.contains("overflow") || invariant_lower.contains("arithmetic") {
+                        if marker_upper.contains("ARITHMETIC") {
+                            return Some(line_num);
+                        }
+                    } else if invariant_lower.contains("account") {
+                        if marker_upper.contains("ACCOUNT") || marker_upper.contains("VALIDATION") {
+                            return Some(line_num);
+                        }
+                    } else if invariant_lower.contains("rent") {
+                        if marker_upper.contains("RENT") {
+                            return Some(line_num);
+                        }
+                    } else if invariant_lower.contains("pda") {
+                        if marker_upper.contains("PDA") {
+                            return Some(line_num);
+                        }
+                    } else if invariant_lower.contains("deserialization") || invariant_lower.contains("instruction") {
+                        if marker_upper.contains("DESERIAL") || marker_upper.contains("INSTRUCTION") {
+                            return Some(line_num);
+                        }
+                    } else if invariant_lower.contains("token") {
+                        if marker_upper.contains("TOKEN") {
+                            return Some(line_num);
+                        }
+                    } else if invariant_lower.contains("reentrancy") {
+                        if marker_upper.contains("REENTRANCY") {
+                            return Some(line_num);
+                        }
+                    }
+                }
             }
         }
     }
