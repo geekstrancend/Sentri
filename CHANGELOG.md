@@ -32,7 +32,7 @@ v0.2 replaces pattern matching with **real Rust AST parsing** using the `syn` cr
 ### Fixed — False Positives Eliminated
 
 | Pattern | v0.1 result | v0.2 result |
-|---------|-------------|-------------|
+| --- | --- | --- |
 | `Signer<'info>` | ❌ CRITICAL false positive | ✅ Correctly silent |
 | `Account<'info, T>` | ❌ Flagged | ✅ Recognized as safe |
 | `Program<'info, T>` | ❌ Flagged | ✅ Recognized as safe |
@@ -77,7 +77,7 @@ sentri --version   # sentri 0.2.0
 Pre-built binaries available for download:
 
 | Platform | Architecture |
-|----------|--------------|
+| --- | --- |
 | Linux | x86_64 (glibc), aarch64 (glibc), x86_64 (musl) |
 | macOS | x86_64, aarch64 (Apple Silicon) |
 | Windows | x86_64 |
@@ -103,8 +103,6 @@ Runtime fuzzing via embedded `revm` for EVM and `solana-program-test` for Solana
 ## [0.1.0] - 2026-02-11
 
 ### Initial Release
-
-#### Added
 
 ### Core Architecture
 
@@ -241,7 +239,7 @@ sentri/
 
 ## [0.1.2] - 2026-03-09
 
-### Changed
+### Changed (v0.1.2)
 
 ### Simulation Engine (v0.1.2)
 

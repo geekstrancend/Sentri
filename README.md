@@ -23,7 +23,7 @@ crate. Sentri now understands Anchor's type system and eliminates false
 positives on idiomatic Anchor programs.
 
 | Pattern | v0.1 | v0.2 |
-|---------|------|------|
+| --- | --- | --- |
 | `Signer<'info>` | ❌ False positive | ✅ Correctly silent |
 | `Account<'info, T>` | ❌ Over-flagged | ✅ Recognized as safe |
 | `AccountInfo` with `seeds = [...]` | ❌ False positive | ✅ Correctly silent |
@@ -52,6 +52,7 @@ Or download a pre-built binary directly from
 [GitHub Releases](https://github.com/geekstrancend/Sentri/releases).
 
 **Supported platforms:**
+
 - Linux x86_64, aarch64, musl
 - macOS x86_64, aarch64 (Apple Silicon)
 - Windows x86_64
@@ -108,7 +109,7 @@ Sentri ships with 22 built-in security checks across all three chains.
 ### EVM (10 invariants)
 
 | ID | Name | Severity |
-|----|------|----------|
+| --- | --- | --- |
 | `evm_reentrancy_protection` | Reentrancy Protection | Critical |
 | `evm_integer_overflow` | Integer Overflow | High |
 | `evm_integer_underflow` | Integer Underflow | High |
@@ -123,7 +124,7 @@ Sentri ships with 22 built-in security checks across all three chains.
 ### Solana (7 invariants)
 
 | ID | Name | Severity |
-|----|------|----------|
+| --- | --- | --- |
 | `sol_signer_checks` | Signer Checks | Critical |
 | `sol_account_validation` | Account Validation | Critical |
 | `sol_integer_overflow` | Integer Overflow | High |
@@ -135,7 +136,7 @@ Sentri ships with 22 built-in security checks across all three chains.
 ### Move (5 invariants)
 
 | ID | Name | Severity |
-|----|------|----------|
+| --- | --- | --- |
 | `move_access_control` | Access Control | Critical |
 | `move_integer_overflow` | Integer Overflow | High |
 | `move_resource_leaks` | Resource Leaks | High |
@@ -201,7 +202,7 @@ pub mystery: AccountInfo<'info>,
 ## Roadmap
 
 | Version | Focus | Status |
-|---------|-------|--------|
+| --- | --- | --- |
 | v0.1 | Pattern-based analysis, 22 invariants, full CLI | ✅ Shipped |
 | v0.2 | Real AST parsing, Anchor-aware analysis | ✅ Shipped |
 | v0.3 | Runtime fuzzing — revm + solana-program-test | 🔨 Next |
@@ -213,10 +214,10 @@ pub mystery: AccountInfo<'info>,
 
 ## Links
 
-- **GitHub**: https://github.com/geekstrancend/Sentri
-- **crates.io**: https://crates.io/crates/sentri-cli
-- **npm**: https://www.npmjs.com/package/@dextonicx/cli
-- **Docs**: https://docs.rs/sentri-cli
+- **GitHub**: [geekstrancend/Sentri](https://github.com/geekstrancend/Sentri)
+- **crates.io**: [sentri-cli](https://crates.io/crates/sentri-cli)
+- **npm**: [@dextonicx/cli](https://www.npmjs.com/package/@dextonicx/cli)
+- **Docs**: [docs.rs/sentri-cli](https://docs.rs/sentri-cli)
 
 ---
 
