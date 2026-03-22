@@ -5,6 +5,31 @@ All notable changes to the Sentri project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.1] - 2026-03-22 — Line Number Accuracy Fix
+
+### Fixed
+
+- **Critical:** Violation location reporting now shows actual source line numbers instead of defaulting to line 1
+  - Added `byte_offset_to_line()` utility for accurate position-to-line conversion
+  - Embedded line numbers directly in vulnerability markers during AST analysis
+  - Improved `find_vulnerability_line()` to extract real line numbers from markers
+  - Violations like `sol_lamport_balance` and `sol_account_validation` now report correct locations
+
+### Changed
+
+- Violation location information is now embedded at analysis time rather than post-processed
+- Improved debugging workflow — developers can immediately jump to vulnerable code
+
+### Technical Details
+
+- Added line number calculation system to Solana analyzer
+- Pattern detection now preserves source location information in format: `MARKER_TYPE:LINE_NUMBER`
+- CLI's violation reporting extracts embedded line numbers and displays them with code context
+
+This release fixes the critical UX issue where all violations were reported at line 1, making it impossible to locate vulnerable code without manual searching.
+
+---
+
 ## [0.2.0] - 2026-03-22 — Anchor-Aware AST Analysis
 
 ### The Big Change
