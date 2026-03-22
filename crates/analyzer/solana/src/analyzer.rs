@@ -16,6 +16,33 @@ use tracing::{debug, info};
 /// - Context structures and parameters
 pub struct SolanaAnalyzer;
 
+/// Helper function to calculate line number from byte offset in source text.
+/// 
+/// Counts the number of newlines before the given byte offset to determine
+/// which line the offset is on (1-indexed).
+fn byte_offset_to_line(source: &str, byte_offset: usize) -> usize {
+    let codebound = byte_offset.min(source.len());
+    source[..codebound].matches('\n').count() + 1
+}
+
+/// Helper function to find all occurrences of a pattern in source text
+/// and return their line numbers.
+/// 
+/// Returns a vec of (matched_text, line_number) tuples.
+fn find_pattern_lines(source: &str, pattern: &str) -> Vec<(String, usize)> {
+    let mut results = Vec::new();
+    let mut search_start = 0;
+    
+    while let Some(pos) = source[search_start..].find(pattern) {
+        let absolute_pos = search_start + pos;
+        let line_num = byte_offset_to_line(source, absolute_pos);
+        results.push((pattern.to_string(), line_num));
+        search_start = absolute_pos + pattern.len();
+    }
+    
+    results
+}
+
 impl ChainAnalyzer for SolanaAnalyzer {
     fn analyze(&self, path: &Path) -> Result<ProgramModel> {
         info!("Analyzing Solana program at {:?}", path);
@@ -94,7 +121,7 @@ impl ChainAnalyzer for SolanaAnalyzer {
                     .collect();
 
                 // Analyze function body for state accesses
-                let (reads, mutates) = analyze_solana_function_body(&item_fn.block);
+                let (reads, mutates) = analyze_solana_function_body(&item_fn.block, &source);
 
                 let func = FunctionModel {
                     name: func_name,
@@ -142,7 +169,7 @@ impl ChainAnalyzer for SolanaAnalyzer {
                                     .collect();
 
                                 // Analyze function body for state accesses and vulnerabilities
-                                let (reads, mutates) = analyze_solana_function_body(&item_fn.block);
+                                let (reads, mutates) = analyze_solana_function_body(&item_fn.block, &source);
 
                                 let func = FunctionModel {
                                     name: func_name,
@@ -280,7 +307,7 @@ impl SolanaAnalyzer {
 }
 
 /// Analyze a Solana function body for state access patterns and vulnerabilities.
-fn analyze_solana_function_body(block: &syn::Block) -> (BTreeSet<String>, BTreeSet<String>) {
+fn analyze_solana_function_body(block: &syn::Block, source: &str) -> (BTreeSet<String>, BTreeSet<String>) {
     let mut reads = BTreeSet::new();
     let mut mutates = BTreeSet::new();
 
@@ -290,105 +317,144 @@ fn analyze_solana_function_body(block: &syn::Block) -> (BTreeSet<String>, BTreeS
     }
 
     // Also analyze for vulnerability patterns by walking the AST
-    analyze_ast_for_vulnerabilities(block, &mut mutates);
+    analyze_ast_for_vulnerabilities(block, source, &mut mutates);
 
     (reads, mutates)
 }
 
 /// Walk the AST to detect vulnerability patterns more reliably.
-fn analyze_ast_for_vulnerabilities(block: &syn::Block, mutates: &mut BTreeSet<String>) {
-    let source = quote!(#block).to_string();
-    let source_lower = source.to_lowercase();
+fn analyze_ast_for_vulnerabilities(block: &syn::Block, full_source: &str, mutates: &mut BTreeSet<String>) {
+    let block_source = quote!(#block).to_string();
+    let block_lower = block_source.to_lowercase();
+    let source_lower = full_source.to_lowercase();
 
     debug!(
         "Analyzing block for vulnerabilities, source length: {}",
-        source.len()
+        block_source.len()
     );
 
     // === LAMPORT MANIPULATION VULNERABILITIES ===
-    let has_lamports = source.contains("lamports") || source_lower.contains("lamport");
+    let has_lamports = block_source.contains("lamports") || source_lower.contains("lamport");
     if has_lamports {
         debug!("Found lamports keyword in block");
         // Check for borrow_mut() patterns (unsafe access)
-        if source.contains("borrow_mut") {
+        if block_source.contains("borrow_mut") {
             debug!(
                 "Found borrow_mut - flagging SOLANA_LAMPORT_UNSAFE and SOLANA__MISSING_VALIDATION"
             );
-            mutates.insert("SOLANA_LAMPORT_UNSAFE".to_string());
-            mutates.insert("SOLANA__MISSING_VALIDATION".to_string());
+            // Find line number for borrow_mut
+            if let Some((_, line)) = find_pattern_lines(full_source, "borrow_mut").first() {
+                mutates.insert(format!("SOLANA_LAMPORT_UNSAFE:{}", line));
+                mutates.insert(format!("SOLANA__MISSING_VALIDATION:{}", line));
+            } else {
+                mutates.insert("SOLANA_LAMPORT_UNSAFE".to_string());
+                mutates.insert("SOLANA__MISSING_VALIDATION".to_string());
+            }
         }
 
         // Check for any arithmetic on lamports
-        let has_arithmetic = source.contains("-=")
-            || source.contains("+=")
-            || source.contains("= ") && (source.contains("amount") || source.contains("lamPort"));
+        let has_arithmetic = block_source.contains("-=")
+            || block_source.contains("+=")
+            || block_source.contains("= ") && (block_source.contains("amount") || block_source.contains("lamPort"));
         if has_arithmetic {
             debug!("Found arithmetic on lamports - flagging SOLANA_LAMPORT_UNSAFE");
-            mutates.insert("SOLANA_LAMPORT_UNSAFE".to_string());
+            // Find line number for lamports arithmetic
+            if let Some((_, line)) = find_pattern_lines(full_source, "lamports").first() {
+                mutates.insert(format!("SOLANA_LAMPORT_UNSAFE:{}", line));
+            } else {
+                mutates.insert("SOLANA_LAMPORT_UNSAFE".to_string());
+            }
         }
     }
 
     // === ARITHMETIC VULNERABILITIES ===
     let has_saturating =
-        source_lower.contains("saturating_add") || source_lower.contains("saturating_sub");
+        block_lower.contains("saturating_add") || block_lower.contains("saturating_sub");
     if has_saturating {
         debug!("Found saturating arithmetic - flagging SOLANA_UNCHECKED_ARITHMETIC");
-        mutates.insert("SOLANA_UNCHECKED_ARITHMETIC".to_string());
+        if let Some((_, line)) = find_pattern_lines(full_source, "saturating_add")
+            .first()
+            .or(find_pattern_lines(full_source, "saturating_sub").first())
+        {
+            mutates.insert(format!("SOLANA_UNCHECKED_ARITHMETIC:{}", line));
+        } else {
+            mutates.insert("SOLANA_UNCHECKED_ARITHMETIC".to_string());
+        }
     }
 
     // Check for large numeric constants
-    if source.contains("u32::MAX")
-        || source.contains("u64::MAX")
-        || source.contains("i32::MAX")
-        || source.contains("i64::MAX")
+    if block_source.contains("u32::MAX")
+        || block_source.contains("u64::MAX")
+        || block_source.contains("i32::MAX")
+        || block_source.contains("i64::MAX")
     {
         debug!("Found MAX constants - flagging SOLANA_UNCHECKED_ARITHMETIC");
-        mutates.insert("SOLANA_UNCHECKED_ARITHMETIC".to_string());
+        if let Some((_, line)) = find_pattern_lines(full_source, "MAX").first() {
+            mutates.insert(format!("SOLANA_UNCHECKED_ARITHMETIC:{}", line));
+        } else {
+            mutates.insert("SOLANA_UNCHECKED_ARITHMETIC".to_string());
+        }
     }
 
     // Check for large hardcoded numbers with arithmetic
-    if (source.contains("1000000000")
-        || source.contains("1000000")
-        || source.contains("999999")
-        || source.contains("MAX / 2"))
-        && (source_lower.contains("saturating_") || source.contains("+=") || source.contains("-="))
+    if (block_source.contains("1000000000")
+        || block_source.contains("1000000")
+        || block_source.contains("999999")
+        || block_source.contains("MAX / 2"))
+        && (block_lower.contains("saturating_") || block_source.contains("+=") || block_source.contains("-="))
     {
         debug!("Found large numbers with arithmetic - flagging SOLANA_UNCHECKED_ARITHMETIC");
-        mutates.insert("SOLANA_UNCHECKED_ARITHMETIC".to_string());
+        if let Some((_, line)) = find_pattern_lines(full_source, "saturating_").first() {
+            mutates.insert(format!("SOLANA_UNCHECKED_ARITHMETIC:{}", line));
+        } else {
+            mutates.insert("SOLANA_UNCHECKED_ARITHMETIC".to_string());
+        }
     }
 
     // === RENT EXEMPTION VIOLATIONS ===
     if source_lower.contains("rent") || source_lower.contains("minimum_balance") {
         // If we see rent-related code but no exempt checks, flag it
-        if !source.contains("is_signer_present")
-            && !source.contains("exempt")
-            && !source.contains("rent_exempt")
-            && !source.contains("EXEMPT")
+        if !full_source.contains("is_signer_present")
+            && !full_source.contains("exempt")
+            && !full_source.contains("rent_exempt")
+            && !full_source.contains("EXEMPT")
         {
-            mutates.insert("SOLANA_RENT_EXEMPTION".to_string());
+            if let Some((_, line)) = find_pattern_lines(full_source, "rent").first() {
+                mutates.insert(format!("SOLANA_RENT_EXEMPTION:{}", line));
+            } else {
+                mutates.insert("SOLANA_RENT_EXEMPTION".to_string());
+            }
         }
     }
 
     // === PDA DERIVATION ISSUES ===
-    if (source.contains("find_program_address")
-        || source.contains("find_pda")
-        || source_lower.contains("seeds"))
-        && (source.contains("0u8")
-            || source.contains("const BUMP")
-            || source.contains("const BUMP") && !source.contains("&["))
+    if (block_source.contains("find_program_address")
+        || block_source.contains("find_pda")
+        || block_lower.contains("seeds"))
+        && (block_source.contains("0u8")
+            || block_source.contains("const BUMP")
+            || block_source.contains("const BUMP") && !block_source.contains("&["))
     {
         debug!("Found potential PDA derivation issue");
-        mutates.insert("SOLANA_PDA_DERIVATION".to_string());
+        if let Some((_, line)) = find_pattern_lines(full_source, "seeds").first() {
+            mutates.insert(format!("SOLANA_PDA_DERIVATION:{}", line));
+        } else {
+            mutates.insert("SOLANA_PDA_DERIVATION".to_string());
+        }
     }
 
     // === ACCOUNT OWNER VALIDATION ===
-    if (source.contains("account.owner")
-        || source.contains("owner ==")
-        || source.contains("check account owner"))
-        && !source.contains("require!")
-        && !source.contains("assert!")
+    if (block_source.contains("account.owner")
+        || block_source.contains("owner ==")
+        || block_source.contains("check account owner"))
+        && !block_source.contains("require!")
+        && !block_source.contains("assert!")
     {
-        mutates.insert("SOLANA__MISSING_VALIDATION".to_string());
+        if let Some((_, line)) = find_pattern_lines(full_source, "account.owner").first() {
+            mutates.insert(format!("SOLANA__MISSING_VALIDATION:{}", line));
+        } else {
+            mutates.insert("SOLANA__MISSING_VALIDATION".to_string());
+        }
     }
 
     // === UNCHECKED DESERIALIZATION ===
@@ -396,25 +462,37 @@ fn analyze_ast_for_vulnerabilities(block: &syn::Block, mutates: &mut BTreeSet<St
         || source_lower.contains("from_slice")
         || source_lower.contains("try_from_slice")
         || source_lower.contains("borsh"))
-        && (!source.contains("?") && !source.contains("match") && !source.contains("unwrap"))
+        && (!block_source.contains("?") && !block_source.contains("match") && !block_source.contains("unwrap"))
     {
-        mutates.insert("SOLANA_UNSAFE_DESERIALIZATION".to_string());
+        if let Some((_, line)) = find_pattern_lines(full_source, "deserialize").first() {
+            mutates.insert(format!("SOLANA_UNSAFE_DESERIALIZATION:{}", line));
+        } else {
+            mutates.insert("SOLANA_UNSAFE_DESERIALIZATION".to_string());
+        }
     }
 
     // === MISSING SIGNER VERIFICATION ===
-    if (source.contains("is_signer") || source.contains("Signer"))
-        && !source.contains("require!")
-        && !source.contains("assert!")
+    if (block_source.contains("is_signer") || block_source.contains("Signer"))
+        && !block_source.contains("require!")
+        && !block_source.contains("assert!")
     {
-        mutates.insert("SOLANA_MISSING_SIGNER".to_string());
+        if let Some((_, line)) = find_pattern_lines(full_source, "is_signer").first() {
+            mutates.insert(format!("SOLANA_MISSING_SIGNER:{}", line));
+        } else {
+            mutates.insert("SOLANA_MISSING_SIGNER".to_string());
+        }
     }
 
     // === TOKEN TRANSFER WITHOUT CHECKS ===
     if (source_lower.contains("spl_token") || source_lower.contains("token::transfer"))
-        && !source.contains("checked")
-        && !source.contains("overflow_check")
+        && !block_source.contains("checked")
+        && !block_source.contains("overflow_check")
     {
-        mutates.insert("SOLANA_UNCHECKED_TOKEN_TRANSFER".to_string());
+        if let Some((_, line)) = find_pattern_lines(full_source, "spl_token").first() {
+            mutates.insert(format!("SOLANA_UNCHECKED_TOKEN_TRANSFER:{}", line));
+        } else {
+            mutates.insert("SOLANA_UNCHECKED_TOKEN_TRANSFER".to_string());
+        }
     }
 }
 
