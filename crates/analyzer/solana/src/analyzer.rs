@@ -17,7 +17,7 @@ use tracing::{debug, info};
 pub struct SolanaAnalyzer;
 
 /// Helper function to calculate line number from byte offset in source text.
-/// 
+///
 /// Counts the number of newlines before the given byte offset to determine
 /// which line the offset is on (1-indexed).
 fn byte_offset_to_line(source: &str, byte_offset: usize) -> usize {
@@ -27,19 +27,19 @@ fn byte_offset_to_line(source: &str, byte_offset: usize) -> usize {
 
 /// Helper function to find all occurrences of a pattern in source text
 /// and return their line numbers.
-/// 
+///
 /// Returns a vec of (matched_text, line_number) tuples.
 fn find_pattern_lines(source: &str, pattern: &str) -> Vec<(String, usize)> {
     let mut results = Vec::new();
     let mut search_start = 0;
-    
+
     while let Some(pos) = source[search_start..].find(pattern) {
         let absolute_pos = search_start + pos;
         let line_num = byte_offset_to_line(source, absolute_pos);
         results.push((pattern.to_string(), line_num));
         search_start = absolute_pos + pattern.len();
     }
-    
+
     results
 }
 
@@ -169,7 +169,8 @@ impl ChainAnalyzer for SolanaAnalyzer {
                                     .collect();
 
                                 // Analyze function body for state accesses and vulnerabilities
-                                let (reads, mutates) = analyze_solana_function_body(&item_fn.block, &source);
+                                let (reads, mutates) =
+                                    analyze_solana_function_body(&item_fn.block, &source);
 
                                 let func = FunctionModel {
                                     name: func_name,
@@ -307,7 +308,10 @@ impl SolanaAnalyzer {
 }
 
 /// Analyze a Solana function body for state access patterns and vulnerabilities.
-fn analyze_solana_function_body(block: &syn::Block, source: &str) -> (BTreeSet<String>, BTreeSet<String>) {
+fn analyze_solana_function_body(
+    block: &syn::Block,
+    source: &str,
+) -> (BTreeSet<String>, BTreeSet<String>) {
     let mut reads = BTreeSet::new();
     let mut mutates = BTreeSet::new();
 
@@ -323,7 +327,11 @@ fn analyze_solana_function_body(block: &syn::Block, source: &str) -> (BTreeSet<S
 }
 
 /// Walk the AST to detect vulnerability patterns more reliably.
-fn analyze_ast_for_vulnerabilities(block: &syn::Block, full_source: &str, mutates: &mut BTreeSet<String>) {
+fn analyze_ast_for_vulnerabilities(
+    block: &syn::Block,
+    full_source: &str,
+    mutates: &mut BTreeSet<String>,
+) {
     let block_source = quote!(#block).to_string();
     let block_lower = block_source.to_lowercase();
     let source_lower = full_source.to_lowercase();
@@ -355,7 +363,8 @@ fn analyze_ast_for_vulnerabilities(block: &syn::Block, full_source: &str, mutate
         // Check for any arithmetic on lamports
         let has_arithmetic = block_source.contains("-=")
             || block_source.contains("+=")
-            || block_source.contains("= ") && (block_source.contains("amount") || block_source.contains("lamPort"));
+            || block_source.contains("= ")
+                && (block_source.contains("amount") || block_source.contains("lamPort"));
         if has_arithmetic {
             debug!("Found arithmetic on lamports - flagging SOLANA_LAMPORT_UNSAFE");
             // Find line number for lamports arithmetic
@@ -401,7 +410,9 @@ fn analyze_ast_for_vulnerabilities(block: &syn::Block, full_source: &str, mutate
         || block_source.contains("1000000")
         || block_source.contains("999999")
         || block_source.contains("MAX / 2"))
-        && (block_lower.contains("saturating_") || block_source.contains("+=") || block_source.contains("-="))
+        && (block_lower.contains("saturating_")
+            || block_source.contains("+=")
+            || block_source.contains("-="))
     {
         debug!("Found large numbers with arithmetic - flagging SOLANA_UNCHECKED_ARITHMETIC");
         if let Some((_, line)) = find_pattern_lines(full_source, "saturating_").first() {
@@ -462,7 +473,9 @@ fn analyze_ast_for_vulnerabilities(block: &syn::Block, full_source: &str, mutate
         || source_lower.contains("from_slice")
         || source_lower.contains("try_from_slice")
         || source_lower.contains("borsh"))
-        && (!block_source.contains("?") && !block_source.contains("match") && !block_source.contains("unwrap"))
+        && (!block_source.contains("?")
+            && !block_source.contains("match")
+            && !block_source.contains("unwrap"))
     {
         if let Some((_, line)) = find_pattern_lines(full_source, "deserialize").first() {
             mutates.insert(format!("SOLANA_UNSAFE_DESERIALIZATION:{}", line));

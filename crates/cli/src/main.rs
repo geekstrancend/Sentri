@@ -688,7 +688,7 @@ fn find_vulnerability_line(
                     // We found a marker with an embedded line number
                     // Check if this marker is relevant to the invariant
                     let marker_upper = marker.to_uppercase();
-                    
+
                     // Match based on invariant type
                     if invariant_lower.contains("signer") {
                         if marker_upper.contains("SIGNER") {
@@ -698,7 +698,9 @@ fn find_vulnerability_line(
                         if marker_upper.contains("LAMPORT") {
                             return Some(line_num);
                         }
-                    } else if invariant_lower.contains("overflow") || invariant_lower.contains("arithmetic") {
+                    } else if invariant_lower.contains("overflow")
+                        || invariant_lower.contains("arithmetic")
+                    {
                         if marker_upper.contains("ARITHMETIC") {
                             return Some(line_num);
                         }
@@ -714,8 +716,11 @@ fn find_vulnerability_line(
                         if marker_upper.contains("PDA") {
                             return Some(line_num);
                         }
-                    } else if invariant_lower.contains("deserialization") || invariant_lower.contains("instruction") {
-                        if marker_upper.contains("DESERIAL") || marker_upper.contains("INSTRUCTION") {
+                    } else if invariant_lower.contains("deserialization")
+                        || invariant_lower.contains("instruction")
+                    {
+                        if marker_upper.contains("DESERIAL") || marker_upper.contains("INSTRUCTION")
+                        {
                             return Some(line_num);
                         }
                     } else if invariant_lower.contains("token") {
