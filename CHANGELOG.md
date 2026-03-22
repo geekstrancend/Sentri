@@ -5,7 +5,13 @@ All notable changes to the Sentri project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [0.2.0] - 2026-03-22
+## [0.2.0] - 2026-03-22 — Anchor-Aware AST Analysis
+
+### The Big Change
+
+v0.1 used pattern matching against raw source text. It worked well for general vulnerability detection but had no awareness of Anchor's type system, producing false positives on correct idiomatic Anchor code.
+
+v0.2 replaces pattern matching with **real Rust AST parsing** using the `syn` crate. Sentri now reads your code as a syntax tree, understands what each Anchor type enforces, and only fires violations where there is genuine risk.
 
 ### Added
 
@@ -23,12 +29,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Analyzer method `analyze_anchor_accounts()` for AST-based security analysis
 - Comprehensive test suite proving false positive elimination (8 integration tests)
 
-### Fixed
+### Fixed — False Positives Eliminated
 
-- **False positive**: `Signer<'info>` fields no longer trigger "missing signer check" violations
-- **False positive**: PDA accounts with `seeds` constraint no longer trigger "missing account validation" violations
-- **False positive**: External program accounts with `/// CHECK:` comment no longer trigger critical violations
-- **False positive**: `Account<'info, T>` fields no longer trigger validation violations
+| Pattern | v0.1 result | v0.2 result |
+|---------|-------------|-------------|
+| `Signer<'info>` | ❌ CRITICAL false positive | ✅ Correctly silent |
+| `Account<'info, T>` | ❌ Flagged | ✅ Recognized as safe |
+| `Program<'info, T>` | ❌ Flagged | ✅ Recognized as safe |
+| `SystemAccount<'info>` | ❌ Flagged | ✅ Recognized as safe |
+| `AccountInfo` + `seeds = [...]` | ❌ CRITICAL false positive | ✅ Correctly silent |
+| `AccountInfo` + `owner = ...` | ❌ CRITICAL false positive | ✅ Correctly silent |
+| `AccountInfo` + `/// CHECK:` | ❌ CRITICAL false positive | ✅ Downgraded to INFO |
+| `AccountInfo` — no constraint | ✅ CRITICAL | ✅ Still CRITICAL |
 
 ### Changed
 
@@ -38,6 +50,48 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Keywords starting with "sentri" (crates.io fuzzy-match override)
   - Proper categories (`development-tools`, `development-tools::testing`)
   - Explicit descriptions mentioning Sentri
+
+### Still Correctly Flagged
+
+- `AccountInfo<'info>` with no seeds, owner, address, or CHECK comment
+- Integer overflow and underflow in arithmetic
+- Missing PDA validation where no constraint exists
+- Unchecked return values on external calls
+- All 22 built-in invariant checks remain active
+
+### Installation
+
+```bash
+# Rust developers
+cargo install sentri-cli --force
+
+# JavaScript / TypeScript developers
+npm install -g @dextonicx/cli@latest
+
+# Verify
+sentri --version   # sentri 0.2.0
+```
+
+### Platform Binaries
+
+Pre-built binaries available for download:
+
+| Platform | Architecture |
+|----------|--------------|
+| Linux | x86_64 (glibc), aarch64 (glibc), x86_64 (musl) |
+| macOS | x86_64, aarch64 (Apple Silicon) |
+| Windows | x86_64 |
+
+### Stats
+
+- 900+ downloads since launch
+- 15 Rust crates published to crates.io
+- 2 npm packages available
+- All platforms supported with automated builds
+
+### Looking Ahead — v0.3
+
+Runtime fuzzing via embedded `revm` for EVM and `solana-program-test` for Solana. Throw randomized inputs at your programs and watch invariants break before attackers find them. This makes Sentri the only dedicated invariant fuzzer for Solana programs in existence.
 
 ## [0.1.1] - 2026-02-18
 
