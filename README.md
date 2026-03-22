@@ -16,6 +16,17 @@ One tool. Three chains. One DSL.
 
 ---
 
+## What's new in v0.2.1
+
+v0.2.1 fixes violation location reporting — all violations now show their actual source line numbers instead of defaulting to line 1. This dramatically improves debugging workflow.
+
+**Key improvements:**
+- ✅ **Accurate violation locations** — Real line numbers from the vulnerable code
+- ✅ **Code context** — Shows 2 lines before/after violation for quick reference
+- ✅ **Embedded line tracking** — Line numbers calculated during AST analysis, not post-processing
+
+---
+
 ## What's new in v0.2.0
 
 v0.2 replaces pattern matching with real Rust AST parsing via the `syn`
@@ -30,7 +41,7 @@ positives on idiomatic Anchor programs.
 | `AccountInfo` with `/// CHECK:` | ❌ False positive | ✅ Downgraded to INFO |
 | `AccountInfo` with no constraint | ✅ CRITICAL | ✅ Still CRITICAL |
 
-> **Upgrading from v0.1?** Run `cargo install sentri-cli --force`
+> **Upgrading from v0.1/v0.2.0?** Run `cargo install sentri-cli --force`
 
 ---
 
@@ -44,7 +55,7 @@ cargo install sentri-cli
 npm install -g @dextonicx/cli
 
 # Verify installation
-sentri --version   # sentri 0.2.0
+sentri --version   # sentri 0.2.1
 sentri doctor
 ```
 
