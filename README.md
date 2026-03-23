@@ -21,6 +21,7 @@ One tool. Three chains. One DSL.
 v0.2.1 fixes violation location reporting — all violations now show their actual source line numbers instead of defaulting to line 1. This dramatically improves debugging workflow.
 
 **Key improvements:**
+
 - ✅ **Accurate violation locations** — Real line numbers from the vulnerable code
 - ✅ **Code context** — Shows 2 lines before/after violation for quick reference
 - ✅ **Embedded line tracking** — Line numbers calculated during AST analysis, not post-processing

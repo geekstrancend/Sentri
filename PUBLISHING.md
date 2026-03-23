@@ -18,6 +18,7 @@ git push origin v0.1.8
 ```
 
 That's it! GitHub Actions will automatically:
+
 - Run comprehensive tests
 - Build multi-platform binaries
 - Publish to **crates.io**
@@ -31,6 +32,7 @@ That's it! GitHub Actions will automatically:
 You need to configure two GitHub secrets in your repository:
 
 #### 1. **CRATES_IO_TOKEN** (for Rust publishing)
+
 ```bash
 # Generate at https://crates.io/me
 # Click "API Tokens" → "New Token"
@@ -38,6 +40,7 @@ You need to configure two GitHub secrets in your repository:
 ```
 
 Navigate to:
+
 1. GitHub repo → Settings → Secrets and variables → Actions
 2. Click "New repository secret"
 3. Name: `CRATES_IO_TOKEN`
@@ -45,12 +48,14 @@ Navigate to:
 5. Click "Add secret"
 
 #### 2. **NPM_TOKEN** (for npm publishing)
+
 ```bash
 # Generate at https://www.npmjs.com/settings/YOUR_USERNAME/tokens
 # Token type: "Automation"
 ```
 
 Navigate to:
+
 1. GitHub repo → Settings → Secrets and variables → Actions
 2. Click "New repository secret"
 3. Name: `NPM_TOKEN`
@@ -77,6 +82,7 @@ git push origin main v0.1.8
 ```
 
 This triggers:
+
 1. **release.yml** → Publishes to crates.io + creates GitHub release
 2. **publish-npm.yml** → Publishes to npm registry
 
@@ -93,6 +99,7 @@ If crates.io published but npm wasn't triggered:
 ```
 
 Or via CLI:
+
 ```bash
 gh workflow run publish-npm.yml \
   -f version="0.1.8"
@@ -103,6 +110,7 @@ gh workflow run publish-npm.yml \
 ### Step 1: Update Version in All Files
 
 **Cargo.toml files** (all crate packages):
+
 ```toml
 [package]
 name = "sentri-cli"
@@ -110,6 +118,7 @@ version = "0.1.8"  # ← Update this
 ```
 
 Files to update:
+
 - `Cargo.toml` (workspace root)
 - `crates/core/Cargo.toml`
 - `crates/cli/Cargo.toml`
@@ -125,6 +134,7 @@ Files to update:
 - All generator crates
 
 **sentri-npm/package.json**:
+
 ```json
 {
   "name": "@dextonicx/cli",
@@ -136,6 +146,7 @@ Files to update:
 ### Step 2: Update CHANGELOG
 
 **CHANGELOG.md** − Add section at top:
+
 ```markdown
 ## [0.1.8] - 2026-03-11
 
@@ -175,7 +186,7 @@ git push origin v0.1.8
 The **release.yml** workflow runs these stages in order:
 
 | Stage | Job | Purpose |
-|-------|-----|---------|
+| --- | --- | --- |
 | 1 | validate-version | Verify semantic version format |
 | 2 | ci-verification | Run all tests, formatting, linting |
 | 3 | security-audit | Cargo audit, unsafe code review |
@@ -189,7 +200,7 @@ The **release.yml** workflow runs these stages in order:
 The **publish-npm.yml** workflow:
 
 | Stage | Job | Purpose |
-|-------|-----|---------|
+| --- | --- | --- |
 | 1 | extract-version | Parse version from release tag |
 | 2 | wait-crates-io | Verify crates.io has sentri-cli |
 | 3 | build-npm (6 jobs) | Build binaries for npm package |
@@ -262,7 +273,7 @@ sentri doctor
 
 **Cause**: Package already exists on crates.io/npm
 
-**Fix**: 
+**Fix**:
 - Increment version in Cargo.toml and package.json
 - Create new tag and push again
 

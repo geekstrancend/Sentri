@@ -48,7 +48,7 @@ Download `sentri-windows-x86_64-0.1.0.exe` from the releases page and add it to 
 
 ### 2. Install from Source
 
-Requires Rust 1.70.0+. Install from https://rustup.rs/.
+Requires Rust 1.70.0+. Install from [https://rustup.rs/](https://rustup.rs/).
 
 ```bash
 git clone https://github.com/geekstrancend/Sentri.git
@@ -88,17 +88,20 @@ sha256sum /usr/local/bin/sentri
 Sentri supports configuration via:
 
 1. **Command-line arguments** (highest priority)
+
    ```bash
    sentri --config path/to/config.toml
    ```
 
 2. **Environment variables**
+
    ```bash
    export SENTRI_STRICT_MODE=true
    export SENTRI_CHAIN=solana
    ```
 
 3. **Configuration file** (`~/.sentri/config.toml`)
+
    ```toml
    [enforcement]
    strict_mode = true
@@ -124,6 +127,7 @@ cargo uninstall sentri
 ### Binary not found after installation
 
 Ensure `/usr/local/bin` is in your PATH:
+
 ```bash
 echo $PATH | grep -q /usr/local/bin || echo "/usr/local/bin not in PATH"
 ```
@@ -131,6 +135,7 @@ echo $PATH | grep -q /usr/local/bin || echo "/usr/local/bin not in PATH"
 ### Checksum verification fails
 
 This indicates a corrupted download. Re-download the binary and try again:
+
 ```bash
 rm sentri-*
 # Re-download from releases page
@@ -139,6 +144,7 @@ rm sentri-*
 ### Permission denied on Linux/macOS
 
 Make sure the binary is executable:
+
 ```bash
 chmod +x /usr/local/bin/sentri
 ```
@@ -149,15 +155,16 @@ chmod +x /usr/local/bin/sentri
 2. **Keep Sentri updated** to get security patches
 3. **Run with least privilege** - don't run as root unless necessary
 4. **Enable strict mode** for production deployments:
+
    ```bash
    sentri --strict-mode analyze --file invariants.invar
    ```
 
 ## Getting Help
 
-- Report bugs: https://github.com/geekstrancend/Sentri/issues
-- Documentation: https://github.com/geekstrancend/Sentri/wiki
-- Community: Discussions at https://github.com/geekstrancend/Sentri/discussions
+- Report bugs: [https://github.com/geekstrancend/Sentri/issues](https://github.com/geekstrancend/Sentri/issues)
+- Documentation: [https://github.com/geekstrancend/Sentri/wiki](https://github.com/geekstrancend/Sentri/wiki)
+- Community: Discussions at [https://github.com/geekstrancend/Sentri/discussions](https://github.com/geekstrancend/Sentri/discussions)
 
 ## Release Notes
 
@@ -184,6 +191,7 @@ cargo test --release
 ### Reproducibility Verification
 
 All binaries in official releases are built with:
+
 - Rust 1.70.0 (pinned version)
 - LTO (Link Time Optimization) enabled
 - Optimization level 3
