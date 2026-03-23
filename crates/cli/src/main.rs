@@ -689,48 +689,39 @@ fn find_vulnerability_line(
                     // Check if this marker is relevant to the invariant
                     let marker_upper = marker.to_uppercase();
 
+                    #[allow(clippy::if_same_then_else)]
                     // Match based on invariant type
-                    if invariant_lower.contains("signer") {
-                        if marker_upper.contains("SIGNER") {
-                            return Some(line_num);
-                        }
-                    } else if invariant_lower.contains("lamport") {
-                        if marker_upper.contains("LAMPORT") {
-                            return Some(line_num);
-                        }
-                    } else if invariant_lower.contains("overflow")
-                        || invariant_lower.contains("arithmetic")
+                    if invariant_lower.contains("signer") && marker_upper.contains("SIGNER") {
+                        return Some(line_num);
+                    } else if invariant_lower.contains("lamport")
+                        && marker_upper.contains("LAMPORT")
                     {
-                        if marker_upper.contains("ARITHMETIC") {
-                            return Some(line_num);
-                        }
-                    } else if invariant_lower.contains("account") {
-                        if marker_upper.contains("ACCOUNT") || marker_upper.contains("VALIDATION") {
-                            return Some(line_num);
-                        }
-                    } else if invariant_lower.contains("rent") {
-                        if marker_upper.contains("RENT") {
-                            return Some(line_num);
-                        }
-                    } else if invariant_lower.contains("pda") {
-                        if marker_upper.contains("PDA") {
-                            return Some(line_num);
-                        }
-                    } else if invariant_lower.contains("deserialization")
-                        || invariant_lower.contains("instruction")
+                        return Some(line_num);
+                    } else if (invariant_lower.contains("overflow")
+                        || invariant_lower.contains("arithmetic"))
+                        && marker_upper.contains("ARITHMETIC")
                     {
-                        if marker_upper.contains("DESERIAL") || marker_upper.contains("INSTRUCTION")
-                        {
-                            return Some(line_num);
-                        }
-                    } else if invariant_lower.contains("token") {
-                        if marker_upper.contains("TOKEN") {
-                            return Some(line_num);
-                        }
-                    } else if invariant_lower.contains("reentrancy") {
-                        if marker_upper.contains("REENTRANCY") {
-                            return Some(line_num);
-                        }
+                        return Some(line_num);
+                    } else if invariant_lower.contains("account")
+                        && (marker_upper.contains("ACCOUNT") || marker_upper.contains("VALIDATION"))
+                    {
+                        return Some(line_num);
+                    } else if invariant_lower.contains("rent") && marker_upper.contains("RENT") {
+                        return Some(line_num);
+                    } else if invariant_lower.contains("pda") && marker_upper.contains("PDA") {
+                        return Some(line_num);
+                    } else if (invariant_lower.contains("deserialization")
+                        || invariant_lower.contains("instruction"))
+                        && (marker_upper.contains("DESERIAL")
+                            || marker_upper.contains("INSTRUCTION"))
+                    {
+                        return Some(line_num);
+                    } else if invariant_lower.contains("token") && marker_upper.contains("TOKEN") {
+                        return Some(line_num);
+                    } else if invariant_lower.contains("reentrancy")
+                        && marker_upper.contains("REENTRANCY")
+                    {
+                        return Some(line_num);
                     }
                 }
             }
