@@ -233,7 +233,7 @@ impl DataFlowAnalyzer {
     }
 
     /// Build data dependency graph.
-    fn build_dependencies(cfg: &ControlFlowGraph, analysis: DataFlow) -> AnalysisResult<DataFlow> {
+    fn build_dependencies(_cfg: &ControlFlowGraph, analysis: DataFlow) -> AnalysisResult<DataFlow> {
         // TODO: Construct dependency graph from def-use chains
 
         Ok(analysis)
@@ -296,7 +296,7 @@ pub struct UseDefAnalyzer;
 
 impl UseDefAnalyzer {
     /// Compute use-def chains for all variables.
-    pub fn compute_chains(cfg: &ControlFlowGraph) -> AnalysisResult<HashMap<String, Vec<DefUse>>> {
+    pub fn compute_chains(_cfg: &ControlFlowGraph) -> AnalysisResult<HashMap<String, Vec<DefUse>>> {
         let chains: HashMap<String, Vec<DefUse>> = HashMap::new();
 
         // TODO: Walk CFG and compute use-def chains
