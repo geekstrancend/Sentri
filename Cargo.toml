@@ -63,6 +63,17 @@ syn = { version = "2", features = ["full", "extra-traits"] }
 quote = "1"
 proc-macro2 = "1"
 
+# Solidity/EVM specific
+solc = "0.0.9"
+# revm = { version = "2", features = ["std"] }
+# alloy-primitives = "0.3"
+# alloy-sol-types = "0.3"
+
+# Code analysis
+petgraph = { version = "0.6", features = ["serde-1"] }
+tree-sitter = "0.20"
+tree-sitter-solidity = "1.2"
+
 # Terminal UI
 terminal_size = "0.3"
 
