@@ -65,9 +65,16 @@ proc-macro2 = "1"
 
 # Solidity/EVM specific
 solc = "0.0.9"
-# revm = { version = "2", features = ["std"] }
-# alloy-primitives = "0.3"
-# alloy-sol-types = "0.3"
+revm = { version = "14", features = [
+    "std",
+    "serde",
+    "optional_block_gas_limit",
+    "optional_eip3607",
+    "optional_no_base_fee",
+] }
+ureq = { version = "2", features = ["json"] }
+sha3 = "0.10"
+hex = "0.4"
 
 # Code analysis
 petgraph = { version = "0.6", features = ["serde-1"] }
