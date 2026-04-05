@@ -3,10 +3,10 @@
 //! This module wraps the revm Ethereum Virtual Machine to enable in-process
 //! contract execution and invariant verification.
 
-use anyhow::{bail, Result};
+use anyhow::Result;
 use revm::{
-    primitives::{AccountInfo, Address, Bytecode, ExecutionResult, Output, TransactTo, B256, U256},
-    Evm, State,
+    primitives::{AccountInfo, Address, Bytecode, B256, U256},
+    State,
 };
 
 /// Result of a function call in the EVM
