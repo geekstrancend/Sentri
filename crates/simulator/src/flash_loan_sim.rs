@@ -81,11 +81,7 @@ impl FlashLoanSimulator {
         })
     }
 
-    fn read_oracle_price(
-        &self,
-        oracle: Address,
-        selector: [u8; 4],
-    ) -> Result<U256> {
+    fn read_oracle_price(&self, oracle: Address, selector: [u8; 4]) -> Result<U256> {
         let result = self.runtime.call_static(oracle, selector.to_vec())?;
 
         if result.len() >= 32 {

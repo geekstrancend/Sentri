@@ -18,7 +18,9 @@ use crate::ast_types::{AstNode, SourceUnit};
 use crate::ast_walker::{AstVisitor, AstWalker};
 use crate::bytecode::{IssueType, Severity};
 use crate::cfg::ControlFlowGraph;
-use crate::detectors::{AccessControlDetector, FlashLoanDetector, OverflowDetector, ReentrancyDetector};
+use crate::detectors::{
+    AccessControlDetector, FlashLoanDetector, OverflowDetector, ReentrancyDetector,
+};
 use crate::errors::AnalysisError;
 use sentri_utils::SolcManager;
 
@@ -261,7 +263,7 @@ impl EvmAnalyzer {
 
         let source = std::fs::read_to_string(path)
             .map_err(|e| anyhow::anyhow!("Failed to read {}: {}", path.display(), e))?;
-        
+
         let file_name = path
             .file_name()
             .unwrap_or_default()
@@ -274,10 +276,7 @@ impl EvmAnalyzer {
                 self.run_ast_detectors(&solc_output, &source, &file_name, path)
             }
             Err(e) => {
-                warn!(
-                    "AST parse failed for {} ({}), using patterns",
-                    file_name, e
-                );
+                warn!("AST parse failed for {} ({}), using patterns", file_name, e);
                 self.analyze_with_patterns(path)
             }
         }
@@ -333,7 +332,7 @@ impl EvmAnalyzer {
     fn analyze_with_patterns(&self, path: &Path) -> anyhow::Result<Vec<Violation>> {
         let _source = std::fs::read_to_string(path)
             .map_err(|e| anyhow::anyhow!("Failed to read {}: {}", path.display(), e))?;
-        
+
         // Fallback: return empty for now
         // In production, this would have regex-based pattern detectors
         Ok(vec![])

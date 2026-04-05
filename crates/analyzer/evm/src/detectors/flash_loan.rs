@@ -98,10 +98,8 @@ impl<'a> AstVisitor for FlashLoanDetector<'a> {
                         cwe: Some("CWE-657".to_string()),
                         references: vec![
                             "https://docs.uniswap.org/concepts/protocol/oracle".to_string(),
-                            "https://docs.chain.link/docs/get-the-latest-price/"
-                                .to_string(),
-                            "https://samczsun.com/the-dangers-of-price-oracles/"
-                                .to_string(),
+                            "https://docs.chain.link/docs/get-the-latest-price/".to_string(),
+                            "https://samczsun.com/the-dangers-of-price-oracles/".to_string(),
                         ],
                     });
                 }
@@ -119,12 +117,7 @@ fn extract_context(lines: &[&str], line_num: usize) -> String {
     for i in start..end {
         if i < lines.len() {
             let marker = if i == line_idx { ">>> " } else { "    " };
-            context.push_str(&format!(
-                "{}{:4} {}\n",
-                marker,
-                i + 1,
-                lines[i]
-            ));
+            context.push_str(&format!("{}{:4} {}\n", marker, i + 1, lines[i]));
         }
     }
     context

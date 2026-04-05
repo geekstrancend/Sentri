@@ -456,18 +456,15 @@ impl AstNode {
     /// Get type string if available
     pub fn get_type_string(&self) -> Option<String> {
         match self {
-            AstNode::Identifier(id) => {
-                id.type_descriptions.as_ref().map(|t| t.type_string.clone())
-            }
-            AstNode::Literal(lit) => {
-                lit.type_descriptions.as_ref().map(|t| t.type_string.clone())
-            }
+            AstNode::Identifier(id) => id.type_descriptions.as_ref().map(|t| t.type_string.clone()),
+            AstNode::Literal(lit) => lit
+                .type_descriptions
+                .as_ref()
+                .map(|t| t.type_string.clone()),
             AstNode::MemberAccess(ma) => {
                 ma.type_descriptions.as_ref().map(|t| t.type_string.clone())
             }
-            AstNode::BinaryOperation(bo) => {
-                bo.common_type.as_ref().map(|t| t.type_string.clone())
-            }
+            AstNode::BinaryOperation(bo) => bo.common_type.as_ref().map(|t| t.type_string.clone()),
             _ => None,
         }
     }

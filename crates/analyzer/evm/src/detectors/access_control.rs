@@ -54,7 +54,7 @@ impl<'a> AstVisitor for AccessControlDetector<'a> {
                              Any account can call this function.",
                             contract, func.name, line
                         ),
-                        recommendation: 
+                        recommendation:
                             "Add an access control modifier like onlyOwner, onlyAdmin, \
                              or use role-based access control (RBAC). \
                              OpenZeppelin provides Ownable, AccessControl, and other \
@@ -79,9 +79,19 @@ impl<'a> AccessControlDetector<'a> {
         // Functions that typically need access control
         matches!(
             name,
-            "withdraw" | "transfer" | "burn" | "mint" | "pause" | "unpause"
-                | "setrole" | "addadmin" | "removeadmin" | "settle" | "execute"
-                | "drain" | "upgrade"
+            "withdraw"
+                | "transfer"
+                | "burn"
+                | "mint"
+                | "pause"
+                | "unpause"
+                | "setrole"
+                | "addadmin"
+                | "removeadmin"
+                | "settle"
+                | "execute"
+                | "drain"
+                | "upgrade"
         )
     }
 }
@@ -95,12 +105,7 @@ fn extract_context(lines: &[&str], line_num: usize) -> String {
     for i in start..end {
         if i < lines.len() {
             let marker = if i == line_idx { ">>> " } else { "    " };
-            context.push_str(&format!(
-                "{}{:4} {}\n",
-                marker,
-                i + 1,
-                lines[i]
-            ));
+            context.push_str(&format!("{}{:4} {}\n", marker, i + 1, lines[i]));
         }
     }
     context

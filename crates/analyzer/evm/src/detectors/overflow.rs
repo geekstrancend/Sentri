@@ -56,12 +56,7 @@ impl<'a> OverflowDetector<'a> {
 }
 
 impl<'a> AstVisitor for OverflowDetector<'a> {
-    fn visit_binary_op(
-        &mut self,
-        op: &BinaryOperation,
-        func: &FunctionDefinition,
-        contract: &str,
-    ) {
+    fn visit_binary_op(&mut self, op: &BinaryOperation, func: &FunctionDefinition, contract: &str) {
         // Only check arithmetic operators
         if !matches!(op.operator.as_str(), "+" | "-" | "*" | "**") {
             return;
@@ -73,14 +68,8 @@ impl<'a> AstVisitor for OverflowDetector<'a> {
         }
 
         // Check if operands are integer types
-        let left_type = op
-            .left_expression
-            .get_type_string()
-            .unwrap_or_default();
-        let right_type = op
-            .right_expression
-            .get_type_string()
-            .unwrap_or_default();
+        let left_type = op.left_expression.get_type_string().unwrap_or_default();
+        let right_type = op.right_expression.get_type_string().unwrap_or_default();
 
         let is_integer_op = (left_type.contains("uint") || left_type.contains("int"))
             && (right_type.contains("uint") || right_type.contains("int"));
@@ -134,12 +123,7 @@ fn extract_context(lines: &[&str], line_num: usize) -> String {
     for i in start..end {
         if i < lines.len() {
             let marker = if i == line_idx { ">>> " } else { "    " };
-            context.push_str(&format!(
-                "{}{:4} {}\n",
-                marker,
-                i + 1,
-                lines[i]
-            ));
+            context.push_str(&format!("{}{:4} {}\n", marker, i + 1, lines[i]));
         }
     }
     context

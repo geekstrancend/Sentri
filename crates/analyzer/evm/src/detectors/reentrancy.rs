@@ -45,7 +45,7 @@ impl<'a> ReentrancyDetector<'a> {
         // - addr.send(x)
         // - addr.transfer(x)
         // - IERC20(token).transfer(to, amount)
-        
+
         match call.expression.as_ref() {
             AstNode::MemberAccess(member) => {
                 matches!(
@@ -199,12 +199,7 @@ fn extract_code_context(lines: &[&str], line_num: usize) -> String {
     for i in start..end {
         if i < lines.len() {
             let marker = if i == line_idx { ">>> " } else { "    " };
-            context.push_str(&format!(
-                "{}{:4} {}\n",
-                marker,
-                i + 1,
-                lines[i]
-            ));
+            context.push_str(&format!("{}{:4} {}\n", marker, i + 1, lines[i]));
         }
     }
     context

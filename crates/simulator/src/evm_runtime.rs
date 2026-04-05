@@ -85,11 +85,7 @@ impl EvmRuntime {
     }
 
     /// Read state without modifying it
-    pub fn call_static(
-        &self,
-        _contract: Address,
-        _calldata: Vec<u8>,
-    ) -> Result<Vec<u8>> {
+    pub fn call_static(&self, _contract: Address, _calldata: Vec<u8>) -> Result<Vec<u8>> {
         // Placeholder implementation
         Ok(vec![])
     }

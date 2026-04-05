@@ -16,5 +16,4 @@ pub mod fuzzer;
 pub use engine::SimulationEngine;
 pub use evm_runtime::EvmRuntime;
 pub use flash_loan_sim::FlashLoanSimulator;
-pub use fuzzer::{Fuzzer, FuzzerConfig, FuzzResult, FuzzTransaction};
-
+pub use fuzzer::{FuzzResult, FuzzTransaction, Fuzzer, FuzzerConfig};

@@ -100,7 +100,8 @@ impl<'a> AstWalker<'a> {
             }
             AstNode::FunctionCall(call) => {
                 if let Some(func) = current_func {
-                    self.visitor.visit_function_call(call, func, current_contract);
+                    self.visitor
+                        .visit_function_call(call, func, current_contract);
                 }
                 // Walk into call arguments
                 for arg in &call.arguments {
