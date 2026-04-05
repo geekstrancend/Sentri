@@ -6,16 +6,15 @@
 //! - Bytecode disassembly for compiled code analysis
 //! - Pattern-based vulnerability detection
 
-use sentri_core::model::{FunctionModel, ProgramModel, Violation};
+use sentri_core::model::{FunctionModel, ProgramModel};
 use sentri_core::traits::ChainAnalyzer;
 use sentri_core::{AnalysisContext, Result};
-use std::collections::BTreeSet;
 use std::path::Path;
 use tracing::{debug, info, warn};
 
 use crate::ast::{AstContract, SolidityParser, Visibility};
-use crate::ast_types::{AstNode, SourceUnit};
-use crate::ast_walker::{AstVisitor, AstWalker};
+use crate::ast_types::AstNode;
+use crate::ast_walker::AstWalker;
 use crate::bytecode::{IssueType, Severity};
 use crate::cfg::ControlFlowGraph;
 use crate::detectors::{
@@ -339,7 +338,6 @@ impl EvmAnalyzer {
     }
 
     /// Fallback to basic heuristic vulnerability detection when AST parsing fails.
-
     fn basic_vulnerability_check(&self, path: &Path, context: &mut AnalysisContext) -> Result<()> {
         let source = std::fs::read_to_string(path).map_err(sentri_core::InvarError::IoError)?;
         let lines: Vec<&str> = source.lines().collect();

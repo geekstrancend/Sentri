@@ -6,8 +6,11 @@
 
 use crate::ast_types::*;
 use crate::ast_walker::AstVisitor;
-use sentri_core::model::Violation;
-use sentri_core::Severity;
+use crate::bytecode::Severity;
+
+/// Placeholder for violation type until proper integration with sentri_core
+#[derive(Debug, Clone)]
+struct Violation;
 
 /// Detects reentrancy vulnerabilities via AST statement analysis
 pub struct ReentrancyDetector<'a> {

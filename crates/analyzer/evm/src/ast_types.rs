@@ -4,7 +4,7 @@
 //! They enable precise analysis of control flow, data flow, and vulnerability patterns.
 
 use serde::{Deserialize, Serialize};
-use std::collections::HashMap;
+
 
 /// Parse a "start:length:file" source location string
 pub fn parse_src(src: &str) -> (u64, u64, u64) {
