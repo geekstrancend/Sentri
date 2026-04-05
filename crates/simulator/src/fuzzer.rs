@@ -95,11 +95,7 @@ pub struct Fuzzer {
 
 impl Fuzzer {
     /// Create a new fuzzer
-    pub fn new(
-        bytecode: Vec<u8>,
-        _abi_json: &str,
-        config: FuzzerConfig,
-    ) -> Result<Self> {
+    pub fn new(bytecode: Vec<u8>, _abi_json: &str, config: FuzzerConfig) -> Result<Self> {
         let mut runtime = EvmRuntime::new();
 
         // Create fuzzer accounts
@@ -131,7 +127,7 @@ impl Fuzzer {
 
         // For now, return success (no violations found)
         // In production: actually run fuzzing with invariant checks
-        
+
         FuzzResult {
             invariant_id: invariant.id.clone(),
             violated: false,

@@ -74,7 +74,9 @@ contract SafeBank {
 
         println!("Safe test contract created at: {}", path.display());
         println!("Expected: Should NOT detect reentrancy");
-        println!("Reason: State update (balances[msg.sender] -= amount) occurs before external call");
+        println!(
+            "Reason: State update (balances[msg.sender] -= amount) occurs before external call"
+        );
     }
 
     // Test flash loan oracle manipulation detection
@@ -196,7 +198,10 @@ contract NoAccessControl {
         )
         .unwrap();
 
-        println!("Access control test contract created at: {}", path.display());
+        println!(
+            "Access control test contract created at: {}",
+            path.display()
+        );
         println!("Expected: Should detect missing access control on withdraw() and mint()");
         println!("Should NOT flag safeWithdraw() due to onlyOwner modifier");
     }

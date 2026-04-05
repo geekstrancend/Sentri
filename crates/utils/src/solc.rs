@@ -50,7 +50,11 @@ impl SolcManager {
             let path = PathBuf::from(path);
             if path.exists() {
                 let version = Self::get_version(&path)?;
-                info!("Using solc from SOLC_PATH: {} (v{})", path.display(), version);
+                info!(
+                    "Using solc from SOLC_PATH: {} (v{})",
+                    path.display(),
+                    version
+                );
                 return Ok(Self {
                     solc_path: path,
                     version,
@@ -75,7 +79,11 @@ impl SolcManager {
         let cache_path = Self::cache_path();
         if cache_path.exists() {
             let version = Self::get_version(&cache_path)?;
-            info!("Using cached solc from {} (v{})", cache_path.display(), version);
+            info!(
+                "Using cached solc from {} (v{})",
+                cache_path.display(),
+                version
+            );
             return Ok(Self {
                 solc_path: cache_path,
                 version,
@@ -110,15 +118,16 @@ impl SolcManager {
 
         let stdout = String::from_utf8_lossy(&output.stdout);
         serde_json::from_str(&stdout).with_context(|| {
-            format!("Failed to parse solc JSON output for: {}", source_path.display())
+            format!(
+                "Failed to parse solc JSON output for: {}",
+                source_path.display()
+            )
         })
     }
 
     /// Get AST for source code string (writes to temp file)
     pub fn get_ast_for_source(&self, source: &str, _filename: &str) -> Result<SolcOutput> {
-        let tmp = tempfile::Builder::new()
-            .suffix(".sol")
-            .tempfile()?;
+        let tmp = tempfile::Builder::new().suffix(".sol").tempfile()?;
         std::fs::write(tmp.path(), source)?;
         self.get_ast_json(tmp.path())
     }
@@ -132,9 +141,7 @@ impl SolcManager {
     }
 
     fn get_version(path: &Path) -> Result<String> {
-        let output = Command::new(path)
-            .arg("--version")
-            .output()?;
+        let output = Command::new(path).arg("--version").output()?;
         let stdout = String::from_utf8_lossy(&output.stdout);
         Self::parse_version(&stdout)
     }
@@ -169,9 +176,8 @@ impl SolcManager {
         };
 
         let version = "0.8.21";
-        let url = format!(
-            "https://binaries.soliditylang.org/{platform}/solc-{platform}-v{version}"
-        );
+        let url =
+            format!("https://binaries.soliditylang.org/{platform}/solc-{platform}-v{version}");
 
         info!("Downloading solc v{} for {}...", version, platform);
 
@@ -225,6 +231,8 @@ mod tests {
     fn test_has_fatal_errors() {
         assert!(SolcManager::has_fatal_errors("Error: Something went wrong"));
         assert!(!SolcManager::has_fatal_errors("Warning: Be careful"));
-        assert!(SolcManager::has_fatal_errors("Warning: Be careful\nError: Failed"));
+        assert!(SolcManager::has_fatal_errors(
+            "Warning: Be careful\nError: Failed"
+        ));
     }
 }
