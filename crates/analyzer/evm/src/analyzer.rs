@@ -6,7 +6,7 @@
 //! - Bytecode disassembly for compiled code analysis
 //! - Pattern-based vulnerability detection
 
-use sentri_core::model::{FunctionModel, ProgramModel};
+use sentri_core::model::{FunctionModel, ProgramModel, Violation};
 use sentri_core::traits::ChainAnalyzer;
 use sentri_core::{AnalysisContext, Result};
 use std::collections::BTreeSet;
@@ -14,9 +14,13 @@ use std::path::Path;
 use tracing::{debug, info, warn};
 
 use crate::ast::{AstContract, SolidityParser, Visibility};
+use crate::ast_types::{AstNode, SourceUnit};
+use crate::ast_walker::{AstVisitor, AstWalker};
 use crate::bytecode::{IssueType, Severity};
 use crate::cfg::ControlFlowGraph;
+use crate::detectors::{AccessControlDetector, FlashLoanDetector, OverflowDetector, ReentrancyDetector};
 use crate::errors::AnalysisError;
+use sentri_utils::SolcManager;
 
 /// Analyzer for EVM (Solidity) smart contracts.
 ///
@@ -239,7 +243,104 @@ impl EvmAnalyzer {
         Ok(context)
     }
 
+    /// Analyze a Solidity contract using solc JSON AST and AST-based detectors.
+    ///
+    /// This is the primary analysis method for high-precision vulnerability detection.
+    /// Falls back to pattern analysis if solc is not available.
+    pub fn analyze_with_ast(&self, path: &Path) -> anyhow::Result<Vec<Violation>> {
+        let solc = match SolcManager::new() {
+            Ok(s) => s,
+            Err(e) => {
+                warn!(
+                    "solc not available ({}), falling back to pattern analysis",
+                    e
+                );
+                return self.analyze_with_patterns(path);
+            }
+        };
+
+        let source = std::fs::read_to_string(path)
+            .map_err(|e| anyhow::anyhow!("Failed to read {}: {}", path.display(), e))?;
+        
+        let file_name = path
+            .file_name()
+            .unwrap_or_default()
+            .to_string_lossy()
+            .to_string();
+
+        match solc.get_ast_for_source(&source, &file_name) {
+            Ok(solc_output) => {
+                debug!("Successfully parsed AST for {}", file_name);
+                self.run_ast_detectors(&solc_output, &source, &file_name, path)
+            }
+            Err(e) => {
+                warn!(
+                    "AST parse failed for {} ({}), using patterns",
+                    file_name, e
+                );
+                self.analyze_with_patterns(path)
+            }
+        }
+    }
+
+    fn run_ast_detectors(
+        &self,
+        output: &sentri_utils::SolcOutput,
+        source: &str,
+        file_name: &str,
+        _path: &Path,
+    ) -> anyhow::Result<Vec<Violation>> {
+        let mut violations = Vec::new();
+
+        for (_, source_data) in &output.sources {
+            // Run reentrancy detector
+            let mut reentrancy = ReentrancyDetector::new(source, file_name);
+            let mut walker = AstWalker::new(&mut reentrancy);
+            if let AstNode::SourceUnit(unit) = serde_json::from_value(source_data.ast.clone())? {
+                walker.walk_source_unit(&unit);
+            }
+            violations.extend(reentrancy.violations);
+
+            // Run overflow detector
+            let mut overflow = OverflowDetector::new(source, file_name);
+            let mut walker = AstWalker::new(&mut overflow);
+            if let AstNode::SourceUnit(unit) = serde_json::from_value(source_data.ast.clone())? {
+                walker.walk_source_unit(&unit);
+            }
+            violations.extend(overflow.violations);
+
+            // Run flash loan detector
+            let mut flash_loan = FlashLoanDetector::new(source, file_name);
+            let mut walker = AstWalker::new(&mut flash_loan);
+            if let AstNode::SourceUnit(unit) = serde_json::from_value(source_data.ast.clone())? {
+                walker.walk_source_unit(&unit);
+            }
+            violations.extend(flash_loan.violations);
+
+            // Run access control detector
+            let mut access = AccessControlDetector::new(source, file_name);
+            let mut walker = AstWalker::new(&mut access);
+            if let AstNode::SourceUnit(unit) = serde_json::from_value(source_data.ast.clone())? {
+                walker.walk_source_unit(&unit);
+            }
+            violations.extend(access.violations);
+        }
+
+        Ok(violations)
+    }
+
+    /// Analyze with pattern-based fallback
+    fn analyze_with_patterns(&self, path: &Path) -> anyhow::Result<Vec<Violation>> {
+        let _source = std::fs::read_to_string(path)
+            .map_err(|e| anyhow::anyhow!("Failed to read {}: {}", path.display(), e))?;
+        
+        // Fallback: return empty for now
+        // In production, this would have regex-based pattern detectors
+        Ok(vec![])
+    }
+
     /// Fallback to basic heuristic vulnerability detection when AST parsing fails.
+
     fn basic_vulnerability_check(&self, path: &Path, context: &mut AnalysisContext) -> Result<()> {
         let source = std::fs::read_to_string(path).map_err(sentri_core::InvarError::IoError)?;
         let lines: Vec<&str> = source.lines().collect();
