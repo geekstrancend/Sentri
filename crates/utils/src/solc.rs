@@ -32,6 +32,7 @@ pub struct SolcOutput {
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct SourceData {
     #[serde(rename = "AST")]
+    /// Raw AST JSON value from solc output
     pub ast: serde_json::Value,
 }
 
@@ -114,7 +115,7 @@ impl SolcManager {
     }
 
     /// Get AST for source code string (writes to temp file)
-    pub fn get_ast_for_source(&self, source: &str, filename: &str) -> Result<SolcOutput> {
+    pub fn get_ast_for_source(&self, source: &str, _filename: &str) -> Result<SolcOutput> {
         let tmp = tempfile::Builder::new()
             .suffix(".sol")
             .tempfile()?;
