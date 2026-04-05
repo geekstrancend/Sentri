@@ -25,6 +25,9 @@ sentri-ir.workspace = true
 sentri-utils.workspace = true
 rand.workspace = true
 rayon.workspace = true
+revm.workspace = true
+sha3.workspace = true
+hex.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true
