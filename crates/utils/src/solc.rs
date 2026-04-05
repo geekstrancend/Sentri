@@ -90,7 +90,7 @@ impl SolcManager {
     /// Get the full AST JSON output for a Solidity file
     pub fn get_ast_json(&self, source_path: &Path) -> Result<SolcOutput> {
         let output = Command::new(&self.solc_path)
-            .args(&[
+            .args([
                 "--combined-json",
                 "ast,abi,bin,bin-runtime,srcmap,srcmap-runtime",
                 "--allow-paths",
@@ -161,11 +161,7 @@ impl SolcManager {
         std::fs::create_dir_all(cache_path.parent().unwrap())?;
 
         let platform = if cfg!(target_os = "macos") {
-            if cfg!(target_arch = "aarch64") {
-                "macosx-amd64"
-            } else {
-                "macosx-amd64"
-            }
+            "macosx-amd64"
         } else if cfg!(target_os = "windows") {
             "windows-amd64"
         } else {
