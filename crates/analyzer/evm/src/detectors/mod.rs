@@ -6,8 +6,10 @@ pub mod access_control;
 pub mod flash_loan;
 pub mod overflow;
 pub mod reentrancy;
+pub mod implementations;
 
 pub use access_control::AccessControlDetector;
 pub use flash_loan::FlashLoanDetector;
 pub use overflow::OverflowDetector;
 pub use reentrancy::ReentrancyDetector;
+pub use implementations::*;

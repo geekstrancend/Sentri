@@ -1,0 +1,16 @@
+# Access Control: Missing Signer Check
+# Detects: External state-modifying function without msg.sender validation
+
+invariant = "evm_missing_signer_check"
+severity = "HIGH"
+chain = "evm"
+description = "External function modifies state without msg.sender guard"
+message = "Function {func} at {line} modifies state but lacks access control"
+
+# Rule: If function is external/public, modifies state var (assignment),
+# but has no if/require checking msg.sender, owner, or role, flag it
+
+references = [
+  "https://swcregistry.io/docs/SWC-105",
+  "https://docs.openzeppelin.com/contracts/4.x/access-control"
+]

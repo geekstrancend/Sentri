@@ -1,0 +1,17 @@
+# Synthetic Assets: Conservation Check Absent
+# Detects: AMM swaps that do not verify k invariant (x*y=k)
+
+invariant = "evm_conservation_check_absent"
+severity = "CRITICAL"
+chain = "evm"
+description = "AMM swap does not assert x*y==k invariant holds"
+message = "Swap function at {line} does not verify pool invariant after exchange"
+
+# Rule: Flag swap/exchange functions in AMM contracts if they modify
+# reserves (x, y) without asserting that k = x*y is maintained
+# This allows the protocol to be drained
+
+references = [
+  "https://docs.uniswap.org/concepts/protocol/swaps",
+  "https://hackernoon.com/why-uniswap-is-a-decentralized-exchange-199a00ae7d81"
+]

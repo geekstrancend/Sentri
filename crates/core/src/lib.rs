@@ -12,7 +12,10 @@ pub mod attack_patterns;
 pub mod config;
 pub mod error;
 pub mod evaluator;
+pub mod finding;
+pub mod generated;
 pub mod model;
+pub mod registry;
 pub mod security_validator;
 pub mod threat_model;
 pub mod traits;
@@ -28,7 +31,10 @@ pub use attack_patterns::AttackPatternDB;
 pub use config::{AlertConfig, ChainConfig, Config, ConfigError, InvariantConfig};
 pub use error::{InvarError, Result};
 pub use evaluator::{EvalResult, EvaluationError, Evaluator, ExecutionContext, Value};
+pub use finding::{Finding, Severity};
+pub use generated::{get_invariant, invariant_count, invariants_for_chain, CompiledInvariant};
 pub use model::{FunctionModel, Invariant, ProgramModel, StateVar};
+pub use registry::{Exploit, ExploitRegistry, EXPLOIT_REGISTRY};
 pub use security_validator::{IssueSeverity, SecurityIssue, SecurityReport, SecurityValidator};
 pub use threat_model::{
     DSLSandbox, InjectionVerifier, SimulationIsolation, StrictModeAnalyzer, TamperDetector,

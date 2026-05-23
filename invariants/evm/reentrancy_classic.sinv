@@ -1,0 +1,17 @@
+# Reentrancy: Classic (Checks and Effects Interaction)
+# Detects: External calls before state modifications (violates CEI pattern)
+
+invariant = "evm_reentrancy_classic"
+severity = "CRITICAL"
+chain = "evm"
+description = "External call occurs before state update in same function"
+message = "Reentrancy vulnerability: external call at {line} before state update at {line_after}"
+
+# This pattern is checked by analyzing AST statement order
+# Rule: if external_call appears before assignment to state var in same function
+# and no reentrancy guard modifier exists, flag as violation
+
+references = [
+  "https://blog.openzeppelin.com/reentrancy-after-istanbul/",
+  "https://swcregistry.io/docs/SWC-009"
+]

@@ -1,0 +1,16 @@
+# Oracle: Spot Price
+# Detects: Using token reserve balance or balanceOf as price source
+
+invariant = "evm_oracle_spot_price"
+severity = "CRITICAL"
+chain = "evm"
+description = "Reserve balance used directly for pricing (no oracle)"
+message = "Spot price calculation using token.balanceOf() or pool.reserve at {line}"
+
+# Rule: Flag if call to token.balanceOf() or similar is used in
+# arithmetic operations for price/rate calculations without oracle check
+
+references = [
+  "https://swcregistry.io/docs/SWC-114",
+  "https://docs.chain.link/getting-started/consuming-data-feeds"
+]

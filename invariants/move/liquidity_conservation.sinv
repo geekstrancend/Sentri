@@ -1,0 +1,16 @@
+# Move: Liquidity Conservation
+# Detects: AMM swap not asserting x*y==k invariant
+
+invariant = "move_liquidity_conservation"
+severity = "CRITICAL"
+chain = "move"
+description = "AMM swap does not assert x*y==k post-swap"
+message = "Swap function at {line} does not verify pool invariant conservation"
+
+# Rule: If swap function modifies reserve_x and reserve_y without
+# asserting (new_x * new_y) >= (old_x * old_y), flag violation
+
+references = [
+  "https://move-language.github.io/move/",
+  "https://www.aptos.dev/"
+]

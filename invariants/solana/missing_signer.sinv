@@ -1,0 +1,17 @@
+# Solana: Missing Signer Constraint
+# Detects: Account parameters that should require signer constraint but don't
+
+invariant = "sol_missing_signer"
+severity = "HIGH"
+chain = "solana"
+description = "Account parameter lacks #[account(signer)] constraint"
+message = "Account '{var}' at {line} should have #[account(signer)] constraint"
+
+# Rule: If an account is marked as mutable OR used in a sensitive operation
+# (transfer lamports, close account), but lacks the signer constraint
+# in its Anchor #[account(...)] macro, flag violation
+
+references = [
+  "https://docs.anchor-lang.com/references/account-constraints",
+  "https://solanacookbook.com/core-concepts/accounts.html"
+]

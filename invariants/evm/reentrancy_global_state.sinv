@@ -1,0 +1,17 @@
+# Reentrancy: Global State Variable
+# Detects: Cross-function reentrancy via shared state variables
+
+invariant = "evm_reentrancy_global_state"
+severity = "HIGH"
+chain = "evm"
+description = "Cross-function reentrancy via shared state variable"
+message = "State var {var} modified by external call path at {line}"
+
+# Rule: Track state variable modifications across function boundaries
+# If external call in function A modifies state used by function B,
+# and no synchronization guard exists, flag vulnerability
+
+references = [
+  "https://swcregistry.io/docs/SWC-009",
+  "https://bytes032.com/2019/02/09/cross-function-reentrancy/"
+]

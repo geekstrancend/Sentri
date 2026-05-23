@@ -1,0 +1,17 @@
+# Solana: Admin No Timelock
+# Detects: Upgrade authority or admin that executes immediately without delay
+
+invariant = "sol_admin_no_timelock"
+severity = "HIGH"
+chain = "solana"
+description = "Upgrade authority executes immediately without timelock"
+message = "Admin function at {line} bypasses timelock protection"
+
+# Rule: If upgrade_authority, freeze_authority, or admin function
+# can execute a state change immediately with no time delay,
+# flag as violation (should have multisig + timelock)
+
+references = [
+  "https://solanacookbook.com/references/programs.html#upgradeable-programs",
+  "https://docs.solana.com/developing/programming-model/upgradable-programs"
+]

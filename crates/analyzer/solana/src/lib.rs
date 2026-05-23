@@ -8,9 +8,12 @@ pub mod analyzer;
 pub mod anchor_model;
 /// Parser for extracting account information from Anchor source code
 pub mod anchor_parser;
+/// Vulnerability detectors for Solana programs
+pub mod detectors;
 
 pub use analyzer::SolanaAnalyzer;
 pub use anchor_model::{
     AccountSecurity, AnchorAccountField, AnchorAccountStruct, AnchorConstraint,
 };
 pub use anchor_parser::parse_anchor_accounts;
+pub use detectors::*;

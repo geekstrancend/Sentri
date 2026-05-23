@@ -4,5 +4,8 @@
 //! Move (Aptos/Sui) program analyzer.
 
 pub mod analyzer;
+/// Vulnerability detectors for Move modules
+pub mod detectors;
 
 pub use analyzer::MoveAnalyzer;
+pub use detectors::*;

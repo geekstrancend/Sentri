@@ -1,0 +1,16 @@
+# Reentrancy: ERC20 Token Transfers
+# Detects: Token transfer before internal accounting updates
+
+invariant = "evm_reentrancy_erc20"
+severity = "CRITICAL"
+chain = "evm"
+description = "ERC20 transfer call before internal balance/allowance update"
+message = "Reentrancy via ERC20 transfer at {line} before accounting at {line_after}"
+
+# Rule: if call to external ERC20.transfer/transferFrom occurs before
+# update to internal mapping (balances[x] = ...), flag violation
+
+references = [
+  "https://docs.openzeppelin.com/contracts/4.x/api/token/erc20/#ERC20",
+  "https://swcregistry.io/docs/SWC-009"
+]
