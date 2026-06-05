@@ -1,0 +1,133 @@
+/// EVM Token Balance Manipulation Detector
+///
+/// Detects H50 vulnerability: Unsafe external call for balance checks
+///
+/// The vulnerability occurs when:
+/// 1. Code assumes balanceOf call is always safe
+/// 2. Malicious token contract can reenter
+/// 3. No guards against balance manipulation via callbacks
+/// 4. Can drain protocols via re-entrancy loops
+///
+
+use lazy_static::lazy_static;
+use regex::Regex;
+use sentri_core::Finding;
+
+lazy_static! {
+    static ref BALANCE_OF_CALL: Regex = 
+        Regex::new(r"(?i)(token\.balanceOf|ERC20\(.*?\)\.balanceOf|IERC20\(.*?\)\.balanceOf)").unwrap();
+    static ref TRANSFER_AFTER_CHECK: Regex = 
+        Regex::new(r"(?i)balance\s*=.*?balanceOf.*?transfer|amount\s*=.*?balanceOf.*?transferFrom").unwrap();
+    static ref REENTRANCY_GUARD: Regex = Regex::new(r"(?i)nonReentrant|ReentrancyGuard").unwrap();
+}
+
+pub fn detect_token_balance_manipulation(source: &str, file_path: &str) -> Vec<Finding> {
+    let mut findings = Vec::new();
+
+    for (line_num, line) in source.lines().enumerate() {
+        if line.trim().starts_with("//") || !BALANCE_OF_CALL.is_match(line) {
+            continue;
+        }
+
+        let context_end = std::cmp::min(line_num + 100, source.lines().count());
+        let function_body = source
+            .lines()
+            .skip(line_num)
+            .take(context_end - line_num)
+            .collect::<Vec<_>>()
+            .join("\n");
+
+        let has_transfer_after = TRANSFER_AFTER_CHECK.is_match(&function_body);
+        let has_guard = REENTRANCY_GUARD.is_match(&function_body);
+
+        if has_transfer_after && !has_guard {
+            findings.push(
+                Finding::new(
+                    "evm_token_balance_manipulation".to_string(),
+                    sentri_core::Severity::Medium,
+                    file_path.to_string(),
+                    line_num + 1,
+                    0,
+                    "Token balance check followed by transfer without reentrancy guard. Vulnerable to reentrant calls via token callback.".to_string(),
+                    line.trim().to_string(),
+                )
+                .with_metadata("exploit_id", "H50")
+                .with_metadata("exploit_name", "Token Balance Manipulation")
+                .with_metadata("loss", "$3.8M")
+                .with_metadata("year", "2023")
+                .with_metadata("vulnerability_type", "reentrancy")
+                .with_metadata("detector", "pattern_analysis")
+                .with_metadata("remediation", "Add nonReentrant modifier to function"),
+            );
+        }
+    }
+
+    findings
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_balance_check_without_guard() {
+        let vulnerable = r#"
+        function deposit(address token) external {
+            uint balance = IERC20(token).balanceOf(msg.sender);
+            require(balance > 0, "no balance");
+            IERC20(token).transferFrom(msg.sender, address(this), balance);
+        }
+        "#;
+        let findings = detect_token_balance_manipulation(vulnerable, "test.sol");
+        assert!(!findings.is_empty());
+    }
+
+    #[test]
+    fn test_with_reentrancy_guard() {
+        let safe = r#"
+        function deposit(address token) external nonReentrant {
+            uint balance = IERC20(token).balanceOf(msg.sender);
+            require(balance > 0, "no balance");
+            IERC20(token).transferFrom(msg.sender, address(this), balance);
+        }
+        "#;
+        let findings = detect_token_balance_manipulation(safe, "test.sol");
+        assert!(findings.is_empty());
+    }
+
+    #[test]
+    fn test_with_reentrant_guard() {
+        let safe = r#"
+        function withdraw(address token) external ReentrancyGuard {
+            uint balance = token.balanceOf(address(this));
+            token.transfer(msg.sender, balance);
+        }
+        "#;
+        let findings = detect_token_balance_manipulation(safe, "test.sol");
+        assert!(findings.is_empty());
+    }
+
+    #[test]
+    fn test_simple_balance_query() {
+        let ignored = r#"
+        function checkBalance(address token, address user) external view returns (uint) {
+            return IERC20(token).balanceOf(user);
+        }
+        "#;
+        let findings = detect_token_balance_manipulation(ignored, "test.sol");
+        assert!(findings.is_empty());
+    }
+
+    #[test]
+    fn test_multiple_balance_operations() {
+        let vulnerable = r#"
+        function swapAndTransfer(address token) external {
+            uint balance = ERC20(token).balanceOf(address(this));
+            uint amountOut = router.swap(balance);
+            token.transfer(msg.sender, amountOut);
+        }
+        "#;
+        let findings = detect_token_balance_manipulation(vulnerable, "test.sol");
+        assert!(!findings.is_empty());
+    }
+}
