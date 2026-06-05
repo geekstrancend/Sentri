@@ -5,6 +5,44 @@ All notable changes to the Sentri project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.2] - 2026-06-05 — Reproducibility & Flexible Output
+
+### Added
+
+- **Reproducible analysis** — New `--seed` flag for deterministic results across runs (default: 42)
+  - Ensures security audits produce consistent results
+  - Useful for CI/CD pipelines and regression testing
+  - Usage: `sentri check ./programs --seed 12345`
+
+- **Flexible output options** — Enhanced `--output` flag for saving reports to disk
+  - Works with all formats: text, JSON, and HTML
+  - Usage: `sentri check ./programs --format json --output ./report.json`
+  - Enables programmatic result parsing and team sharing
+
+- **HTML report generation** — New `--format html` produces styled security reports
+  - Professional HTML with responsive styling
+  - Color-coded severity indicators (Critical, High, Medium, Low)
+  - Summary statistics and violation table
+  - Shareable with non-technical stakeholders
+  - Usage: `sentri check ./programs --format html --output ./report.html`
+
+### Changed
+
+- Updated Solana SDK to latest 1.x for improved compatibility
+- Enhanced CLI argument parsing with seed support
+
+### Fixed
+
+- Resolved compilation errors in report generation pipeline
+- Fixed invariant mapping array handling in reference generation
+
+### Documentation
+
+- Updated README with output options and reproducibility guide
+- Added HTML format examples to quick start section
+
+---
+
 ## [0.2.1] - 2026-03-22 — Line Number Accuracy Fix
 
 ### Fixed — Violation Location Reporting

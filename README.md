@@ -16,6 +16,19 @@ One tool. Three chains. One DSL.
 
 ---
 
+## What's new in v0.2.2
+
+v0.2.2 adds reproducibility and flexible output options for better CI integration and reporting.
+
+**Key improvements:**
+
+- ✅ **Reproducible analysis** — `--seed` flag for deterministic results across runs
+- ✅ **File output** — `--output` flag to write reports to disk (text, JSON, HTML)
+- ✅ **HTML reports** — Beautiful formatted security reports with styled tables and summaries
+- ✅ **Solana SDK 1.x** — Updated to latest stable Solana SDK
+
+---
+
 ## What's new in v0.2.1
 
 v0.2.1 fixes violation location reporting — all violations now show their actual source line numbers instead of defaulting to line 1. This dramatically improves debugging workflow.
@@ -86,6 +99,12 @@ sentri check ./sources --chain move
 # Output as JSON
 sentri check ./programs --chain solana --format json
 
+# Output as HTML
+sentri check ./programs --chain solana --format html --output ./report.html
+
+# Reproducible analysis with fixed seed
+sentri check ./programs --chain solana --seed 42
+
 # Fail CI if high or critical violations found
 sentri check ./programs --chain solana --failon high
 
@@ -94,6 +113,46 @@ sentri doctor
 
 # Initialize config
 sentri init
+```
+
+---
+
+## Output options
+
+### Report formats
+
+```bash
+# Text report (default, human-readable)
+sentri check ./programs --chain solana --format text
+
+# JSON report (machine-readable, for parsing/CI)
+sentri check ./programs --chain solana --format json
+
+# HTML report (styled, shareable with team)
+sentri check ./programs --chain solana --format html
+```
+
+### Saving reports to disk
+
+```bash
+# Save any format to file
+sentri check ./programs --chain solana --format json --output ./report.json
+sentri check ./programs --chain solana --format html --output ./report.html
+sentri check ./programs --chain solana --format text --output ./report.txt
+```
+
+### Reproducible analysis
+
+For deterministic results (useful in CI or security audits), use `--seed`:
+
+```bash
+# Always uses seed 42 by default
+sentri check ./programs --chain solana
+
+# Use a custom seed
+sentri check ./programs --chain solana --seed 12345
+
+# Results will be identical on the same code with the same seed
 ```
 
 ---
