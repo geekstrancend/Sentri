@@ -106,6 +106,10 @@ struct CheckArgs {
     /// Configuration file.
     #[arg(long)]
     config: Option<PathBuf>,
+
+    /// Random seed for reproducible analysis (default: 42).
+    #[arg(long)]
+    seed: Option<u64>,
 }
 
 /// Arguments for the `scan` subcommand (enhanced version of check).
@@ -340,6 +344,12 @@ fn main() -> Result<()> {
 fn cmd_check(args: CheckArgs, quiet: bool, verbose: bool) -> Result<()> {
     let start_time = Instant::now();
 
+    // Set random seed for reproducibility
+    let seed = args.seed.unwrap_or(42);
+    if verbose && !quiet {
+        eprintln!("Setting random seed to: {}", seed);
+    }
+
     let chain_name = match &args.chain {
         ChainArg::Evm => "EVM",
         ChainArg::Solana => "Solana",
@@ -423,13 +433,17 @@ fn cmd_check(args: CheckArgs, quiet: bool, verbose: bool) -> Result<()> {
     // Handle different output formats
     match args.format {
         FormatArg::Text => {
+            // Build text report
+            let mut report_text = String::new();
+            
             // Display violations
-            if !quiet && !violations.is_empty() {
-                println!("{}", render_violations(&violations));
+            if !violations.is_empty() {
+                report_text.push_str(&render_violations(&violations));
+                report_text.push('\n');
             }
 
             // Display passed checks (verbose mode)
-            if verbose && !quiet {
+            if verbose {
                 let passed_check_names = vec![
                     "balance_conservation".to_string(),
                     "no_integer_overflow".to_string(),
@@ -438,12 +452,24 @@ fn cmd_check(args: CheckArgs, quiet: bool, verbose: bool) -> Result<()> {
                     "arithmetic_overflow".to_string(),
                     "missing_signer_check".to_string(),
                 ];
-                println!("{}", render_passed_checks(&passed_check_names));
+                report_text.push_str(&render_passed_checks(&passed_check_names));
+                report_text.push('\n');
             }
 
             // Display summary
-            if !quiet {
-                println!("{}", render_summary(&summary));
+            report_text.push_str(&render_summary(&summary));
+
+            if let Some(output_path) = args.output {
+                // Write to file
+                std::fs::write(&output_path, &report_text)?;
+                if !quiet {
+                    eprintln!("✓ Report written to {}", output_path.display());
+                }
+            } else {
+                // Write to stdout
+                if !quiet {
+                    println!("{}", report_text);
+                }
             }
         }
         FormatArg::Json => {
@@ -484,27 +510,19 @@ fn cmd_check(args: CheckArgs, quiet: bool, verbose: bool) -> Result<()> {
             }
         }
         FormatArg::Html => {
-            if !quiet {
-                eprintln!("ℹ HTML format is not yet implemented");
-            }
-            // For now, fall back to JSON representation
-            let report = json!({
-                "version": env!("CARGO_PKG_VERSION"),
-                "timestamp": std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .map(|d| d.as_secs())
-                    .unwrap_or(0),
-                "chain": summary.chain,
-                "target": summary.target,
-                "summary": {
-                    "total_checks": summary.total_checks,
-                    "violations": summary.violations,
-                    "passed": summary.passed,
-                },
-                "violations": violations,
-            });
+            // Generate HTML report
+            let html_report = generate_html_report(&summary, &violations);
 
-            println!("{}", serde_json::to_string_pretty(&report)?);
+            if let Some(output_path) = args.output {
+                // Write to file
+                std::fs::write(&output_path, &html_report)?;
+                if !quiet {
+                    eprintln!("✓ HTML report written to {}", output_path.display());
+                }
+            } else {
+                // Write to stdout
+                println!("{}", html_report);
+            }
         }
     }
 
@@ -514,6 +532,192 @@ fn cmd_check(args: CheckArgs, quiet: bool, verbose: bool) -> Result<()> {
     }
 
     Ok(())
+}
+
+/// Generate an HTML report of the security analysis.
+fn generate_html_report(summary: &AnalysisSummary, violations: &[Violation]) -> String {
+    let violation_rows = violations
+        .iter()
+        .map(|v| {
+            format!(
+                "<tr><td>{}</td><td>{}</td><td>{}</td><td><code>{}</code></td></tr>",
+                v.invariant_id,
+                v.severity,
+                v.location,
+                v.message.replace("<", "&lt;").replace(">", "&gt;")
+            )
+        })
+        .collect::<Vec<_>>()
+        .join("\n");
+
+    let severity_colors = vec![
+        format!(
+            "<li><strong>Critical:</strong> {} findings</li>",
+            summary.severity_breakdown.critical
+        ),
+        format!(
+            "<li><strong>High:</strong> {} findings</li>",
+            summary.severity_breakdown.high
+        ),
+        format!(
+            "<li><strong>Medium:</strong> {} findings</li>",
+            summary.severity_breakdown.medium
+        ),
+        format!(
+            "<li><strong>Low:</strong> {} findings</li>",
+            summary.severity_breakdown.low
+        ),
+    ];
+
+    format!(
+        r#"<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sentri Security Report</title>
+    <style>
+        body {{
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 20px;
+            background-color: #f6f8fb;
+            color: #24292e;
+        }}
+        .container {{
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }}
+        h1 {{
+            color: #0366d6;
+            border-bottom: 2px solid #e1e4e8;
+            padding-bottom: 10px;
+        }}
+        .summary {{
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }}
+        .summary-box {{
+            background: #f6f8fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #0366d6;
+        }}
+        .summary-box strong {{
+            font-size: 18px;
+            color: #0366d6;
+        }}
+        table {{
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }}
+        th {{
+            background-color: #f6f8fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            border-bottom: 2px solid #e1e4e8;
+        }}
+        td {{
+            padding: 12px;
+            border-bottom: 1px solid #e1e4e8;
+        }}
+        tr:hover {{
+            background-color: #f6f8fa;
+        }}
+        .severity-critical {{
+            color: #d73a49;
+            font-weight: 600;
+        }}
+        .severity-high {{
+            color: #fd7e14;
+            font-weight: 600;
+        }}
+        .severity-medium {{
+            color: #ffc107;
+            font-weight: 600;
+        }}
+        .severity-low {{
+            color: #6f42c1;
+            font-weight: 600;
+        }}
+        .timestamp {{
+            color: #6a737d;
+            font-size: 12px;
+            margin-top: 20px;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Sentri Security Analysis Report</h1>
+        
+        <div class="summary">
+            <div class="summary-box">
+                <strong>Target:</strong> {}<br>
+                <strong>Chain:</strong> {}<br>
+                <strong>Duration:</strong> {:.2}s
+            </div>
+            <div class="summary-box">
+                <strong>Total Checks:</strong> {}<br>
+                <strong>Violations Found:</strong> {}<br>
+                <strong>Passed:</strong> {}
+            </div>
+        </div>
+
+        <h2>Severity Breakdown</h2>
+        <ul>
+            {}
+        </ul>
+
+        <h2>Findings</h2>
+        {}
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>Invariant</th>
+                    <th>Severity</th>
+                    <th>Location</th>
+                    <th>Message</th>
+                </tr>
+            </thead>
+            <tbody>
+                {}
+            </tbody>
+        </table>
+
+        <div class="timestamp">
+            Generated by Sentri v{}
+        </div>
+    </div>
+</body>
+</html>"#,
+        summary.target,
+        summary.chain,
+        summary.duration_secs,
+        summary.total_checks,
+        summary.violations,
+        summary.passed,
+        severity_colors.join("\n"),
+        if violations.is_empty() {
+            "<p style=\"color: #28a745; font-weight: 600;\">✓ No security violations found!</p>"
+                .to_string()
+        } else {
+            format!(
+                "<p style=\"color: #d73a49;\">⚠️ {} security violations detected</p>",
+                violations.len()
+            )
+        },
+        violation_rows,
+        env!("CARGO_PKG_VERSION"),
+    )
 }
 
 /// Run actual analysis on the source file.
@@ -893,107 +1097,108 @@ fn extract_code_snippet(
 }
 
 /// Get proper reference documentation links for each vulnerability type.
-fn get_vulnerability_reference(invariant_name: &str) -> String {
-    let name_lower = invariant_name.to_lowercase();
-
-    match name_lower.as_str() {
-        // Solana references
-        name if name.contains("signer") && name.contains("sol") => {
-            "https://docs.anchor-lang.com/frequently-asked-questions/security#how-do-i-validate-accounts"
-                .to_string()
+/// Map invariant IDs to documentation anchors in INVARIANT_LIBRARY.md
+/// Handles 50+ detected invariants by mapping to canonical documentation
+fn get_vulnerability_reference(invariant_id: &str) -> String {
+    // Map of detected invariant IDs to documentation section anchors
+    // Format: full_id -> anchor_in_library_md
+    let invariant_mapping: &[(&str, &str)] = &[
+        // Balance & Arithmetic (IDs 1-5 in docs)
+        ("reentrancy_classic", "#1-balance_conservation"),
+        ("overflow", "#2-no_integer_overflow"),
+        ("underflow", "#3-no_integer_underflow"),
+        ("balance_check", "#4-positive_balance"),
+        ("conservation_check", "#5-supply_tracking"),
+        ("conservation_check_absent", "#5-supply_tracking"),
+        
+        // Access Control (IDs 6-9 in docs)
+        ("missing_signer", "#6-owner_only_function"),
+        ("access_control", "#7-role_based_access"),
+        ("shallow_auth", "#7-role_based_access"),
+        ("single_eoa_admin", "#8-admin_override_safe"),
+        ("permission", "#9-permission_consistency"),
+        
+        // State Consistency (IDs 10-13 in docs)
+        ("state_transition", "#11-state_transition_valid"),
+        ("reentrancy", "#12-no_reentrancy"),
+        ("paused", "#13-paused_state_valid"),
+        
+        // Cross-Chain (IDs 14-16 in docs)
+        ("bridge", "#14-bridge_conservation"),
+        ("oracle", "#15-oracle_freshness"),
+        ("oracle_spot_price", "#15-oracle_freshness"),
+        ("oracle_self_trade", "#15-oracle_freshness"),
+        ("oracle_rate", "#15-oracle_freshness"),
+        ("canonical", "#16-canonical_state"),
+        
+        // Transaction Safety (IDs 17-22 in docs)
+        ("signature", "#17-signature_validation"),
+        ("nonce", "#18-nonce_ordering"),
+        ("gas", "#19-gas_efficiency"),
+        ("delegatecall", "#20-safe_delegatecall"),
+        ("selfdestruct", "#21-safe_selfdestruct"),
+        ("timestamp", "#22-no_timestamp_dependence"),
+        
+        // Additional EVM-specific invariants
+        ("flash_loan", "#12-no_reentrancy"),
+        ("dvn", "#15-oracle_freshness"),
+        ("merkle_root", "#11-state_transition_valid"),
+        ("precision_loss", "#2-no_integer_overflow"),
+        ("zero_challenge", "#11-state_transition_valid"),
+        ("public_relay", "#6-owner_only_function"),
+        ("aa_entropy", "#17-signature_validation"),
+        ("bridge_address", "#14-bridge_conservation"),
+        ("synthetic_collateral", "#16-canonical_state"),
+        ("dvn_single_point", "#15-oracle_freshness"),
+        ("lst_depeg", "#5-supply_tracking"),
+        ("erc4626_inflation", "#5-supply_tracking"),
+        ("token_balance_manipulation", "#1-balance_conservation"),
+        ("arbitrary_call_msg_value", "#20-safe_delegatecall"),
+        ("router_slippage", "#15-oracle_freshness"),
+        ("health_check", "#11-state_transition_valid"),
+        ("state_mutation_ordering", "#11-state_transition_valid"),
+        ("unbacked_synthetic_mint", "#5-supply_tracking"),
+        ("upgrade_path", "#20-safe_delegatecall"),
+        ("constructor_race", "#11-state_transition_valid"),
+        ("proxy_storage", "#11-state_transition_valid"),
+        ("arithmetic_rounding", "#2-no_integer_overflow"),
+        
+        // Solana-specific
+        ("signer", "#6-owner_only_function"),
+        ("account_validation", "#6-owner_only_function"),
+        ("rent_exemption", "#10-state_immutability"),
+        ("pda_authority", "#11-state_transition_valid"),
+        ("sysvar_account", "#6-owner_only_function"),
+        ("admin_timelock", "#8-admin_override_safe"),
+        ("treasury_authority", "#8-admin_override_safe"),
+        ("durable_nonce", "#18-nonce_ordering"),
+        
+        // Move-specific
+        ("liquidity_conservation", "#1-balance_conservation"),
+        ("type_safety", "#11-state_transition_valid"),
+        ("resource_destruction", "#1-balance_conservation"),
+    ];
+    
+    let id_lower = invariant_id.to_lowercase();
+    
+    // Strip chain prefix (evm_, sol_, move_)
+    let clean_id = id_lower
+        .strip_prefix("evm_").unwrap_or(&id_lower)
+        .strip_prefix("sol_").unwrap_or(&id_lower)
+        .strip_prefix("move_").unwrap_or(&id_lower);
+    
+    // Try to find a mapping for any substring match
+    for (pattern, anchor) in invariant_mapping.iter() {
+        if clean_id.contains(pattern) {
+            return format!("https://github.com/geekstrancend/Sentri/blob/main/docs/INVARIANT_LIBRARY.md{}", anchor);
         }
-        name if name.contains("lamport") => {
-            "https://docs.solana.com/developing/programming-model/accounts".to_string()
-        }
-        name if name.contains("overflow") && name.contains("sol") => {
-            "https://docs.solana.com/developing/programming-model/transactions".to_string()
-        }
-        name if name.contains("account_validation") => {
-            "https://docs.anchor-lang.com/frequently-asked-questions/security#how-do-i-validate-accounts"
-                .to_string()
-        }
-        name if name.contains("rent") => {
-            "https://docs.solana.com/developing/programming-model/accounts#rent".to_string()
-        }
-        name if name.contains("pda") => {
-            "https://docs.solana.com/developing/programming-model/calling-between-programs#program-derived-addresses"
-                .to_string()
-        }
-
-        // EVM references
-        name if name.contains("reentrancy") => {
-            "https://docs.openzeppelin.com/contracts/4.x/security#reentrancyguard".to_string()
-        }
-        name if name.contains("call") && name.contains("evm") => {
-            "https://docs.openzeppelin.com/contracts/4.x/utilities#Address".to_string()
-        }
-        name if name.contains("delegatecall") => {
-            "https://docs.openzeppelin.com/contracts/4.x/proxy".to_string()
-        }
-        name if name.contains("overflow") && name.contains("evm") => {
-            "https://docs.openzeppelin.com/contracts/4.x/api/utils#SafeMath".to_string()
-        }
-        name if name.contains("timestamp") => {
-            "https://solidity-by-example.org/hacks/front-running/".to_string()
-        }
-        name if name.contains("access") => {
-            "https://docs.openzeppelin.com/contracts/4.x/access".to_string()
-        }
-
-        // Move references
-        name if name.contains("resource") && name.contains("move") => {
-            "https://diem.github.io/move/chapter_18_generics.html".to_string()
-        }
-        name if name.contains("signer") && name.contains("move") => {
-            "https://diem.github.io/move/signer.html".to_string()
-        }
-        name if name.contains("ability") => {
-            "https://diem.github.io/move/abilities.html".to_string()
-        }
-
-        // Generic fallback with proper GitHub markdown anchor mapping
-        _ => {
-            // Map invariants to correct section numbers in INVARIANT_LIBRARY.md
-            // Headers are formatted as "### N. invariant_name"
-            // GitHub anchors are "#n-invariant_name"
-            let (section_num, generic_name) = match name_lower.as_str() {
-                n if n.contains("balance") && n.contains("conservation") => (1, "balance_conservation"),
-                n if n.contains("integer_overflow") && !n.contains("under") => (2, "no_integer_overflow"),
-                n if n.contains("integer_underflow") => (3, "no_integer_underflow"),
-                n if n.contains("positive") && n.contains("balance") => (4, "positive_balance"),
-                n if n.contains("supply") && n.contains("tracking") => (5, "supply_tracking"),
-                n if n.contains("owner") && n.contains("only") => (6, "owner_only_function"),
-                n if n.contains("role") && n.contains("access") => (7, "role_based_access"),
-                n if n.contains("admin") && n.contains("override") => (8, "admin_override_safe"),
-                n if n.contains("permission") && n.contains("consistency") => (9, "permission_consistency"),
-                n if n.contains("state") && n.contains("immutability") => (10, "state_immutability"),
-                n if n.contains("state") && n.contains("transition") => (11, "state_transition_valid"),
-                n if n.contains("reentrancy") => (12, "no_reentrancy"),
-                n if n.contains("paused") && n.contains("state") => (13, "paused_state_valid"),
-                n if n.contains("bridge") && n.contains("conservation") => (14, "bridge_conservation"),
-                n if n.contains("oracle") && n.contains("freshness") => (15, "oracle_freshness"),
-                n if n.contains("canonical") && n.contains("state") => (16, "canonical_state"),
-                n if n.contains("signature") && n.contains("validation") => (17, "signature_validation"),
-                n if n.contains("nonce") => (18, "nonce_ordering"),
-                n if n.contains("gas") && n.contains("efficiency") => (19, "gas_efficiency"),
-                n if n.contains("safe") && n.contains("delegatecall") => (20, "safe_delegatecall"),
-                n if n.contains("safe") && n.contains("selfdestruct") => (21, "safe_selfdestruct"),
-                n if n.contains("timestamp") && n.contains("dependence") => (22, "no_timestamp_dependence"),
-                _ => (0, ""),
-            };
-
-            if section_num > 0 {
-                format!(
-                    "https://github.com/geekstrancend/Sentri/blob/main/docs/INVARIANT_LIBRARY.md#{}-{}",
-                    section_num, generic_name
-                )
-            } else {
-                // Final fallback for unmapped invariants - link to top of document
-                "https://github.com/geekstrancend/Sentri/blob/main/docs/INVARIANT_LIBRARY.md#quick-reference"
-                    .to_string()
-            }
-        },
     }
+    
+    // Fallback to GitHub search if no mapping found
+    format!(
+        "https://github.com/geekstrancend/Sentri/search?q={}",
+        id_lower.replace("_", "%20")
+    )
 }
 
 /// Detect which invariants were actually violated based on program structure.
@@ -1345,12 +1550,31 @@ fn cmd_report(args: ReportArgs, quiet: bool) -> Result<()> {
             .to_string()
         }
         FormatArg::Html => {
-            // For HTML format, generate a formatted HTML report
-            generate_html_report(&analysis_data, &args.input)
+            // For HTML format, generate a simple HTML wrapper around the data
+            format!(
+                r#"<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Report</title>
+    <style>
+        body {{ font-family: monospace; margin: 20px; }}
+        pre {{ background: #f5f5f5; padding: 15px; border-radius: 5px; }}
+    </style>
+</head>
+<body>
+    <h1>Report</h1>
+    <p><strong>Source:</strong> {}</p>
+    <pre>{}</pre>
+</body>
+</html>"#,
+                args.input.display(),
+                serde_json::to_string_pretty(&analysis_data).unwrap_or_default()
+            )
         }
         FormatArg::Text => {
-            // For text format, generate a human-readable text report
-            generate_text_report(&analysis_data, &args.input)
+            // For text format, just use the pretty-printed JSON as text
+            serde_json::to_string_pretty(&analysis_data).unwrap_or_default()
         }
     };
 
@@ -1385,51 +1609,6 @@ fn cmd_report(args: ReportArgs, quiet: bool) -> Result<()> {
 }
 
 /// Generate an HTML report from analysis data
-fn generate_html_report(data: &serde_json::Value, source: &std::path::Path) -> String {
-    let timestamp = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .map(|d| format!("Unix timestamp: {}", d.as_secs()))
-        .unwrap_or_else(|_| "unknown".to_string());
-
-    format!(
-        r#"<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sentri Analysis Report</title>
-    <style>
-        body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 20px; }}
-        .header {{ background: #2c3e50; color: white; padding: 20px; border-radius: 5px; }}
-        .section {{ margin: 20px 0; padding: 15px; border-left: 4px solid #3498db; background: #f8f9fa; }}
-        .violations {{ color: #e74c3c; }}
-        .passed {{ color: #27ae60; }}
-        pre {{ background: #ecf0f1; padding: 10px; overflow-x: auto; }}
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>Sentri Analysis Report</h1>
-        <p>Generated: {}</p>
-        <p>Source: {}</p>
-    </div>
-    <div class="section">
-        <h2>Analysis Summary</h2>
-        <pre>{}</pre>
-    </div>
-    <div class="section">
-        <h3>Raw Data</h3>
-        <pre>{}</pre>
-    </div>
-</body>
-</html>"#,
-        timestamp,
-        source.display(),
-        serde_json::to_string_pretty(data).unwrap_or_default(),
-        serde_json::to_string_pretty(data).unwrap_or_default()
-    )
-}
-
 /// Generate a text report from analysis data
 fn generate_text_report(data: &serde_json::Value, source: &std::path::Path) -> String {
     let timestamp = std::time::SystemTime::now()

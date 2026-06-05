@@ -85,8 +85,8 @@ tree-sitter-solidity = "1.2"
 terminal_size = "0.3"
 
 # Solana
-solana-program = "1.18"
-solana-sdk = "1.18"
+solana-program = "1"
+solana-sdk = "1"
 
 # CLI
 clap = { version = "4.4", features = ["derive", "cargo"] }

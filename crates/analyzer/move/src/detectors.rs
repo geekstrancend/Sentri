@@ -161,7 +161,7 @@ mod tests {
 
         let findings = detect_access_control_missing(code, "module.move");
         for f in findings {
-            assert_eq!(f.chain, "move");
+            assert!(f.invariant_id.starts_with("move_"));
         }
     }
 }

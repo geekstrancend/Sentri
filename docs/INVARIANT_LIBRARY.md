@@ -43,9 +43,9 @@ Previously, invariant expressions were hardcoded as placeholders. Now they are *
 
 ---
 
-## Category: Balance & Arithmetic
+## Category: Balance & Arithmetic {#balance-and-arithmetic}
 
-### 1. balance_conservation
+### 1. balance_conservation {#1-balance_conservation}
 
 **CWE:** CWE-682 · Incorrect Calculation
 **Severity:** CRITICAL
@@ -95,7 +95,7 @@ Test that `balances[A] + balances[B] + ... = totalSupply` after each transaction
 
 ---
 
-### 2. no_integer_overflow
+### 2. no_integer_overflow {#2-no_integer_overflow}
 
 **CWE:** CWE-190 · Integer Overflow
 **Severity:** CRITICAL
@@ -152,7 +152,7 @@ let total = current.checked_add(amount)
 
 ---
 
-### 3. no_integer_underflow
+### 3. no_integer_underflow {#3-no_integer_underflow}
 
 **CWE:** CWE-191 · Integer Underflow
 **Severity:** CRITICAL
@@ -189,7 +189,7 @@ balance -= amount;
 
 ---
 
-### 4. positive_balance
+### 4. positive_balance {#4-positive_balance}
 
 **CWE:** CWE-682 · Incorrect Calculation
 **Severity:** HIGH
@@ -211,7 +211,7 @@ forAll(balances, balance >= 0)
 
 ---
 
-### 5. supply_tracking
+### 5. supply_tracking {#5-supply_tracking}
 
 **CWE:** CWE-682 · Incorrect Calculation
 **Severity:** CRITICAL
@@ -236,7 +236,7 @@ totalSupply == sum(allBalances) &&
 
 ## Category: Access Control
 
-### 6. owner_only_function
+### 6. owner_only_function {#6-owner_only_function}
 
 **CWE:** CWE-276 · Incorrect Default Permissions
 **Severity:** HIGH
@@ -277,7 +277,7 @@ modifier onlyOwner {
 
 ---
 
-### 7. role_based_access
+### 7. role_based_access {#7-role_based_access}
 
 **CWE:** CWE-279 · Improper Validation of Signature
 **Severity:** HIGH
@@ -299,7 +299,7 @@ forAll(protected_functions, hasRole(caller, required_role))
 
 ---
 
-### 8. admin_override_safe
+### 8. admin_override_safe {#8-admin_override_safe}
 
 **CWE:** CWE-276 · Incorrect Default Permissions
 **Severity:** CRITICAL
@@ -340,7 +340,7 @@ function adminSetBalance(address user, uint256 amount) public onlyAdmin {
 
 ---
 
-### 9. permission_consistency
+### 9. permission_consistency {#9-permission_consistency}
 
 **CWE:** CWE-276 · Incorrect Default Permissions
 **Severity:** HIGH
@@ -365,7 +365,7 @@ forAll(callers, hasRole(x, "ADMIN") == true) =>
 
 ## Category: State Consistency
 
-### 10. state_immutability
+### 10. state_immutability {#10-state_immutability}
 
 **CWE:** CWE-359 · Exposure of Private Personal Information
 **Severity:** HIGH
@@ -400,7 +400,7 @@ function changeOwner(address newOwner) public {
 
 ---
 
-### 11. state_transition_valid
+### 11. state_transition_valid {#11-state_transition_valid}
 
 **CWE:** CWE-362 · Concurrent Execution Using Shared Resource
 **Severity:** HIGH
@@ -422,7 +422,7 @@ forAll(state_pairs, validTransition(from_state, to_state))
 
 ---
 
-### 12. no_reentrancy
+### 12. no_reentrancy {#12-no_reentrancy}
 
 **CWE:** CWE-841 · Improper Enforcement of Behavioral Workflow
 **Severity:** CRITICAL
@@ -467,7 +467,7 @@ function withdraw(uint256 amount) public nonReentrant {
 
 ---
 
-### 13. paused_state_valid
+### 13. paused_state_valid {#13-paused_state_valid}
 
 **CWE:** CWE-362 · Concurrent Execution Using Shared Resource
 **Severity:** HIGH
@@ -494,7 +494,7 @@ If the contract has a pause mechanism, all contract transitions respect the paus
 
 ## Category: Cross-Chain
 
-### 14. bridge_conservation
+### 14. bridge_conservation {#14-bridge_conservation}
 
 **CWE:** CWE-682 · Incorrect Calculation
 **Severity:** CRITICAL
@@ -518,7 +518,7 @@ sum(locked_on_chain_A) == sum(minted_on_all_other_chains)
 
 ---
 
-### 15. oracle_freshness
+### 15. oracle_freshness {#15-oracle_freshness}
 
 **CWE:** CWE-613 · Insufficient Session Expiration
 **Severity:** HIGH
@@ -566,7 +566,7 @@ function liquidate(address user) public {
 
 ---
 
-### 16. canonical_state
+### 16. canonical_state {#16-canonical_state}
 
 **CWE:** CWE-345 · Insufficient Verification of Data Authenticity
 **Severity:** CRITICAL
@@ -592,7 +592,7 @@ state_read_only_not_modified
 
 ## Category: Transaction Safety
 
-### 17. signature_validation
+### 17. signature_validation {#17-signature_validation}
 
 **CWE:** CWE-347 · Improper Verification of Cryptographic Signature  
 **Severity:** HIGH
@@ -617,7 +617,7 @@ For operations relying on off-chain signatures (meta-transactions, permits, etc.
 
 ---
 
-### 18. nonce_ordering
+### 18. nonce_ordering {#18-nonce_ordering}
 
 **CWE:** CWE-362 · Concurrent Execution Using Shared Resource
 **Severity:** MEDIUM
@@ -639,7 +639,7 @@ forAll(nonces, nonce_n > nonce_(n-1))
 
 ---
 
-### 19. gas_efficiency
+### 19. gas_efficiency {#19-gas_efficiency}
 
 **CWE:** N/A
 **Severity:** LOW
@@ -663,7 +663,7 @@ no_redundant_calls
 
 ---
 
-### 20. safe_delegatecall
+### 20. safe_delegatecall {#20-safe_delegatecall}
 
 **CWE:** CWE-569 · Expression is Always False
 **Severity:** CRITICAL
@@ -696,7 +696,7 @@ function executeCode(address target, bytes memory code) public {
 
 ---
 
-### 21. safe_selfdestruct
+### 21. safe_selfdestruct {#21-safe_selfdestruct}
 
 **CWE:** CWE-826 · Untrusted Search Path
 **Severity:** CRITICAL
@@ -722,7 +722,7 @@ If selfdestruct is used, it's in a controlled context (e.g., during migration, w
 
 ---
 
-### 22. no_timestamp_dependence
+### 22. no_timestamp_dependence {#22-no_timestamp_dependence}
 
 **CWE:** CWE-829 · Inclusion of Functionality from Untrusted Control Sphere
 **Severity:** MEDIUM

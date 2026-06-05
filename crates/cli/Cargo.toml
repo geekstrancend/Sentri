@@ -43,3 +43,5 @@ sentri-generator-move.workspace = true
 # sentri-simulator.workspace = true  # DEPRECATED: Old simulator using revm, disabled for v0.3.0
 
 [dev-dependencies]
+tempfile = "3.8"
+
