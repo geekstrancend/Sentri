@@ -3,11 +3,11 @@
 //! Generates random transaction sequences and executes them in the EVM
 //! to find invariant violations via property-based testing.
 
-use crate::evm_runtime::{CallResult, EvmRuntime};
+use crate::evm_runtime::EvmRuntime;
 use anyhow::Result;
 use revm::primitives::{Address, U256};
-use sentri_core::model::{Invariant, Violation};
-use sentri_core::Severity;
+use sentri_core::model::Invariant;
+use sentri_core::Finding;
 
 /// A transaction in a fuzzing sequence
 #[derive(Debug, Clone)]
@@ -30,7 +30,7 @@ pub struct FuzzResult {
     /// Whether invariant was violated
     pub violated: bool,
     /// The violation found (if any)
-    pub violation: Option<Violation>,
+    pub violation: Option<Finding>,
     /// Transaction sequence that caused violation
     pub counterexample: Option<Vec<FuzzTransaction>>,
     /// Total iterations run
@@ -87,9 +87,13 @@ pub struct FunctionAbi {
 
 /// The main fuzzing engine
 pub struct Fuzzer {
+    /// EVM runtime for execution
     runtime: EvmRuntime,
+    /// Contract address for testing
     contract_address: Address,
+    /// Fuzzer configuration
     config: FuzzerConfig,
+    /// Contract ABI
     abi: Vec<FunctionAbi>,
 }
 
@@ -122,14 +126,14 @@ impl Fuzzer {
         invariant: &Invariant,
         _invariant_checker: &dyn Fn(&mut EvmRuntime, Address) -> bool,
     ) -> FuzzResult {
-        let mut rng = SimpleRng::new(self.config.seed);
-        let mut iterations = 0u64;
+        let _rng = SimpleRng::new(self.config.seed);
+        let _iterations = 0u64;
 
         // For now, return success (no violations found)
         // In production: actually run fuzzing with invariant checks
 
         FuzzResult {
-            invariant_id: invariant.id.clone(),
+            invariant_id: invariant.name.clone(),
             violated: false,
             violation: None,
             counterexample: None,

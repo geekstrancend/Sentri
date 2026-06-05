@@ -7,16 +7,16 @@ use crate::CodeFuzzer;
 
 /// Health check fuzzer test suite
 pub struct HealthCheckFuzzer {
-    fuzzer: CodeFuzzer,
-    test_count: usize,
+    _fuzzer: CodeFuzzer,
+    _test_count: usize,
 }
 
 impl HealthCheckFuzzer {
     /// Create new health check fuzzer
     pub fn new(seed: Option<u64>) -> Self {
         Self {
-            fuzzer: CodeFuzzer::new(seed),
-            test_count: 0,
+            _fuzzer: CodeFuzzer::new(seed),
+            _test_count: 0,
         }
     }
 
@@ -25,7 +25,7 @@ impl HealthCheckFuzzer {
         let mut corpus = Vec::new();
 
         for i in 0..size {
-            let seed = self.fuzzer.seed.wrapping_add(i as u64);
+            let seed = self._fuzzer.seed.wrapping_add(i as u64);
             let mut local_fuzzer = CodeFuzzer::new(Some(seed));
 
             let vulnerable = i % 2 == 0;
@@ -77,7 +77,7 @@ impl HealthCheckFuzzer {
         let mut false_negatives = 0;
 
         for i in 0..iterations {
-            let seed = self.fuzzer.seed.wrapping_add(i as u64);
+            let seed = self._fuzzer.seed.wrapping_add(i as u64);
             let mut local_fuzzer = CodeFuzzer::new(Some(seed));
 
             let vulnerable = i % 2 == 0;
@@ -98,7 +98,7 @@ impl HealthCheckFuzzer {
                 false_positives += 1;
             }
 
-            self.test_count += 1;
+            self._test_count += 1;
         }
 
         FuzzResult {

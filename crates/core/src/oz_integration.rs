@@ -285,7 +285,7 @@ mod tests {
     fn enriched_finding_generates_audit_report() {
         let finding = Finding::new(
             "test_detector".to_string(),
-            sentri_core::Severity::High,
+            crate::Severity::High,
             "test.sol".to_string(),
             42,
             0,

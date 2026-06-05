@@ -6,8 +6,10 @@
 //! - Bytecode disassembly for compiled code analysis
 //! - Pattern-based vulnerability detection
 
+use std::collections::BTreeSet;
 use sentri_core::model::{FunctionModel, ProgramModel};
 use sentri_core::traits::ChainAnalyzer;
+use sentri_core::Finding;
 use sentri_core::{AnalysisContext, Result};
 use std::path::Path;
 use tracing::{debug, info, warn};
@@ -17,9 +19,10 @@ use crate::ast_types::AstNode;
 use crate::ast_walker::AstWalker;
 use crate::bytecode::{IssueType, Severity};
 use crate::cfg::ControlFlowGraph;
-use crate::detectors::{
-    AccessControlDetector, FlashLoanDetector, OverflowDetector, ReentrancyDetector,
-};
+// DEPRECATED: Old detector imports disabled for v0.3.0
+// use crate::detectors::{
+//     AccessControlDetector, FlashLoanDetector, OverflowDetector, ReentrancyDetector,
+// };
 use crate::errors::AnalysisError;
 use sentri_utils::SolcManager;
 
@@ -248,7 +251,7 @@ impl EvmAnalyzer {
     ///
     /// This is the primary analysis method for high-precision vulnerability detection.
     /// Falls back to pattern analysis if solc is not available.
-    pub fn analyze_with_ast(&self, path: &Path) -> anyhow::Result<Vec<Violation>> {
+    pub fn analyze_with_ast(&self, path: &Path) -> anyhow::Result<Vec<Finding>> {
         let solc = match SolcManager::new() {
             Ok(s) => s,
             Err(e) => {
@@ -287,10 +290,12 @@ impl EvmAnalyzer {
         source: &str,
         file_name: &str,
         _path: &Path,
-    ) -> anyhow::Result<Vec<Violation>> {
+    ) -> anyhow::Result<Vec<Finding>> {
         let mut violations = Vec::new();
 
         for (_, source_data) in &output.sources {
+            // DEPRECATED: Old detectors disabled for v0.3.0
+            /*
             // Run reentrancy detector
             let mut reentrancy = ReentrancyDetector::new(source, file_name);
             let mut walker = AstWalker::new(&mut reentrancy);
@@ -322,13 +327,14 @@ impl EvmAnalyzer {
                 walker.walk_source_unit(&unit);
             }
             violations.extend(access.violations);
+            */
         }
 
         Ok(violations)
     }
 
     /// Analyze with pattern-based fallback
-    fn analyze_with_patterns(&self, path: &Path) -> anyhow::Result<Vec<Violation>> {
+    fn analyze_with_patterns(&self, path: &Path) -> anyhow::Result<Vec<Finding>> {
         let _source = std::fs::read_to_string(path)
             .map_err(|e| anyhow::anyhow!("Failed to read {}: {}", path.display(), e))?;
 

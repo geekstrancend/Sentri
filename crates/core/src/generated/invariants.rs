@@ -1,8 +1,9 @@
 // Empty invariant registry (no .sinv files found)
 use once_cell::sync::Lazy;
+use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CompiledInvariant {
     pub id: &'static str,
     pub severity: &'static str,

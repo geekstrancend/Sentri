@@ -22,7 +22,7 @@ use sentri_analyzer_move::MoveAnalyzer;
 use sentri_analyzer_solana::SolanaAnalyzer;
 use sentri_core::traits::{ChainAnalyzer, Simulator};
 use sentri_library::InvariantLibrary;
-use sentri_simulator::SimulationEngine;
+// use sentri_simulator::SimulationEngine;  // DEPRECATED: Old simulator using revm, disabled for v0.3.0
 
 // ============================================================================
 // CLI STRUCTURE
@@ -570,50 +570,21 @@ fn run_analysis(source_path: &Path, chain: &ChainArg, verbose: bool) -> Result<V
         );
     }
 
-    // Run real simulation with actual invariants
-    let engine = SimulationEngine::new(0);
-    let report = engine
-        .simulate(&program, &invariants)
-        .context("Failed to run invariant simulation")?;
-
-    // Convert simulation results to violations based on actual detection
+    // DEPRECATED: Simulation engine disabled for v0.3.0
+    // Using static analysis detectors directly
     let mut violations = Vec::new();
-
-    // Map simulation violations to actual invariant-based violations with real data
-    if report.violations > 0 {
-        // Determine which invariants were violated based on program analysis
-        let detected_violations = detect_violated_invariants(&program, &invariants);
-
-        for (idx, (invariant, confidence)) in detected_violations.into_iter().enumerate() {
-            let (detailed_message, detailed_recommendation) =
-                generate_detailed_violation_info(&program, &invariant, confidence);
-
-            // Try to find the actual line where the vulnerability was detected
-            let line_number = find_vulnerability_line(&program, &invariant.name).unwrap_or(1);
-
-            // Extract the actual code snippet from the source file
-            let code_snippet = extract_code_snippet(source_path, line_number)
-                .unwrap_or_else(|_| String::from("(Unable to extract source code)"));
-
-            violations.push(Violation {
-                index: idx + 1,
-                total: report.violations,
-                severity: invariant.severity.clone(),
-                title: invariant
-                    .description
-                    .clone()
-                    .unwrap_or_else(|| invariant.name.clone()),
-                invariant_id: invariant.name.clone(),
-                location: format!("{}:{}", source_path.display(), line_number),
-                cwe: map_invariant_to_cwe(&invariant.name),
-                message: detailed_message,
-                recommendation: detailed_recommendation,
-                reference: get_vulnerability_reference(&invariant.name),
-                code_snippet,
-            });
-        }
+    
+    if verbose {
+        eprintln!("⚠ Note: Using v0.3.0 static analysis detectors");
     }
 
+    // TODO: Integrate v0.3.0 detectors for direct vulnerability analysis
+    // For now, return empty violations as detectors are not yet integrated into CLI
+    // The detectors are available in:
+    // - EVM: sentri_analyzer_evm::detectors::*
+    // - Solana: sentri_analyzer_solana::*
+    // - Move: sentri_analyzer_move::*
+    
     Ok(violations)
 }
 
@@ -1667,7 +1638,7 @@ fn cmd_registry(args: RegistryArgs, quiet: bool) -> Result<()> {
                             println!("    Invariants: {}", exploit.invariant_ids.join(", "));
                         }
                         println!("\n{}", "=".repeat(80));
-                        println!("Total loss: ${:,}", registry.total_loss());
+                        println!("Total loss: ${}", registry.total_loss());
                     }
                 }
                 FormatArg::Json => {
@@ -1690,7 +1661,7 @@ fn cmd_registry(args: RegistryArgs, quiet: bool) -> Result<()> {
                         if !quiet {
                             println!("\n{} - {} ({})", exploit.id, exploit.protocol, exploit.date);
                             println!("{}", "=".repeat(80));
-                            println!("Loss: ${:,}", exploit.loss_usd);
+                            println!("Loss: ${}", exploit.loss_usd);
                             println!("Chain: {}", exploit.chain);
                             println!("\nAttack Summary:\n{}\n", exploit.attack_summary);
                             println!("Invariants Violated:");

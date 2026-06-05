@@ -80,7 +80,7 @@ pub fn detect_solana_durable_nonce_validation(source: &str, file_path: &str) -> 
                         "replay_attack".to_string(),
                     )
                     .with_metadata("detector".to_string(), "nonce_validation_check".to_string())
-                    .with_source_fragment(handler_body),
+                    .with_source_fragment(handler_body.clone()),
                 );
             }
 

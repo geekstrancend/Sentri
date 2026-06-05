@@ -13,7 +13,7 @@ members = [
     "crates/generator/move",
     "crates/invariant_library",
     "crates/report",
-    "crates/simulator",
+    # "crates/simulator",  # DEPRECATED: Uses old revm, disabled for v0.3.0
     "crates/utils",
 ]
 

@@ -20,22 +20,26 @@
 //! - More...
 
 pub mod aa_entropy_weakness;
-pub mod access_control;
+// DEPRECATED: Old detector using legacy Violation struct, disabled for v0.3.0
+// pub mod access_control;
 pub mod arbitrary_call_msg_value;
 pub mod arithmetic_rounding;
 pub mod bridge_address_cryptographic_verify;
 pub mod constructor_race_condition;
 pub mod dvn_single_point;
 pub mod erc4626_inflation_protection;
-pub mod flash_loan;
+// DEPRECATED: Old detector using legacy Violation struct, disabled for v0.3.0
+// pub mod flash_loan;
 pub mod health_check;
 pub mod implementations;
 pub mod lst_depeg;
 pub mod merkle_root;
 pub mod oracle_self_trade;
-pub mod overflow;
+// DEPRECATED: Old detector using legacy Violation struct, disabled for v0.3.0
+// pub mod overflow;
 pub mod proxy_storage_collision;
-pub mod reentrancy;
+// DEPRECATED: Old detector using legacy Violation struct, disabled for v0.3.0
+// pub mod reentrancy;
 pub mod reentrancy_via_whitelisted;
 pub mod router_slippage_validation;
 pub mod signature_replay_protection;
@@ -46,22 +50,22 @@ pub mod token_balance_manipulation;
 pub mod upgrade_path_verification;
 
 pub use aa_entropy_weakness::detect_aa_entropy_weakness;
-pub use access_control::AccessControlDetector;
+// pub use access_control::AccessControlDetector;
 pub use arbitrary_call_msg_value::detect_arbitrary_call_msg_value;
 pub use arithmetic_rounding::detect_arithmetic_rounding;
 pub use bridge_address_cryptographic_verify::detect_bridge_address_cryptographic_verify;
 pub use constructor_race_condition::detect_constructor_race_condition;
 pub use dvn_single_point::detect_dvn_single_point_failure;
 pub use erc4626_inflation_protection::detect_erc4626_inflation_protection;
-pub use flash_loan::FlashLoanDetector;
+// pub use flash_loan::FlashLoanDetector;
 pub use health_check::detect_missing_health_check;
 pub use implementations::*;
 pub use lst_depeg::detect_lst_depeg_collateral_risk;
 pub use merkle_root::detect_merkle_root_zero_default;
 pub use oracle_self_trade::detect_oracle_self_trade;
-pub use overflow::OverflowDetector;
+// pub use overflow::OverflowDetector;
 pub use proxy_storage_collision::detect_proxy_storage_collision;
-pub use reentrancy::ReentrancyDetector;
+// pub use reentrancy::ReentrancyDetector;
 pub use reentrancy_via_whitelisted::detect_reentrancy_via_whitelisted;
 pub use router_slippage_validation::detect_router_slippage_validation;
 pub use signature_replay_protection::detect_signature_replay_protection;

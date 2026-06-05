@@ -6,14 +6,14 @@ use crate::CodeFuzzer;
 
 /// Synthetic mint fuzzer
 pub struct SyntheticMintFuzzer {
-    fuzzer: CodeFuzzer,
+    _fuzzer: CodeFuzzer,
 }
 
 impl SyntheticMintFuzzer {
     /// Create new fuzzer
     pub fn new(seed: Option<u64>) -> Self {
         Self {
-            fuzzer: CodeFuzzer::new(seed),
+            _fuzzer: CodeFuzzer::new(seed),
         }
     }
 
@@ -109,13 +109,18 @@ impl SyntheticMintFuzzer {
 /// Fuzz result
 #[derive(Debug, Clone)]
 pub struct FuzzResult {
+    /// True positive detections
     pub true_positives: usize,
+    /// False positive detections
     pub false_positives: usize,
+    /// False negative detections (missed vulnerabilities)
     pub false_negatives: usize,
+    /// Total test iterations
     pub total: usize,
 }
 
 impl FuzzResult {
+    /// Calculate precision metric
     pub fn precision(&self) -> f64 {
         let total = self.true_positives + self.false_positives;
         if total == 0 {
@@ -125,6 +130,7 @@ impl FuzzResult {
         }
     }
 
+    /// Calculate recall metric
     pub fn recall(&self) -> f64 {
         let total = self.true_positives + self.false_negatives;
         if total == 0 {
@@ -134,6 +140,7 @@ impl FuzzResult {
         }
     }
 
+    /// Calculate F1 score
     pub fn f1_score(&self) -> f64 {
         let p = self.precision();
         let r = self.recall();

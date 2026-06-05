@@ -109,8 +109,8 @@ pub fn detect_erc4626_inflation_protection(source: &str, file_path: &str) -> Vec
                 .with_metadata("vulnerability_type".to_string(), "share_inflation".to_string())
                 .with_metadata("detector".to_string(), "pattern_analysis".to_string())
                 .with_metadata(
-                    "remediation",
-                    "Require MIN_SHARES per deposit or use rounding protections"
+                    "remediation".to_string(),
+                    "Require MIN_SHARES per deposit or use rounding protections".to_string()
                 ),
             );
         } else if !has_zero_supply_protection && has_min_check {

@@ -245,7 +245,7 @@ fn format_summary_table(findings: &[Finding], use_color: bool) -> String {
         if use_color {
             format!("{}{}", ANSI_RESET, ANSI_BOLD)
         } else {
-            ""
+            String::new()
         },
         critical,
         if use_color { ANSI_RESET } else { "" }
@@ -260,7 +260,7 @@ fn format_summary_table(findings: &[Finding], use_color: bool) -> String {
         if use_color {
             format!("{}{}", ANSI_RESET, ANSI_BOLD)
         } else {
-            ""
+            String::new()
         },
         high,
         if use_color { ANSI_RESET } else { "" }
@@ -275,7 +275,7 @@ fn format_summary_table(findings: &[Finding], use_color: bool) -> String {
         if use_color {
             format!("{}{}", ANSI_RESET, ANSI_BOLD)
         } else {
-            ""
+            String::new()
         },
         medium,
         if use_color { ANSI_RESET } else { "" }
@@ -290,7 +290,7 @@ fn format_summary_table(findings: &[Finding], use_color: bool) -> String {
         if use_color {
             format!("{}{}", ANSI_RESET, ANSI_BOLD)
         } else {
-            ""
+            String::new()
         },
         low,
         if use_color { ANSI_RESET } else { "" }
@@ -305,7 +305,7 @@ fn format_summary_table(findings: &[Finding], use_color: bool) -> String {
         if use_color {
             format!("{}{}", ANSI_RESET, ANSI_BOLD)
         } else {
-            ""
+            String::new()
         },
         info,
         if use_color { ANSI_RESET } else { "" }

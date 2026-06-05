@@ -6,16 +6,16 @@ use crate::CodeFuzzer;
 
 /// Merkle root fuzzer test suite
 pub struct MerkleRootFuzzer {
-    fuzzer: CodeFuzzer,
-    test_count: usize,
+    _fuzzer: CodeFuzzer,
+    _test_count: usize,
 }
 
 impl MerkleRootFuzzer {
     /// Create new merkle root fuzzer
     pub fn new(seed: Option<u64>) -> Self {
         Self {
-            fuzzer: CodeFuzzer::new(seed),
-            test_count: 0,
+            _fuzzer: CodeFuzzer::new(seed),
+            _test_count: 0,
         }
     }
 
@@ -24,7 +24,7 @@ impl MerkleRootFuzzer {
         let mut corpus = Vec::new();
 
         for i in 0..size {
-            let seed = self.fuzzer.seed.wrapping_add(i as u64);
+            let seed = self._fuzzer.seed.wrapping_add(i as u64);
             let _fuzzer = CodeFuzzer::new(Some(seed));
 
             let vulnerable = i % 3 == 0;
@@ -109,7 +109,7 @@ impl MerkleRootFuzzer {
                 false_positives += 1;
             }
 
-            self.test_count += 1;
+            self._test_count += 1;
         }
 
         FuzzResult {

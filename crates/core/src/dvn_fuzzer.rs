@@ -6,14 +6,14 @@ use crate::CodeFuzzer;
 
 /// DVN single point fuzzer
 pub struct DVNSinglePointFuzzer {
-    fuzzer: CodeFuzzer,
+    _fuzzer: CodeFuzzer,
 }
 
 impl DVNSinglePointFuzzer {
     /// Create new fuzzer
     pub fn new(seed: Option<u64>) -> Self {
         Self {
-            fuzzer: CodeFuzzer::new(seed),
+            _fuzzer: CodeFuzzer::new(seed),
         }
     }
 

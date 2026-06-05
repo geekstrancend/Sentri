@@ -140,7 +140,7 @@ fn is_lending_like_contract(source: &str) -> bool {
     let source_lower = source.to_lowercase();
     lending_functions
         .iter()
-        .filter(|func| source_lower.contains(func))
+        .filter(|func| source_lower.contains(**func))
         .count()
         >= 2
 }
