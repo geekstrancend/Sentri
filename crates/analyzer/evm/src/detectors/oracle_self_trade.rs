@@ -4,9 +4,9 @@
 //! within the same transaction or block. This pattern was exploited in H17 Mango Markets
 //! ($117M, 2023) where users could liquidate themselves at manipulated prices.
 
-use sentri_core::Finding;
-use regex::Regex;
 use lazy_static::lazy_static;
+use regex::Regex;
+use sentri_core::Finding;
 
 lazy_static! {
     /// Regex to match external function definitions
@@ -45,10 +45,10 @@ pub fn detect_oracle_self_trade(source: &str, file_path: &str) -> Vec<Finding> {
             .join("\n");
 
         // Pattern 2: Check if function modifies state (trades) AND uses oracle
-        let modifies_state = func_body.to_lowercase().contains("transfer") ||
-                            func_body.to_lowercase().contains("swap") ||
-                            func_body.to_lowercase().contains("mint") ||
-                            func_body.to_lowercase().contains("burn");
+        let modifies_state = func_body.to_lowercase().contains("transfer")
+            || func_body.to_lowercase().contains("swap")
+            || func_body.to_lowercase().contains("mint")
+            || func_body.to_lowercase().contains("burn");
 
         let uses_oracle = ORACLE_PRICE_REGEX.is_match(&func_body);
 
@@ -91,8 +91,14 @@ pub fn detect_oracle_self_trade(source: &str, file_path: &str) -> Vec<Finding> {
                     .with_metadata("loss".to_string(), "$117M".to_string())
                     .with_metadata("year".to_string(), "2023".to_string())
                     .with_metadata("also_affects".to_string(), "H34 Loopscale".to_string())
-                    .with_metadata("vulnerability_type".to_string(), "oracle_manipulation".to_string())
-                    .with_metadata("detector".to_string(), "oracle_state_interaction_check".to_string())
+                    .with_metadata(
+                        "vulnerability_type".to_string(),
+                        "oracle_manipulation".to_string(),
+                    )
+                    .with_metadata(
+                        "detector".to_string(),
+                        "oracle_state_interaction_check".to_string(),
+                    )
                     .with_source_fragment(func_body),
                 );
             }
@@ -116,26 +122,32 @@ fn extract_function_name(line: &str) -> String {
 /// Check if function has oracle safety measures
 fn has_oracle_safety_checks(func_body: &str) -> bool {
     let func_lower = func_body.to_lowercase();
-    
+
     let has_twap = func_lower.contains("twap") || func_lower.contains("weighted");
-    let has_staleness_check = func_lower.contains("stale") ||
-                             func_lower.contains("block.timestamp") ||
-                             func_lower.contains("timeout") ||
-                             func_lower.contains("updatedAt");
-    let has_price_impact = func_lower.contains("impact") ||
-                          func_lower.contains("slippage") ||
-                          func_lower.contains("min_amount") ||
-                          func_lower.contains("max_price");
-    let has_circuit_breaker = func_lower.contains("circuit") ||
-                             func_lower.contains("pause") ||
-                             func_lower.contains("max_deviation") ||
-                             func_lower.contains("deviation");
+    let has_staleness_check = func_lower.contains("stale")
+        || func_lower.contains("block.timestamp")
+        || func_lower.contains("timeout")
+        || func_lower.contains("updatedAt");
+    let has_price_impact = func_lower.contains("impact")
+        || func_lower.contains("slippage")
+        || func_lower.contains("min_amount")
+        || func_lower.contains("max_price");
+    let has_circuit_breaker = func_lower.contains("circuit")
+        || func_lower.contains("pause")
+        || func_lower.contains("max_deviation")
+        || func_lower.contains("deviation");
 
     // Need at least 2 safety measures
-    vec![has_twap, has_staleness_check, has_price_impact, has_circuit_breaker]
-        .iter()
-        .filter(|&&x| x)
-        .count() >= 2
+    vec![
+        has_twap,
+        has_staleness_check,
+        has_price_impact,
+        has_circuit_breaker,
+    ]
+    .iter()
+    .filter(|&&x| x)
+    .count()
+        >= 2
 }
 
 #[cfg(test)]
@@ -159,7 +171,10 @@ mod tests {
         "#;
 
         let findings = detect_oracle_self_trade(code, "protocol.sol");
-        assert!(!findings.is_empty(), "Should detect oracle self-trade vulnerability");
+        assert!(
+            !findings.is_empty(),
+            "Should detect oracle self-trade vulnerability"
+        );
         assert!(findings[0].invariant_id.contains("oracle_self_trade"));
     }
 
@@ -184,7 +199,10 @@ mod tests {
         "#;
 
         let findings = detect_oracle_self_trade(code, "mango.sol");
-        assert!(!findings.is_empty(), "Should detect Mango-like vulnerability");
+        assert!(
+            !findings.is_empty(),
+            "Should detect Mango-like vulnerability"
+        );
     }
 
     #[test]

@@ -24,21 +24,20 @@
 ///     require(success, "swap failed");
 /// }
 /// ```
-
 use lazy_static::lazy_static;
 use regex::Regex;
 use sentri_core::Finding;
 
 lazy_static! {
     static ref ARBITRARY_CALL_PATTERN: Regex =
-        Regex::new(r"(?i)(call|delegatecall)\s*\{\s*value\s*:\s*msg\.value\s*\}")
-            .unwrap();
+        Regex::new(r"(?i)(call|delegatecall)\s*\{\s*value\s*:\s*msg\.value\s*\}").unwrap();
     static ref EXTERNAL_ADDRESS_PARAM: Regex =
         Regex::new(r"(?i)function\s+\w+\s*\([^)]*address\s+\w+[^)]*\)\s*external|public|payable")
             .unwrap();
-    static ref ADDRESS_VALIDATION: Regex =
-        Regex::new(r"(?i)require\s*\(.*?(approved|whitelist|trusted|allowed)\s*\[.*?\]|isSafeTarget|isApproved")
-            .unwrap();
+    static ref ADDRESS_VALIDATION: Regex = Regex::new(
+        r"(?i)require\s*\(.*?(approved|whitelist|trusted|allowed)\s*\[.*?\]|isSafeTarget|isApproved"
+    )
+    .unwrap();
     static ref DELEGATECALL_PATTERN: Regex = Regex::new(r"(?i)delegatecall\s*\{").unwrap();
     static ref FUNCTION_SELECTOR_CHECK: Regex =
         Regex::new(r"(?i)bytes4.*?selector|selector\s*==|function\s*selector.*?(==|match)")
@@ -102,13 +101,22 @@ pub fn detect_arbitrary_call_msg_value(source: &str, file_path: &str) -> Vec<Fin
                         .to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H26")
-                .with_metadata("exploit_name", "Unizen Arbitrary Call")
-                .with_metadata("loss", "$2.1M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "arbitrary_call")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Validate call target against whitelist or require minimum checks"),
+                .with_metadata("exploit_id".to_string(), "H26".to_string())
+                .with_metadata(
+                    "exploit_name".to_string(),
+                    "Unizen Arbitrary Call".to_string(),
+                )
+                .with_metadata("loss".to_string(), "$2.1M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata(
+                    "vulnerability_type".to_string(),
+                    "arbitrary_call".to_string(),
+                )
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata(
+                    "remediation".to_string(),
+                    "Validate call target against whitelist or require minimum checks".to_string(),
+                ),
             );
         } else if !has_function_check && has_validation {
             // Has address validation but no function selector check
@@ -124,13 +132,13 @@ pub fn detect_arbitrary_call_msg_value(source: &str, file_path: &str) -> Vec<Fin
                         .to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H26")
-                .with_metadata("exploit_name", "Unizen - Weak Function Check")
-                .with_metadata("loss", "$2.1M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "arbitrary_call")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Add function selector validation"),
+                .with_metadata("exploit_id".to_string(), "H26".to_string())
+                .with_metadata("exploit_name".to_string(), "Unizen - Weak Function Check".to_string())
+                .with_metadata("loss".to_string(), "$2.1M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata("vulnerability_type".to_string(), "arbitrary_call".to_string())
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata("remediation".to_string(), "Add function selector validation".to_string()),
             );
         }
     }
@@ -152,7 +160,10 @@ mod tests {
         "#;
 
         let findings = detect_arbitrary_call_msg_value(vulnerable, "test.sol");
-        assert!(!findings.is_empty(), "Should detect unvalidated arbitrary call");
+        assert!(
+            !findings.is_empty(),
+            "Should detect unvalidated arbitrary call"
+        );
         assert_eq!(
             findings[0].metadata.get("exploit_id"),
             Some(&"H26".to_string())
@@ -170,8 +181,10 @@ mod tests {
         "#;
 
         let findings = detect_arbitrary_call_msg_value(safe, "test.sol");
-        let critical_findings: Vec<_> =
-            findings.iter().filter(|f| f.severity == sentri_core::Severity::Critical).collect();
+        let critical_findings: Vec<_> = findings
+            .iter()
+            .filter(|f| f.severity == sentri_core::Severity::Critical)
+            .collect();
         assert!(critical_findings.is_empty(), "Should allow validated call");
     }
 
@@ -186,7 +199,10 @@ mod tests {
 
         let findings = detect_arbitrary_call_msg_value(safe, "test.sol");
         // Hardcoded addresses should not trigger (not truly arbitrary)
-        assert!(findings.is_empty(), "Should not flag hardcoded address calls");
+        assert!(
+            findings.is_empty(),
+            "Should not flag hardcoded address calls"
+        );
     }
 
     #[test]
@@ -199,7 +215,10 @@ mod tests {
         "#;
 
         let findings = detect_arbitrary_call_msg_value(vulnerable, "test.sol");
-        assert!(!findings.is_empty(), "Should detect delegatecall with msg.value");
+        assert!(
+            !findings.is_empty(),
+            "Should detect delegatecall with msg.value"
+        );
         assert_eq!(
             findings[0].severity,
             sentri_core::Severity::Critical,
@@ -218,8 +237,10 @@ mod tests {
         "#;
 
         let findings = detect_arbitrary_call_msg_value(weak, "test.sol");
-        let critical_findings: Vec<_> =
-            findings.iter().filter(|f| f.severity == sentri_core::Severity::Critical).collect();
+        let critical_findings: Vec<_> = findings
+            .iter()
+            .filter(|f| f.severity == sentri_core::Severity::Critical)
+            .collect();
         // Should trigger because require(router != address(0)) is not in ADDRESS_VALIDATION pattern
         assert!(
             !critical_findings.is_empty() || findings.is_empty(),

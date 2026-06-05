@@ -25,7 +25,6 @@
 ///     token.transfer(msg.sender, amount);  // Then transfer (CEI pattern)
 /// }
 /// ```
-
 use lazy_static::lazy_static;
 use regex::Regex;
 use sentri_core::Finding;
@@ -96,13 +95,13 @@ pub fn detect_reentrancy_via_whitelisted(source: &str, file_path: &str) -> Vec<F
                         .to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H29")
-                .with_metadata("exploit_name", "Penpie Whitelisted Reentrancy")
-                .with_metadata("loss", "$27M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "reentrancy")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Update state before transfer (CEI pattern)"),
+                .with_metadata("exploit_id".to_string(), "H29".to_string())
+                .with_metadata("exploit_name".to_string(), "Penpie Whitelisted Reentrancy".to_string())
+                .with_metadata("loss".to_string(), "$27M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata("vulnerability_type".to_string(), "reentrancy".to_string())
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata("remediation".to_string(), "Update state before transfer (CEI pattern)".to_string()),
             );
         } else if !has_guard {
             // Has proper order but no reentrancy guard
@@ -118,13 +117,13 @@ pub fn detect_reentrancy_via_whitelisted(source: &str, file_path: &str) -> Vec<F
                         .to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H29")
-                .with_metadata("exploit_name", "Penpie - Weak Guard")
-                .with_metadata("loss", "$27M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "reentrancy")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Add nonReentrant modifier"),
+                .with_metadata("exploit_id".to_string(), "H29".to_string())
+                .with_metadata("exploit_name".to_string(), "Penpie - Weak Guard".to_string())
+                .with_metadata("loss".to_string(), "$27M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata("vulnerability_type".to_string(), "reentrancy".to_string())
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata("remediation".to_string(), "Add nonReentrant modifier".to_string()),
             );
         }
     }
@@ -147,7 +146,10 @@ mod tests {
         "#;
 
         let findings = detect_reentrancy_via_whitelisted(vulnerable, "test.sol");
-        assert!(!findings.is_empty(), "Should detect transfer before state update");
+        assert!(
+            !findings.is_empty(),
+            "Should detect transfer before state update"
+        );
         assert_eq!(
             findings[0].metadata.get("exploit_id"),
             Some(&"H29".to_string())
@@ -165,8 +167,10 @@ mod tests {
         "#;
 
         let findings = detect_reentrancy_via_whitelisted(safe, "test.sol");
-        let critical_findings: Vec<_> =
-            findings.iter().filter(|f| f.severity == sentri_core::Severity::Critical).collect();
+        let critical_findings: Vec<_> = findings
+            .iter()
+            .filter(|f| f.severity == sentri_core::Severity::Critical)
+            .collect();
         assert!(
             critical_findings.is_empty(),
             "Should allow proper CEI pattern with guard"
@@ -184,8 +188,10 @@ mod tests {
         "#;
 
         let findings = detect_reentrancy_via_whitelisted(weak, "test.sol");
-        let high_findings: Vec<_> =
-            findings.iter().filter(|f| f.severity == sentri_core::Severity::High).collect();
+        let high_findings: Vec<_> = findings
+            .iter()
+            .filter(|f| f.severity == sentri_core::Severity::High)
+            .collect();
         assert!(
             !high_findings.is_empty(),
             "Should flag missing reentrancy guard despite proper order"
@@ -236,8 +242,13 @@ mod tests {
         "#;
 
         let findings = detect_reentrancy_via_whitelisted(safe, "test.sol");
-        let critical_findings: Vec<_> =
-            findings.iter().filter(|f| f.severity == sentri_core::Severity::Critical).collect();
-        assert!(critical_findings.is_empty(), "Safe pattern should not trigger");
+        let critical_findings: Vec<_> = findings
+            .iter()
+            .filter(|f| f.severity == sentri_core::Severity::Critical)
+            .collect();
+        assert!(
+            critical_findings.is_empty(),
+            "Safe pattern should not trigger"
+        );
     }
 }

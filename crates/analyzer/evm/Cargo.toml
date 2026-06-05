@@ -24,6 +24,7 @@ sentri-core.workspace = true
 sentri-ir.workspace = true
 sentri-utils.workspace = true
 regex.workspace = true
+lazy_static.workspace = true
 solc.workspace = true
 petgraph.workspace = true
 rayon.workspace = true

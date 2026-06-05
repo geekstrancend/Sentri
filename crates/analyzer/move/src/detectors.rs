@@ -9,9 +9,12 @@ pub fn detect_access_control_missing(source: &str, file_path: &str) -> Vec<Findi
     let mut findings = Vec::new();
 
     for (line_num, line) in source.lines().enumerate() {
-        if (line.contains("public entry") || line.contains("public fun")) 
-            && (line.contains("transfer") || line.contains("burn") || line.contains("mint") || line.contains("withdraw")) {
-            
+        if (line.contains("public entry") || line.contains("public fun"))
+            && (line.contains("transfer")
+                || line.contains("burn")
+                || line.contains("mint")
+                || line.contains("withdraw"))
+        {
             // Check if function has capability parameter
             if !line.contains("&Capability") && !line.contains("&AdminCap") {
                 findings.push(
@@ -24,7 +27,7 @@ pub fn detect_access_control_missing(source: &str, file_path: &str) -> Vec<Findi
                         "Public entry function lacks capability/permission check".to_string(),
                         line.trim().to_string(),
                     )
-                    .with_metadata("chain".to_string(), "move".to_string())
+                    .with_metadata("chain".to_string(), "move".to_string()),
                 );
             }
         }
@@ -38,11 +41,13 @@ pub fn detect_liquidity_conservation(source: &str, file_path: &str) -> Vec<Findi
     let mut findings = Vec::new();
 
     for (line_num, line) in source.lines().enumerate() {
-        if (line.contains("swap") || line.contains("exchange")) 
-            && !line.contains("assert") && !line.contains("require") {
-            
+        if (line.contains("swap") || line.contains("exchange"))
+            && !line.contains("assert")
+            && !line.contains("require")
+        {
             // Check if x*y=k is verified
-            let func_body = source.lines()
+            let func_body = source
+                .lines()
                 .skip(line_num)
                 .take(30)
                 .collect::<Vec<_>>()
@@ -59,7 +64,7 @@ pub fn detect_liquidity_conservation(source: &str, file_path: &str) -> Vec<Findi
                         "AMM swap does not assert x*y==k invariant".to_string(),
                         line.trim().to_string(),
                     )
-                    .with_metadata("chain".to_string(), "move".to_string())
+                    .with_metadata("chain".to_string(), "move".to_string()),
                 );
             }
         }
@@ -73,9 +78,10 @@ pub fn detect_admin_no_timelock(source: &str, file_path: &str) -> Vec<Finding> {
     let mut findings = Vec::new();
 
     for (line_num, line) in source.lines().enumerate() {
-        if (line.contains("admin") || line.contains("upgrade") || line.contains("freeze")) 
-            && !line.contains("timelock") && !line.contains("delay") {
-            
+        if (line.contains("admin") || line.contains("upgrade") || line.contains("freeze"))
+            && !line.contains("timelock")
+            && !line.contains("delay")
+        {
             findings.push(
                 Finding::new(
                     "move_admin_no_timelock".to_string(),
@@ -86,7 +92,7 @@ pub fn detect_admin_no_timelock(source: &str, file_path: &str) -> Vec<Finding> {
                     "Admin capability can be used immediately without timelock".to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("chain".to_string(), "move".to_string())
+                .with_metadata("chain".to_string(), "move".to_string()),
             );
         }
     }
@@ -99,9 +105,9 @@ pub fn detect_oracle_spot_price(source: &str, file_path: &str) -> Vec<Finding> {
     let mut findings = Vec::new();
 
     for (line_num, line) in source.lines().enumerate() {
-        if (line.contains("reserve") || line.contains("balance")) 
-            && (line.contains("price") || line.contains("rate")) {
-            
+        if (line.contains("reserve") || line.contains("balance"))
+            && (line.contains("price") || line.contains("rate"))
+        {
             findings.push(
                 Finding::new(
                     "move_oracle_spot_price".to_string(),
@@ -112,7 +118,7 @@ pub fn detect_oracle_spot_price(source: &str, file_path: &str) -> Vec<Finding> {
                     "Pool reserve used directly for pricing without oracle".to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("chain".to_string(), "move".to_string())
+                .with_metadata("chain".to_string(), "move".to_string()),
             );
         }
     }
@@ -129,11 +135,9 @@ pub fn detect_all(source: &str, file_path: &str) -> Vec<Finding> {
     findings.extend(detect_admin_no_timelock(source, file_path));
     findings.extend(detect_oracle_spot_price(source, file_path));
 
-    findings.sort_by(|a, b| {
-        match b.severity.cmp(&a.severity) {
-            std::cmp::Ordering::Equal => a.line.cmp(&b.line),
-            other => other,
-        }
+    findings.sort_by(|a, b| match b.severity.cmp(&a.severity) {
+        std::cmp::Ordering::Equal => a.line.cmp(&b.line),
+        other => other,
     });
 
     findings
@@ -154,7 +158,7 @@ mod tests {
             // ...
         }
         "#;
-        
+
         let findings = detect_access_control_missing(code, "module.move");
         for f in findings {
             assert_eq!(f.chain, "move");

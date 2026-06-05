@@ -3,9 +3,9 @@
 //! This detector identifies when synthetic tokens can be minted without sufficient
 //! collateral backing. This pattern was exploited in H56 Echo Protocol ($73M, 2026).
 
-use sentri_core::Finding;
-use regex::Regex;
 use lazy_static::lazy_static;
+use regex::Regex;
+use sentri_core::Finding;
 
 lazy_static! {
     /// Regex to match mint functions
@@ -75,8 +75,14 @@ pub fn detect_unbacked_synthetic_mint(source: &str, file_path: &str) -> Vec<Find
                 .with_metadata("exploit_name".to_string(), "Echo Protocol".to_string())
                 .with_metadata("loss".to_string(), "$73M".to_string())
                 .with_metadata("year".to_string(), "2026".to_string())
-                .with_metadata("vulnerability_type".to_string(), "unbacked_mint".to_string())
-                .with_metadata("detector".to_string(), "conservation_invariant_check".to_string())
+                .with_metadata(
+                    "vulnerability_type".to_string(),
+                    "unbacked_mint".to_string(),
+                )
+                .with_metadata(
+                    "detector".to_string(),
+                    "conservation_invariant_check".to_string(),
+                )
                 .with_source_fragment(func_body),
             );
         }
@@ -94,12 +100,19 @@ pub fn detect_unbacked_synthetic_mint(source: &str, file_path: &str) -> Vec<Find
                 0,
                 "Contract lacks conservation checks between totalMinted and totalBacking. \
                  This is a synthetic token protocol that should enforce: \
-                 totalMinted <= totalCollateral * MAX_RATIO throughout all state transitions.".to_string(),
+                 totalMinted <= totalCollateral * MAX_RATIO throughout all state transitions."
+                    .to_string(),
                 "// Missing: require(totalMinted <= totalCollateral * MAX_RATIO);".to_string(),
             )
             .with_metadata("exploit_id".to_string(), "H56".to_string())
-            .with_metadata("vulnerability_type".to_string(), "missing_conservation_invariant".to_string())
-            .with_metadata("detector".to_string(), "architecture_level_check".to_string()),
+            .with_metadata(
+                "vulnerability_type".to_string(),
+                "missing_conservation_invariant".to_string(),
+            )
+            .with_metadata(
+                "detector".to_string(),
+                "architecture_level_check".to_string(),
+            ),
         );
     }
 
@@ -120,7 +133,7 @@ fn extract_function_name(line: &str) -> String {
 /// Check if function verifies collateral backing before minting
 fn checks_backing_requirement(func_body: &str) -> bool {
     let func_lower = func_body.to_lowercase();
-    
+
     // Patterns that indicate backing verification
     let backing_checks = vec![
         "totalBacking",
@@ -149,13 +162,13 @@ fn checks_backing_requirement(func_body: &str) -> bool {
 /// Check if contract has any conservation checks
 fn has_conservation_check(source: &str) -> bool {
     let source_lower = source.to_lowercase();
-    
+
     // Look for invariant checking patterns
     let has_total_minted = source_lower.contains("totalminted");
-    let has_total_collateral = source_lower.contains("totalcollateral") || 
-                                source_lower.contains("totalbacking");
-    let has_require = source_lower.contains("require") && 
-                      (source_lower.contains("minted") || source_lower.contains("supply"));
+    let has_total_collateral =
+        source_lower.contains("totalcollateral") || source_lower.contains("totalbacking");
+    let has_require = source_lower.contains("require")
+        && (source_lower.contains("minted") || source_lower.contains("supply"));
 
     (has_total_minted && has_total_collateral) || has_require
 }
@@ -198,7 +211,10 @@ mod tests {
         "#;
 
         let findings = detect_unbacked_synthetic_mint(code, "bad.sol");
-        assert!(!findings.is_empty(), "Should detect missing conservation check");
+        assert!(
+            !findings.is_empty(),
+            "Should detect missing conservation check"
+        );
     }
 
     #[test]

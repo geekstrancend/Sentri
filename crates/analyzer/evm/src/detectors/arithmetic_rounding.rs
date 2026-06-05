@@ -8,19 +8,18 @@
 /// 3. No rounding protection using mulDiv or similar
 /// 4. Can be weaponized in share calculations
 ///
-
 use lazy_static::lazy_static;
 use regex::Regex;
 use sentri_core::Finding;
 
 lazy_static! {
-    static ref DIVISION_OP: Regex = 
+    static ref DIVISION_OP: Regex =
         Regex::new(r"(?i)(\w+)\s*=\s*\(.*?\)\s*/\s*(\w+|[0-9]+)").unwrap();
-    static ref MULDIV_SAFE: Regex = 
+    static ref MULDIV_SAFE: Regex =
         Regex::new(r"(?i)(mulDiv|FixedPointMathLib|PRBMath|Math\.(mul|div))").unwrap();
-    static ref ROUNDING_UP: Regex = 
+    static ref ROUNDING_UP: Regex =
         Regex::new(r"(?i)\(.*?\+\s*(\w+|[0-9]+)\s*-\s*1\)\s*/|ceil|roundUp").unwrap();
-    static ref SHARES_CALCULATION: Regex = 
+    static ref SHARES_CALCULATION: Regex =
         Regex::new(r"(?i)(shares|amount)\s*=.*?\*\s*totalSupply.*?/\s*totalAssets").unwrap();
 }
 
@@ -51,13 +50,13 @@ pub fn detect_arithmetic_rounding(source: &str, file_path: &str) -> Vec<Finding>
                     "Share/amount calculation uses simple division without rounding protection. Use mulDiv or add ceil rounding.".to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H44")
-                .with_metadata("exploit_name", "Arithmetic Rounding")
-                .with_metadata("loss", "$4.3M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "rounding_vulnerability")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Use mulDiv or add rounding: (amount + divisor - 1) / divisor"),
+                .with_metadata("exploit_id".to_string(), "H44".to_string())
+                .with_metadata("exploit_name".to_string(), "Arithmetic Rounding".to_string())
+                .with_metadata("loss".to_string(), "$4.3M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata("vulnerability_type".to_string(), "rounding_vulnerability".to_string())
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata("remediation".to_string(), "Use mulDiv or add rounding: (amount + divisor - 1) / divisor".to_string()),
             );
         }
     }

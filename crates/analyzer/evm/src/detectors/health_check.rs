@@ -4,9 +4,9 @@
 //! contracts don't verify account health after state updates. This pattern was
 //! exploited in H19 Euler Finance ($197M, 2023) and H11 Cream Finance V2 ($130M, 2021).
 
-use sentri_core::Finding;
-use regex::Regex;
 use lazy_static::lazy_static;
+use regex::Regex;
+use sentri_core::Finding;
 
 lazy_static! {
     /// Patterns that indicate a function modifies critical financial state
@@ -110,7 +110,10 @@ pub fn detect_missing_health_check(source: &str, file_path: &str) -> Vec<Finding
                 .with_metadata("exploit_name".to_string(), "Euler Finance".to_string())
                 .with_metadata("loss".to_string(), "$197M".to_string())
                 .with_metadata("year".to_string(), "2023".to_string())
-                .with_metadata("also_affects".to_string(), "H11 Cream Finance V2 ($130M, 2021)".to_string())
+                .with_metadata(
+                    "also_affects".to_string(),
+                    "H11 Cream Finance V2 ($130M, 2021)".to_string(),
+                )
                 .with_metadata("detector".to_string(), "pattern_analysis".to_string())
                 .with_source_fragment(func_body),
             );
@@ -123,15 +126,23 @@ pub fn detect_missing_health_check(source: &str, file_path: &str) -> Vec<Finding
 /// Check if contract contains lending-related functions
 fn is_lending_like_contract(source: &str) -> bool {
     let lending_functions = vec![
-        "borrow", "liquidate", "deposit", "withdraw", "repay", "lend",
-        "collateral", "health", "liquidation"
+        "borrow",
+        "liquidate",
+        "deposit",
+        "withdraw",
+        "repay",
+        "lend",
+        "collateral",
+        "health",
+        "liquidation",
     ];
 
     let source_lower = source.to_lowercase();
     lending_functions
         .iter()
         .filter(|func| source_lower.contains(func))
-        .count() >= 2
+        .count()
+        >= 2
 }
 
 /// Extract function name from function declaration
@@ -153,7 +164,10 @@ fn has_health_check_before_return(func_body: &str) -> bool {
         let before_return = &func_body[..last_return_pos];
 
         for pattern in HEALTH_CHECK_PATTERNS.iter() {
-            if before_return.to_lowercase().contains(&pattern.to_lowercase()) {
+            if before_return
+                .to_lowercase()
+                .contains(&pattern.to_lowercase())
+            {
                 return true;
             }
         }
@@ -211,7 +225,10 @@ mod tests {
         "#;
 
         let findings = detect_missing_health_check(code, "test.sol");
-        assert!(findings.is_empty(), "Should not flag when health check present");
+        assert!(
+            findings.is_empty(),
+            "Should not flag when health check present"
+        );
     }
 
     #[test]
@@ -257,6 +274,9 @@ mod tests {
         "#;
 
         let findings = detect_missing_health_check(code, "test.sol");
-        assert!(findings.is_empty(), "Should detect implicit isHealthy check");
+        assert!(
+            findings.is_empty(),
+            "Should detect implicit isHealthy check"
+        );
     }
 }

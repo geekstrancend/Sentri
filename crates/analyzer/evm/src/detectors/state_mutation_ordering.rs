@@ -8,17 +8,19 @@
 /// 3. Incorrect order exposes intermediate states
 /// 4. Can lead to double-spending or fund loss
 ///
-
 use lazy_static::lazy_static;
 use regex::Regex;
 use sentri_core::Finding;
 
 lazy_static! {
-    static ref EXTERNAL_CALL: Regex = 
-        Regex::new(r"(?i)\.call\(|\.delegatecall\(|\.transfer\(|\.send\(|safeTransfer|safeTransferFrom").unwrap();
-    static ref STATE_UPDATE: Regex = 
-        Regex::new(r"(?i)(balances|amounts|supply|shares|reserves)\s*\[\s*\w+\s*\]\s*(-=|\+=|=)").unwrap();
-    static ref EXTERNAL_CALL_BEFORE_STATE: Regex = 
+    static ref EXTERNAL_CALL: Regex = Regex::new(
+        r"(?i)\.call\(|\.delegatecall\(|\.transfer\(|\.send\(|safeTransfer|safeTransferFrom"
+    )
+    .unwrap();
+    static ref STATE_UPDATE: Regex =
+        Regex::new(r"(?i)(balances|amounts|supply|shares|reserves)\s*\[\s*\w+\s*\]\s*(-=|\+=|=)")
+            .unwrap();
+    static ref EXTERNAL_CALL_BEFORE_STATE: Regex =
         Regex::new(r"(?i)\.call.*?balances|transfer.*?balances\[.*?\]\s*-=").unwrap();
 }
 
@@ -49,13 +51,13 @@ pub fn detect_state_mutation_ordering(source: &str, file_path: &str) -> Vec<Find
                     "External call precedes state update. Reorder to update state before calling external functions (CEI pattern).".to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H45")
-                .with_metadata("exploit_name", "State Mutation Order")
-                .with_metadata("loss", "$2.6M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "ordering_vulnerability")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Update state before external calls (CEI)"),
+                .with_metadata("exploit_id".to_string(), "H45".to_string())
+                .with_metadata("exploit_name".to_string(), "State Mutation Order".to_string())
+                .with_metadata("loss".to_string(), "$2.6M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata("vulnerability_type".to_string(), "ordering_vulnerability".to_string())
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata("remediation".to_string(), "Update state before external calls (CEI)".to_string()),
             );
         }
     }

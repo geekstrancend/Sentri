@@ -8,20 +8,16 @@
 /// 3. Resource leaks or infinite loops
 /// 4. Can freeze protocol or cause state corruption
 ///
-
 use lazy_static::lazy_static;
 use regex::Regex;
 use sentri_core::Finding;
 
 lazy_static! {
-    static ref RESOURCE_STRUCT: Regex = 
+    static ref RESOURCE_STRUCT: Regex =
         Regex::new(r"(?i)struct.*has\s+key|struct.*has\s+store|#\[resource\]").unwrap();
-    static ref MOVE_STATEMENT: Regex = 
-        Regex::new(r"(?i)move\s+\w+").unwrap();
-    static ref DROP_CALL: Regex = 
-        Regex::new(r"(?i)drop<|unpack.*!|destroy.*!").unwrap();
-    static ref DISCARD_PATTERN: Regex = 
-        Regex::new(r"_\s*=\s*\w+|let\s+_").unwrap();
+    static ref MOVE_STATEMENT: Regex = Regex::new(r"(?i)move\s+\w+").unwrap();
+    static ref DROP_CALL: Regex = Regex::new(r"(?i)drop<|unpack.*!|destroy.*!").unwrap();
+    static ref DISCARD_PATTERN: Regex = Regex::new(r"_\s*=\s*\w+|let\s+_").unwrap();
 }
 
 pub fn detect_move_resource_destruction(source: &str, file_path: &str) -> Vec<Finding> {
@@ -56,13 +52,13 @@ pub fn detect_move_resource_destruction(source: &str, file_path: &str) -> Vec<Fi
                     "Resource moved without proper destruction. Ensure resources are destroyed or discarded with _.".to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H51")
-                .with_metadata("exploit_name", "Move Resource Destruction")
-                .with_metadata("loss", "$1.8M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "resource_leak")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Destroy resources or use _ = resource to discard"),
+                .with_metadata("exploit_id".to_string(), "H51".to_string())
+                .with_metadata("exploit_name".to_string(), "Move Resource Destruction".to_string())
+                .with_metadata("loss".to_string(), "$1.8M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata("vulnerability_type".to_string(), "resource_leak".to_string())
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata("remediation".to_string(), "Destroy resources or use _ = resource to discard".to_string()),
             );
         }
     }

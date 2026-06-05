@@ -1613,12 +1613,15 @@ fn cmd_doctor(args: DoctorArgs, quiet: bool) -> Result<()> {
 /// Handle the `scan` subcommand (enhanced version of check).
 fn cmd_scan(args: ScanArgs, quiet: bool, verbose: bool) -> Result<()> {
     if !quiet {
-        eprintln!("▶ Scanning {} on {}...", args.path.display(), 
-                 match args.chain {
-                     ChainArg::Evm => "EVM",
-                     ChainArg::Solana => "Solana",
-                     ChainArg::Move => "Move",
-                 });
+        eprintln!(
+            "▶ Scanning {} on {}...",
+            args.path.display(),
+            match args.chain {
+                ChainArg::Evm => "EVM",
+                ChainArg::Solana => "Solana",
+                ChainArg::Move => "Move",
+            }
+        );
     }
 
     // TODO: Implement full scan with:
@@ -1627,7 +1630,7 @@ fn cmd_scan(args: ScanArgs, quiet: bool, verbose: bool) -> Result<()> {
     // - RPC integration
     // - Parallel scanning with rayon
     // - Color output control
-    
+
     if !quiet {
         eprintln!("✓ Scan complete");
     }
@@ -1638,7 +1641,7 @@ fn cmd_scan(args: ScanArgs, quiet: bool, verbose: bool) -> Result<()> {
 /// Handle the `registry` subcommand.
 fn cmd_registry(args: RegistryArgs, quiet: bool) -> Result<()> {
     use sentri_core::EXPLOIT_REGISTRY;
-    
+
     match args.action {
         RegistryAction::List { chain, format } => {
             let registry = &*EXPLOIT_REGISTRY;
@@ -1651,26 +1654,24 @@ fn cmd_registry(args: RegistryArgs, quiet: bool) -> Result<()> {
             match format {
                 FormatArg::Text => {
                     if !quiet {
-                        println!("\n{} Historical DeFi Exploits Mapped to Sentri Invariants", 
-                                exploits.len());
+                        println!(
+                            "\n{} Historical DeFi Exploits Mapped to Sentri Invariants",
+                            exploits.len()
+                        );
                         println!("{}", "=".repeat(80));
                         for exploit in &exploits {
-                            println!("\n  {} | {} | {} | ${} loss",
-                                exploit.id,
-                                exploit.protocol,
-                                exploit.date,
-                                exploit.loss_usd);
-                            println!("    Invariants: {}",
-                                exploit.invariant_ids.join(", "));
+                            println!(
+                                "\n  {} | {} | {} | ${} loss",
+                                exploit.id, exploit.protocol, exploit.date, exploit.loss_usd
+                            );
+                            println!("    Invariants: {}", exploit.invariant_ids.join(", "));
                         }
                         println!("\n{}", "=".repeat(80));
                         println!("Total loss: ${:,}", registry.total_loss());
                     }
                 }
                 FormatArg::Json => {
-                    let json_exploits: Vec<_> = exploits.iter()
-                        .map(|e| json!(e))
-                        .collect();
+                    let json_exploits: Vec<_> = exploits.iter().map(|e| json!(e)).collect();
                     println!("{}", serde_json::to_string_pretty(&json_exploits)?);
                 }
                 _ => {
@@ -1682,35 +1683,33 @@ fn cmd_registry(args: RegistryArgs, quiet: bool) -> Result<()> {
         }
         RegistryAction::Show { id, format } => {
             let registry = &*EXPLOIT_REGISTRY;
-            
+
             match registry.get(&id) {
-                Some(exploit) => {
-                    match format {
-                        FormatArg::Text => {
-                            if !quiet {
-                                println!("\n{} - {} ({})", exploit.id, exploit.protocol, exploit.date);
-                                println!("{}", "=".repeat(80));
-                                println!("Loss: ${:,}", exploit.loss_usd);
-                                println!("Chain: {}", exploit.chain);
-                                println!("\nAttack Summary:\n{}\n", exploit.attack_summary);
-                                println!("Invariants Violated:");
-                                for inv_id in &exploit.invariant_ids {
-                                    println!("  - {}", inv_id);
-                                }
-                                println!("\nTx Hash: {}", exploit.tx_hash);
-                                println!("Postmortem: {}\n", exploit.postmortem_url);
+                Some(exploit) => match format {
+                    FormatArg::Text => {
+                        if !quiet {
+                            println!("\n{} - {} ({})", exploit.id, exploit.protocol, exploit.date);
+                            println!("{}", "=".repeat(80));
+                            println!("Loss: ${:,}", exploit.loss_usd);
+                            println!("Chain: {}", exploit.chain);
+                            println!("\nAttack Summary:\n{}\n", exploit.attack_summary);
+                            println!("Invariants Violated:");
+                            for inv_id in &exploit.invariant_ids {
+                                println!("  - {}", inv_id);
                             }
-                        }
-                        FormatArg::Json => {
-                            println!("{}", serde_json::to_string_pretty(&exploit)?);
-                        }
-                        _ => {
-                            if !quiet {
-                                eprintln!("ℹ Format not yet implemented");
-                            }
+                            println!("\nTx Hash: {}", exploit.tx_hash);
+                            println!("Postmortem: {}\n", exploit.postmortem_url);
                         }
                     }
-                }
+                    FormatArg::Json => {
+                        println!("{}", serde_json::to_string_pretty(&exploit)?);
+                    }
+                    _ => {
+                        if !quiet {
+                            eprintln!("ℹ Format not yet implemented");
+                        }
+                    }
+                },
                 None => {
                     if !quiet {
                         eprintln!("✗ Exploit not found: {}", id);
@@ -1725,80 +1724,76 @@ fn cmd_registry(args: RegistryArgs, quiet: bool) -> Result<()> {
 
 /// Handle the `invariants` subcommand.
 fn cmd_invariants(args: InvariantsArgs, quiet: bool) -> Result<()> {
-    use sentri_core::{invariants_for_chain, get_invariant, invariant_count};
-    
+    use sentri_core::{get_invariant, invariant_count, invariants_for_chain};
+
     match args.action {
-        InvariantsAction::List { chain, severity: _, format } => {
-            match format {
+        InvariantsAction::List {
+            chain,
+            severity: _,
+            format,
+        } => match format {
+            FormatArg::Text => {
+                if !quiet {
+                    let count = invariant_count();
+                    println!("\n {} Compiled Invariants", count);
+                    println!("{}", "=".repeat(80));
+
+                    if let Some(c) = &chain {
+                        let invariants = invariants_for_chain(c);
+                        println!("Chain: {}\n", c);
+                        for inv in &invariants {
+                            println!("  {} | {} | {}", inv.id, inv.severity, inv.description);
+                        }
+                    } else {
+                        println!("(Total across all chains)\n");
+                        println!("  Use --chain evm|solana|move to filter\n");
+                    }
+                    println!("{}", "=".repeat(80));
+                }
+            }
+            FormatArg::Json => {
+                if let Some(c) = chain {
+                    let invariants = invariants_for_chain(&c);
+                    let json_invs: Vec<_> = invariants
+                        .iter()
+                        .map(|i| json!({"id": i.id, "severity": i.severity, "chain": i.chain}))
+                        .collect();
+                    println!("{}", serde_json::to_string_pretty(&json_invs)?);
+                }
+            }
+            _ => {
+                if !quiet {
+                    eprintln!("ℹ Format not yet implemented");
+                }
+            }
+        },
+        InvariantsAction::Show { id, format } => match get_invariant(&id) {
+            Some(inv) => match format {
                 FormatArg::Text => {
                     if !quiet {
-                        let count = invariant_count();
-                        println!("\n {} Compiled Invariants", count);
+                        println!("\n{}", inv.id);
                         println!("{}", "=".repeat(80));
-                        
-                        if let Some(c) = &chain {
-                            let invariants = invariants_for_chain(c);
-                            println!("Chain: {}\n", c);
-                            for inv in &invariants {
-                                println!("  {} | {} | {}",
-                                    inv.id,
-                                    inv.severity,
-                                    inv.description);
-                            }
-                        } else {
-                            println!("(Total across all chains)\n");
-                            println!("  Use --chain evm|solana|move to filter\n");
-                        }
-                        println!("{}", "=".repeat(80));
+                        println!("Severity: {}", inv.severity);
+                        println!("Chain: {}", inv.chain);
+                        println!("\nDescription:\n{}\n", inv.description);
+                        println!("Message Template: {}\n", inv.message);
                     }
                 }
                 FormatArg::Json => {
-                    if let Some(c) = chain {
-                        let invariants = invariants_for_chain(&c);
-                        let json_invs: Vec<_> = invariants.iter()
-                            .map(|i| json!({"id": i.id, "severity": i.severity, "chain": i.chain}))
-                            .collect();
-                        println!("{}", serde_json::to_string_pretty(&json_invs)?);
-                    }
+                    println!("{}", serde_json::to_string_pretty(&json!(inv))?);
                 }
                 _ => {
                     if !quiet {
                         eprintln!("ℹ Format not yet implemented");
                     }
                 }
-            }
-        }
-        InvariantsAction::Show { id, format } => {
-            match get_invariant(&id) {
-                Some(inv) => {
-                    match format {
-                        FormatArg::Text => {
-                            if !quiet {
-                                println!("\n{}", inv.id);
-                                println!("{}", "=".repeat(80));
-                                println!("Severity: {}", inv.severity);
-                                println!("Chain: {}", inv.chain);
-                                println!("\nDescription:\n{}\n", inv.description);
-                                println!("Message Template: {}\n", inv.message);
-                            }
-                        }
-                        FormatArg::Json => {
-                            println!("{}", serde_json::to_string_pretty(&json!(inv))?);
-                        }
-                        _ => {
-                            if !quiet {
-                                eprintln!("ℹ Format not yet implemented");
-                            }
-                        }
-                    }
-                }
-                None => {
-                    if !quiet {
-                        eprintln!("✗ Invariant not found: {}", id);
-                    }
+            },
+            None => {
+                if !quiet {
+                    eprintln!("✗ Invariant not found: {}", id);
                 }
             }
-        }
+        },
     }
 
     Ok(())
@@ -1807,15 +1802,17 @@ fn cmd_invariants(args: InvariantsArgs, quiet: bool) -> Result<()> {
 /// Handle the `fuzz` subcommand.
 fn cmd_fuzz(args: FuzzArgs, quiet: bool, verbose: bool) -> Result<()> {
     if !quiet {
-        eprintln!("▶ Fuzzing {} on {} for {} iterations (depth: {})...", 
-                 args.path.display(),
-                 match args.chain {
-                     ChainArg::Evm => "EVM",
-                     ChainArg::Solana => "Solana",
-                     ChainArg::Move => "Move",
-                 },
-                 args.iterations,
-                 args.depth);
+        eprintln!(
+            "▶ Fuzzing {} on {} for {} iterations (depth: {})...",
+            args.path.display(),
+            match args.chain {
+                ChainArg::Evm => "EVM",
+                ChainArg::Solana => "Solana",
+                ChainArg::Move => "Move",
+            },
+            args.iterations,
+            args.depth
+        );
     }
 
     // TODO: Implement fuzzer:
@@ -1824,7 +1821,7 @@ fn cmd_fuzz(args: FuzzArgs, quiet: bool, verbose: bool) -> Result<()> {
     // - Run --iterations times with optional --seed
     // - Check invariant properties
     // - Report minimal counterexample on failure
-    
+
     if !quiet {
         eprintln!("✓ Fuzz run complete (0 violations found)");
     }

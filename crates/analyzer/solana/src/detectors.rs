@@ -10,10 +10,11 @@ pub fn detect_missing_signer(source: &str, file_path: &str) -> Vec<Finding> {
 
     for (line_num, line) in source.lines().enumerate() {
         // Pattern: Account<'_> without #[account(signer)]
-        if line.contains("Account<") && line.contains("mut")
+        if line.contains("Account<")
+            && line.contains("mut")
             && !line.contains("signer")
-            && (line.contains("transfer") || line.contains("payer") || line.contains("authority")) {
-            
+            && (line.contains("transfer") || line.contains("payer") || line.contains("authority"))
+        {
             findings.push(
                 Finding::new(
                     "sol_missing_signer".to_string(),
@@ -24,7 +25,7 @@ pub fn detect_missing_signer(source: &str, file_path: &str) -> Vec<Finding> {
                     "Mutable account lacks #[account(signer)] constraint".to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("chain".to_string(), "solana".to_string())
+                .with_metadata("chain".to_string(), "solana".to_string()),
             );
         }
     }
@@ -38,11 +39,12 @@ pub fn detect_oracle_rate_account(source: &str, file_path: &str) -> Vec<Finding>
 
     for (line_num, line) in source.lines().enumerate() {
         let lower = line.to_lowercase();
-        
-        if (lower.contains("rate") || lower.contains("price") || lower.contains("clock")) 
-            && (lower.contains("sysvar") || lower.contains("account")) 
-            && !lower.contains("chain") && !lower.contains("link") {
-            
+
+        if (lower.contains("rate") || lower.contains("price") || lower.contains("clock"))
+            && (lower.contains("sysvar") || lower.contains("account"))
+            && !lower.contains("chain")
+            && !lower.contains("link")
+        {
             findings.push(
                 Finding::new(
                     "sol_oracle_rate_account".to_string(),
@@ -53,7 +55,7 @@ pub fn detect_oracle_rate_account(source: &str, file_path: &str) -> Vec<Finding>
                     "Using system account or rate source directly as price oracle".to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("chain".to_string(), "solana".to_string())
+                .with_metadata("chain".to_string(), "solana".to_string()),
             );
         }
     }
@@ -67,9 +69,9 @@ pub fn detect_oracle_self_trade(source: &str, file_path: &str) -> Vec<Finding> {
 
     // Look for trades where maker and taker are derived from same signer
     for (line_num, line) in source.lines().enumerate() {
-        if (line.contains("maker") && line.contains("taker")) 
-            || (line.contains("owner") && line.contains("owner")) {
-            
+        if (line.contains("maker") && line.contains("taker"))
+            || (line.contains("owner") && line.contains("owner"))
+        {
             if line.contains("signer") && !line.contains("require") && !line.contains("assert") {
                 findings.push(
                     Finding::new(
@@ -81,7 +83,7 @@ pub fn detect_oracle_self_trade(source: &str, file_path: &str) -> Vec<Finding> {
                         "Single signer controls both sides of price trade".to_string(),
                         line.trim().to_string(),
                     )
-                    .with_metadata("chain".to_string(), "solana".to_string())
+                    .with_metadata("chain".to_string(), "solana".to_string()),
                 );
             }
         }
@@ -95,11 +97,11 @@ pub fn detect_treasury_single_authority(source: &str, file_path: &str) -> Vec<Fi
     let mut findings = Vec::new();
 
     for (line_num, line) in source.lines().enumerate() {
-        if (line.contains("treasury") || line.contains("vault")) 
-            && line.contains("authority") 
-            && !line.contains("multisig") 
-            && !line.contains("multi_sig") {
-            
+        if (line.contains("treasury") || line.contains("vault"))
+            && line.contains("authority")
+            && !line.contains("multisig")
+            && !line.contains("multi_sig")
+        {
             findings.push(
                 Finding::new(
                     "sol_treasury_single_authority".to_string(),
@@ -110,7 +112,7 @@ pub fn detect_treasury_single_authority(source: &str, file_path: &str) -> Vec<Fi
                     "Treasury/vault has single non-multisig authority".to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("chain".to_string(), "solana".to_string())
+                .with_metadata("chain".to_string(), "solana".to_string()),
             );
         }
     }
@@ -124,12 +126,12 @@ pub fn detect_admin_no_timelock(source: &str, file_path: &str) -> Vec<Finding> {
 
     for (line_num, line) in source.lines().enumerate() {
         let lower = line.to_lowercase();
-        
-        if (lower.contains("upgrade") || lower.contains("admin") || lower.contains("freeze")) 
+
+        if (lower.contains("upgrade") || lower.contains("admin") || lower.contains("freeze"))
             && lower.contains("authority")
-            && !lower.contains("timelock") 
-            && !lower.contains("delay") {
-            
+            && !lower.contains("timelock")
+            && !lower.contains("delay")
+        {
             findings.push(
                 Finding::new(
                     "sol_admin_no_timelock".to_string(),
@@ -140,7 +142,7 @@ pub fn detect_admin_no_timelock(source: &str, file_path: &str) -> Vec<Finding> {
                     "Admin function executes immediately with no timelock delay".to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("chain".to_string(), "solana".to_string())
+                .with_metadata("chain".to_string(), "solana".to_string()),
             );
         }
     }
@@ -153,9 +155,11 @@ pub fn detect_sysvar_account_validation(source: &str, file_path: &str) -> Vec<Fi
     let mut findings = Vec::new();
 
     for (line_num, line) in source.lines().enumerate() {
-        if (line.contains("sysvar") || line.contains("system_program") || line.contains("clock")) 
-            && !line.contains("key") && !line.contains("address") && !line.contains("assert") {
-            
+        if (line.contains("sysvar") || line.contains("system_program") || line.contains("clock"))
+            && !line.contains("key")
+            && !line.contains("address")
+            && !line.contains("assert")
+        {
             findings.push(
                 Finding::new(
                     "sol_sysvar_account_validation".to_string(),
@@ -166,7 +170,7 @@ pub fn detect_sysvar_account_validation(source: &str, file_path: &str) -> Vec<Fi
                     "System account used without address validation".to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("chain".to_string(), "solana".to_string())
+                .with_metadata("chain".to_string(), "solana".to_string()),
             );
         }
     }
@@ -185,11 +189,9 @@ pub fn detect_all(source: &str, file_path: &str) -> Vec<Finding> {
     findings.extend(detect_admin_no_timelock(source, file_path));
     findings.extend(detect_sysvar_account_validation(source, file_path));
 
-    findings.sort_by(|a, b| {
-        match b.severity.cmp(&a.severity) {
-            std::cmp::Ordering::Equal => a.line.cmp(&b.line),
-            other => other,
-        }
+    findings.sort_by(|a, b| match b.severity.cmp(&a.severity) {
+        std::cmp::Ordering::Equal => a.line.cmp(&b.line),
+        other => other,
     });
 
     findings
@@ -208,7 +210,7 @@ mod tests {
             pub payer: AccountInfo<'a>,
         }
         "#;
-        
+
         let findings = detect_missing_signer(code, "program.rs");
         // Should find the issue
         for f in findings {

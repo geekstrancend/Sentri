@@ -47,10 +47,10 @@ impl Severity {
     /// Get ANSI color code for terminal output.
     pub fn ansi_color(self) -> &'static str {
         match self {
-            Self::Info => "\x1b[36m", // Cyan
-            Self::Low => "\x1b[34m",  // Blue
-            Self::Medium => "\x1b[33m", // Yellow
-            Self::High => "\x1b[1;33m", // Bold yellow
+            Self::Info => "\x1b[36m",       // Cyan
+            Self::Low => "\x1b[34m",        // Blue
+            Self::Medium => "\x1b[33m",     // Yellow
+            Self::High => "\x1b[1;33m",     // Bold yellow
             Self::Critical => "\x1b[1;31m", // Bold red
         }
     }

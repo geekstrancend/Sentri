@@ -8,7 +8,6 @@
 /// 3. Attacker can manipulate prices pre-trade via sandwich attack
 /// 4. User receives far less output than expected
 ///
-
 use lazy_static::lazy_static;
 use regex::Regex;
 use sentri_core::Finding;
@@ -18,7 +17,7 @@ lazy_static! {
         r"(?i)(swapExactTokensForTokens|swapTokensForExactTokens|swapExactETHForTokens|swapTokensForExactETH)"
     ).unwrap();
     static ref AMOUNT_OUT_MIN: Regex = Regex::new(r"(?i)amountOutMin|minAmountOut|minOut|minimumAmount").unwrap();
-    static ref SLIPPAGE_CALC: Regex = 
+    static ref SLIPPAGE_CALC: Regex =
         Regex::new(r"(?i)amountOutMin\s*=\s*amount.*?(\*\s*99|*\s*98|/\s*100|slippage)").unwrap();
     static ref REQUIRE_CHECK: Regex = Regex::new(r"(?i)require\s*\(.*?amount.*?>=.*?amountOutMin").unwrap();
 }
@@ -41,7 +40,7 @@ pub fn detect_router_slippage_validation(source: &str, file_path: &str) -> Vec<F
 
         let has_min_amount = AMOUNT_OUT_MIN.is_match(&function_body);
         let has_slippage_calc = SLIPPAGE_CALC.is_match(&function_body);
-        let has_require = REQUIRE_CHECK.is_match(&function_body);
+        let _has_require = REQUIRE_CHECK.is_match(&function_body);
 
         if has_min_amount && !has_slippage_calc {
             findings.push(
@@ -54,13 +53,13 @@ pub fn detect_router_slippage_validation(source: &str, file_path: &str) -> Vec<F
                     "Router swap lacks slippage percentage calculation. Use (amount * 99) / 100 for 1% slippage limit.".to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H51")
-                .with_metadata("exploit_name", "Router Slippage")
-                .with_metadata("loss", "$9.1M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "slippage")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Add slippage calculation: (amount * 99) / 100"),
+                .with_metadata("exploit_id".to_string(), "H51".to_string())
+                .with_metadata("exploit_name".to_string(), "Router Slippage".to_string())
+                .with_metadata("loss".to_string(), "$9.1M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata("vulnerability_type".to_string(), "slippage".to_string())
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata("remediation".to_string(), "Add slippage calculation: (amount * 99) / 100".to_string()),
             );
         }
     }
@@ -130,6 +129,6 @@ mod tests {
         }
         "#;
         let findings = detect_router_slippage_validation(vulnerable, "test.sol");
-        assert!(findings.is_empty() || !findings.is_empty());  // May or may not trigger depending on pattern
+        assert!(findings.is_empty() || !findings.is_empty()); // May or may not trigger depending on pattern
     }
 }

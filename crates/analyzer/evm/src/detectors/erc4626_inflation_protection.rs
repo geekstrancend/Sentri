@@ -37,25 +37,22 @@
 ///     _mint(receiver, shares);
 /// }
 /// ```
-
 use lazy_static::lazy_static;
 use regex::Regex;
 use sentri_core::Finding;
 
 lazy_static! {
     static ref DEPOSIT_PATTERN: Regex = Regex::new(r"(?i)function\s+deposit\s*\(").unwrap();
-    static ref SHARE_CALC_PATTERN: Regex =
-        Regex::new(r"(?i)(shares\s*=|return)\s*\(.*?assets\s*\*\s*totalSupply.*?\)\s*/\s*totalAssets")
-            .unwrap();
+    static ref SHARE_CALC_PATTERN: Regex = Regex::new(
+        r"(?i)(shares\s*=|return)\s*\(.*?assets\s*\*\s*totalSupply.*?\)\s*/\s*totalAssets"
+    )
+    .unwrap();
     static ref MINIMUM_SHARES_CHECK: Regex =
-        Regex::new(r"(?i)require\s*\(.*?(shares\s*>=|shares\s*>|MIN_SHARES)\s*.*?\)")
-            .unwrap();
+        Regex::new(r"(?i)require\s*\(.*?(shares\s*>=|shares\s*>|MIN_SHARES)\s*.*?\)").unwrap();
     static ref ZERO_SUPPLY_PROTECTION: Regex =
-        Regex::new(r"(?i)(if|require).*?totalSupply.*?(==\s*0|isZero)")
-            .unwrap();
+        Regex::new(r"(?i)(if|require).*?totalSupply.*?(==\s*0|isZero)").unwrap();
     static ref ROUNDING_PROTECTION: Regex =
-        Regex::new(r"(?i)(roundUp|roundDown|ceil|floor|mulDiv|FixedPointMathLib)")
-            .unwrap();
+        Regex::new(r"(?i)(roundUp|roundDown|ceil|floor|mulDiv|FixedPointMathLib)").unwrap();
 }
 
 pub fn detect_erc4626_inflation_protection(source: &str, file_path: &str) -> Vec<Finding> {
@@ -105,12 +102,12 @@ pub fn detect_erc4626_inflation_protection(source: &str, file_path: &str) -> Vec
                         .to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H52")
-                .with_metadata("exploit_name", "ERC4626 Inflation Attack")
-                .with_metadata("loss", "Varies")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "share_inflation")
-                .with_metadata("detector", "pattern_analysis")
+                .with_metadata("exploit_id".to_string(), "H52".to_string())
+                .with_metadata("exploit_name".to_string(), "ERC4626 Inflation Attack".to_string())
+                .with_metadata("loss".to_string(), "Varies".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata("vulnerability_type".to_string(), "share_inflation".to_string())
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
                 .with_metadata(
                     "remediation",
                     "Require MIN_SHARES per deposit or use rounding protections"
@@ -130,13 +127,13 @@ pub fn detect_erc4626_inflation_protection(source: &str, file_path: &str) -> Vec
                         .to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H52")
-                .with_metadata("exploit_name", "ERC4626 - Weak Zero Supply Handling")
-                .with_metadata("loss", "Varies")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "share_inflation")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Add explicit if (totalSupply == 0) check"),
+                .with_metadata("exploit_id".to_string(), "H52".to_string())
+                .with_metadata("exploit_name".to_string(), "ERC4626 - Weak Zero Supply Handling".to_string())
+                .with_metadata("loss".to_string(), "Varies".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata("vulnerability_type".to_string(), "share_inflation".to_string())
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata("remediation".to_string(), "Add explicit if (totalSupply == 0) check".to_string()),
             );
         }
     }
@@ -164,7 +161,10 @@ mod tests {
         "#;
 
         let findings = detect_erc4626_inflation_protection(vulnerable, "test.sol");
-        assert!(!findings.is_empty(), "Should detect unprotected share calculation");
+        assert!(
+            !findings.is_empty(),
+            "Should detect unprotected share calculation"
+        );
         assert_eq!(
             findings[0].metadata.get("exploit_id"),
             Some(&"H52".to_string())
@@ -189,9 +189,14 @@ mod tests {
         "#;
 
         let findings = detect_erc4626_inflation_protection(safe, "test.sol");
-        let critical_findings: Vec<_> =
-            findings.iter().filter(|f| f.severity == sentri_core::Severity::Critical).collect();
-        assert!(critical_findings.is_empty(), "Should allow properly protected deposits");
+        let critical_findings: Vec<_> = findings
+            .iter()
+            .filter(|f| f.severity == sentri_core::Severity::Critical)
+            .collect();
+        assert!(
+            critical_findings.is_empty(),
+            "Should allow properly protected deposits"
+        );
     }
 
     #[test]
@@ -210,9 +215,14 @@ mod tests {
         "#;
 
         let findings = detect_erc4626_inflation_protection(safe, "test.sol");
-        let critical_findings: Vec<_> =
-            findings.iter().filter(|f| f.severity == sentri_core::Severity::Critical).collect();
-        assert!(critical_findings.is_empty(), "Should allow deposits with zero supply protection");
+        let critical_findings: Vec<_> = findings
+            .iter()
+            .filter(|f| f.severity == sentri_core::Severity::Critical)
+            .collect();
+        assert!(
+            critical_findings.is_empty(),
+            "Should allow deposits with zero supply protection"
+        );
     }
 
     #[test]
@@ -228,8 +238,10 @@ mod tests {
         "#;
 
         let findings = detect_erc4626_inflation_protection(safe, "test.sol");
-        let critical_findings: Vec<_> =
-            findings.iter().filter(|f| f.severity == sentri_core::Severity::Critical).collect();
+        let critical_findings: Vec<_> = findings
+            .iter()
+            .filter(|f| f.severity == sentri_core::Severity::Critical)
+            .collect();
         assert!(
             critical_findings.is_empty(),
             "Should allow deposits with rounding protection"
@@ -249,8 +261,10 @@ mod tests {
         "#;
 
         let findings = detect_erc4626_inflation_protection(weak, "test.sol");
-        let high_findings: Vec<_> =
-            findings.iter().filter(|f| f.severity == sentri_core::Severity::High).collect();
+        let high_findings: Vec<_> = findings
+            .iter()
+            .filter(|f| f.severity == sentri_core::Severity::High)
+            .collect();
         assert!(
             !high_findings.is_empty(),
             "Should flag missing explicit zero supply check"

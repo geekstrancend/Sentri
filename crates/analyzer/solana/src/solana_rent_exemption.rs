@@ -8,17 +8,17 @@
 /// 3. State loss or double-spend possible
 /// 4. PDA accounts must be properly initialized
 ///
-
 use lazy_static::lazy_static;
 use regex::Regex;
 use sentri_core::Finding;
 
 lazy_static! {
-    static ref ACCOUNT_MUT: Regex = 
-        Regex::new(r"(?i)account_info.*is_signer\s*=|#\[account\(mut\)\]|AccountInfo.*mut").unwrap();
-    static ref RENT_EXEMPT_CHECK: Regex = 
+    static ref ACCOUNT_MUT: Regex =
+        Regex::new(r"(?i)account_info.*is_signer\s*=|#\[account\(mut\)\]|AccountInfo.*mut")
+            .unwrap();
+    static ref RENT_EXEMPT_CHECK: Regex =
         Regex::new(r"(?i)rent\.is_exempt|lamports.*?\>=.*?rent|rent_exempt").unwrap();
-    static ref TRANSFER_TO_ACCOUNT: Regex = 
+    static ref TRANSFER_TO_ACCOUNT: Regex =
         Regex::new(r"(?i)transfer_with_seed|rent\.minimum_balance").unwrap();
 }
 
@@ -51,13 +51,13 @@ pub fn detect_solana_rent_exemption(source: &str, file_path: &str) -> Vec<Findin
                     "Mutable account lacks rent exemption validation. Verify: rent.is_exempt(lamports, account_size)".to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H55")
-                .with_metadata("exploit_name", "Solana Rent Exemption")
-                .with_metadata("loss", "$6.7M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "rent_violation")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Add rent.is_exempt(account.lamports(), account.data.len())"),
+                .with_metadata("exploit_id".to_string(), "H55".to_string())
+                .with_metadata("exploit_name".to_string(), "Solana Rent Exemption".to_string())
+                .with_metadata("loss".to_string(), "$6.7M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata("vulnerability_type".to_string(), "rent_violation".to_string())
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata("remediation".to_string(), "Add rent.is_exempt(account.lamports(), account.data.len())".to_string()),
             );
         }
     }
@@ -129,6 +129,6 @@ mod tests {
         pub account: AccountInfo<'info>,
         "#;
         let findings = detect_solana_rent_exemption(ignored, "test.rs");
-        assert!(findings.is_empty());  // Immutable accounts don't need rent check
+        assert!(findings.is_empty()); // Immutable accounts don't need rent check
     }
 }

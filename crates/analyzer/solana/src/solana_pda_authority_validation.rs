@@ -8,19 +8,19 @@
 /// 3. Attacker can provide different authority
 /// 4. Can lead to unauthorized state changes
 ///
-
 use lazy_static::lazy_static;
 use regex::Regex;
 use sentri_core::Finding;
 
 lazy_static! {
-    static ref PDA_PATTERN: Regex = 
-        Regex::new(r"(?i)find_program_address|create_program_address|Pubkey::find_program_address").unwrap();
-    static ref AUTHORITY_PARAM: Regex = 
+    static ref PDA_PATTERN: Regex =
+        Regex::new(r"(?i)find_program_address|create_program_address|Pubkey::find_program_address")
+            .unwrap();
+    static ref AUTHORITY_PARAM: Regex =
         Regex::new(r"(?i)authority|admin|owner|signer|authorized").unwrap();
-    static ref SIGNER_CHECK: Regex = 
+    static ref SIGNER_CHECK: Regex =
         Regex::new(r"(?i)require.*is_signer|require.*is_executable|account_info.*signer").unwrap();
-    static ref AUTHORITY_VALIDATION: Regex = 
+    static ref AUTHORITY_VALIDATION: Regex =
         Regex::new(r"(?i)require.*authority.*==|require.*auth.*==|require.*signer.*==").unwrap();
 }
 
@@ -55,13 +55,13 @@ pub fn detect_solana_pda_authority_validation(source: &str, file_path: &str) -> 
                     "PDA used without validating authority parameter. Require authority == expected_pda.".to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H53")
-                .with_metadata("exploit_name", "Solana PDA Authority")
-                .with_metadata("loss", "$3.5M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "authority_validation")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Add require!(authority.key() == expected_pda)"),
+                .with_metadata("exploit_id".to_string(), "H53".to_string())
+                .with_metadata("exploit_name".to_string(), "Solana PDA Authority".to_string())
+                .with_metadata("loss".to_string(), "$3.5M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata("vulnerability_type".to_string(), "authority_validation".to_string())
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata("remediation".to_string(), "Add require!(authority.key() == expected_pda)".to_string()),
             );
         }
     }

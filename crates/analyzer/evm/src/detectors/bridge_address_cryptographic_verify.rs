@@ -26,7 +26,6 @@
 ///     _transfer(recipient, amount);
 /// }
 /// ```
-
 use lazy_static::lazy_static;
 use regex::Regex;
 use sentri_core::Finding;
@@ -102,13 +101,13 @@ pub fn detect_bridge_address_cryptographic_verify(source: &str, file_path: &str)
                         .to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H49")
-                .with_metadata("exploit_name", "Purrlend Bridge Address Forgery")
-                .with_metadata("loss", "$0.8M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "signature_forgery")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Add ECDSA.recover() and require(signer == authorizedBridge)"),
+                .with_metadata("exploit_id".to_string(), "H49".to_string())
+                .with_metadata("exploit_name".to_string(), "Purrlend Bridge Address Forgery".to_string())
+                .with_metadata("loss".to_string(), "$0.8M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata("vulnerability_type".to_string(), "signature_forgery".to_string())
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata("remediation".to_string(), "Add ECDSA.recover() and require(signer == authorizedBridge)".to_string()),
             );
         } else if !has_validation {
             // Has recovery but no validation of recovered signer
@@ -124,13 +123,13 @@ pub fn detect_bridge_address_cryptographic_verify(source: &str, file_path: &str)
                         .to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H49")
-                .with_metadata("exploit_name", "Purrlend - Weak Validation")
-                .with_metadata("loss", "$0.8M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "signature_forgery")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Add signer == authorizedBridge check"),
+                .with_metadata("exploit_id".to_string(), "H49".to_string())
+                .with_metadata("exploit_name".to_string(), "Purrlend - Weak Validation".to_string())
+                .with_metadata("loss".to_string(), "$0.8M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata("vulnerability_type".to_string(), "signature_forgery".to_string())
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata("remediation".to_string(), "Add signer == authorizedBridge check".to_string()),
             );
         } else if !has_hash {
             // Has validation but check if hash is computed properly
@@ -146,13 +145,13 @@ pub fn detect_bridge_address_cryptographic_verify(source: &str, file_path: &str)
                         .to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H49")
-                .with_metadata("exploit_name", "Purrlend - Replay Risk")
-                .with_metadata("loss", "$0.8M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "signature_forgery")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Add replay protection with nonce"),
+                .with_metadata("exploit_id".to_string(), "H49".to_string())
+                .with_metadata("exploit_name".to_string(), "Purrlend - Replay Risk".to_string())
+                .with_metadata("loss".to_string(), "$0.8M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata("vulnerability_type".to_string(), "signature_forgery".to_string())
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata("remediation".to_string(), "Add replay protection with nonce".to_string()),
             );
         }
     }
@@ -175,7 +174,10 @@ mod tests {
         "#;
 
         let findings = detect_bridge_address_cryptographic_verify(vulnerable, "test.sol");
-        assert!(!findings.is_empty(), "Should detect missing signature verification");
+        assert!(
+            !findings.is_empty(),
+            "Should detect missing signature verification"
+        );
         assert_eq!(
             findings[0].metadata.get("exploit_id"),
             Some(&"H49".to_string())
@@ -196,9 +198,14 @@ mod tests {
         "#;
 
         let findings = detect_bridge_address_cryptographic_verify(safe, "test.sol");
-        let critical_findings: Vec<_> =
-            findings.iter().filter(|f| f.severity == sentri_core::Severity::Critical).collect();
-        assert!(critical_findings.is_empty(), "Should allow proper ECDSA validation");
+        let critical_findings: Vec<_> = findings
+            .iter()
+            .filter(|f| f.severity == sentri_core::Severity::Critical)
+            .collect();
+        assert!(
+            critical_findings.is_empty(),
+            "Should allow proper ECDSA validation"
+        );
     }
 
     #[test]
@@ -213,8 +220,10 @@ mod tests {
         "#;
 
         let findings = detect_bridge_address_cryptographic_verify(weak, "test.sol");
-        let critical_findings: Vec<_> =
-            findings.iter().filter(|f| f.severity == sentri_core::Severity::Critical).collect();
+        let critical_findings: Vec<_> = findings
+            .iter()
+            .filter(|f| f.severity == sentri_core::Severity::Critical)
+            .collect();
         assert!(
             !critical_findings.is_empty(),
             "Should flag missing signer validation"
@@ -235,9 +244,14 @@ mod tests {
         "#;
 
         let findings = detect_bridge_address_cryptographic_verify(safe, "test.sol");
-        let critical_findings: Vec<_> =
-            findings.iter().filter(|f| f.severity == sentri_core::Severity::Critical).collect();
-        assert!(critical_findings.is_empty(), "Should allow ecrecover pattern");
+        let critical_findings: Vec<_> = findings
+            .iter()
+            .filter(|f| f.severity == sentri_core::Severity::Critical)
+            .collect();
+        assert!(
+            critical_findings.is_empty(),
+            "Should allow ecrecover pattern"
+        );
     }
 
     #[test]
@@ -270,8 +284,10 @@ mod tests {
         "#;
 
         let findings = detect_bridge_address_cryptographic_verify(replay_risk, "test.sol");
-        let high_findings: Vec<_> =
-            findings.iter().filter(|f| f.severity == sentri_core::Severity::High).collect();
+        let high_findings: Vec<_> = findings
+            .iter()
+            .filter(|f| f.severity == sentri_core::Severity::High)
+            .collect();
         // May trigger for replay risk due to missing hash
         assert!(true, "Replay risk may or may not trigger");
     }

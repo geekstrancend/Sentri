@@ -3,8 +3,7 @@
 ///
 /// Tests that the detector properly identifies missing post-state health checks
 /// while avoiding false positives on properly guarded state modifications.
-
-use sentri_core::CodeFuzzer;
+use crate::CodeFuzzer;
 
 /// Health check fuzzer test suite
 pub struct HealthCheckFuzzer {
@@ -28,14 +27,14 @@ impl HealthCheckFuzzer {
         for i in 0..size {
             let seed = self.fuzzer.seed.wrapping_add(i as u64);
             let mut local_fuzzer = CodeFuzzer::new(Some(seed));
-            
+
             let vulnerable = i % 2 == 0;
             let pattern = if vulnerable {
                 self.gen_vulnerable_pattern(&mut local_fuzzer)
             } else {
                 self.gen_safe_pattern(&mut local_fuzzer)
             };
-            
+
             corpus.push((pattern, vulnerable));
         }
 
@@ -43,9 +42,9 @@ impl HealthCheckFuzzer {
     }
 
     /// Generate vulnerable health check pattern
-    fn gen_vulnerable_pattern(&self, fuzzer: &mut CodeFuzzer) -> String {
-        let vars = vec![fuzzer.random_variable_name(), fuzzer.random_variable_name()];
-        
+    fn gen_vulnerable_pattern(&self, _fuzzer: &mut CodeFuzzer) -> String {
+        let _vars: Vec<String> = vec![];
+
         format!(
             r#"function updateLending() public {{
         // Modify state without health check
@@ -58,7 +57,7 @@ impl HealthCheckFuzzer {
     }
 
     /// Generate safe health check pattern
-    fn gen_safe_pattern(&self, fuzzer: &mut CodeFuzzer) -> String {
+    fn gen_safe_pattern(&self, _fuzzer: &mut CodeFuzzer) -> String {
         format!(
             r#"function updateLending() public {{
         // Modify state
@@ -80,7 +79,7 @@ impl HealthCheckFuzzer {
         for i in 0..iterations {
             let seed = self.fuzzer.seed.wrapping_add(i as u64);
             let mut local_fuzzer = CodeFuzzer::new(Some(seed));
-            
+
             let vulnerable = i % 2 == 0;
             let pattern = if vulnerable {
                 self.gen_vulnerable_pattern(&mut local_fuzzer)
@@ -90,7 +89,7 @@ impl HealthCheckFuzzer {
 
             // Simulate detector (in real usage, call actual detect_missing_health_check)
             let detected = pattern.contains("Missing") || !pattern.contains("require(isHealthy");
-            
+
             if vulnerable && detected {
                 detections += 1;
             } else if vulnerable && !detected {
@@ -166,7 +165,7 @@ mod tests {
         let mut fuzzer = HealthCheckFuzzer::new(Some(42));
         let corpus = fuzzer.generate_corpus(10);
         assert_eq!(corpus.len(), 10);
-        
+
         // Check vulnerable patterns
         let vuln_count = corpus.iter().filter(|(_, v)| *v).count();
         assert_eq!(vuln_count, 5);
@@ -176,7 +175,7 @@ mod tests {
     fn fuzzer_runs_fuzz_tests() {
         let mut fuzzer = HealthCheckFuzzer::new(Some(123));
         let result = fuzzer.fuzz(100);
-        
+
         assert_eq!(result.total, 100);
         assert!(result.true_positives > 0);
         assert!(result.precision() <= 1.0);
@@ -191,10 +190,10 @@ mod tests {
             false_negatives: 15,
             total: 100,
         };
-        
+
         let precision = result.precision();
         let recall = result.recall();
-        
+
         assert!(precision > 0.9);
         assert!(recall > 0.8);
         assert!(result.f1_score() > 0.8);
@@ -204,10 +203,10 @@ mod tests {
     fn fuzzer_deterministic_with_seed() {
         let mut f1 = HealthCheckFuzzer::new(Some(999));
         let mut f2 = HealthCheckFuzzer::new(Some(999));
-        
+
         let r1 = f1.fuzz(50);
         let r2 = f2.fuzz(50);
-        
+
         assert_eq!(r1.true_positives, r2.true_positives);
         assert_eq!(r1.false_positives, r2.false_positives);
     }

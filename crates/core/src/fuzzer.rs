@@ -4,7 +4,7 @@
 
 /// Deterministic pseudo-random number generator for fuzz testing
 pub struct CodeFuzzer {
-    seed: u64,
+    pub seed: u64,
     state: u64,
 }
 
@@ -17,10 +17,7 @@ impl CodeFuzzer {
                 .unwrap()
                 .as_secs()
         });
-        Self {
-            seed: s,
-            state: s,
-        }
+        Self { seed: s, state: s }
     }
 
     /// Deterministic random number generator using xorshift
@@ -44,7 +41,15 @@ impl CodeFuzzer {
     /// Generate random function name
     pub fn random_function_name(&mut self) -> String {
         const PREFIXES: &[&str] = &["process_", "execute_", "handle_", "check_", "validate_"];
-        const SUFFIXES: &[&str] = &["transaction", "deposit", "withdraw", "transfer", "swap", "mint", "burn"];
+        const SUFFIXES: &[&str] = &[
+            "transaction",
+            "deposit",
+            "withdraw",
+            "transfer",
+            "swap",
+            "mint",
+            "burn",
+        ];
         let prefix = PREFIXES[self.gen_range(PREFIXES.len())];
         let suffix = SUFFIXES[self.gen_range(SUFFIXES.len())];
         format!("{}{}_{}", prefix, suffix, self.next_u64() % 1000)
@@ -52,7 +57,18 @@ impl CodeFuzzer {
 
     /// Generate random variable names
     pub fn random_variable_name(&mut self) -> String {
-        const NAMES: &[&str] = &["amount", "balance", "reserve", "collateral", "debt", "price", "rate", "value", "token", "user"];
+        const NAMES: &[&str] = &[
+            "amount",
+            "balance",
+            "reserve",
+            "collateral",
+            "debt",
+            "price",
+            "rate",
+            "value",
+            "token",
+            "user",
+        ];
         let name = NAMES[self.gen_range(NAMES.len())];
         format!("{}_{}", name, self.next_u64() % 100)
     }
@@ -62,7 +78,7 @@ impl CodeFuzzer {
         let func_name = self.random_function_name();
         let var1 = self.random_variable_name();
         let var2 = self.random_variable_name();
-        
+
         let health_check = if include_vulnerable_pattern {
             "// Missing health check".to_string()
         } else {
@@ -106,7 +122,7 @@ impl CodeFuzzer {
         };
 
         let state_modification = self.random_variable_name();
-        
+
         format!(
             r#"    function updatePrice() public {{
         {}
@@ -137,7 +153,7 @@ impl CodeFuzzer {
     /// Generate random contract with multiple functions
     pub fn generate_contract(&mut self, function_count: usize) -> String {
         let mut contract = "contract TestContract {\n".to_string();
-        
+
         for _ in 0..function_count {
             let vulnerable = self.gen_bool(3, 10);
             let func = self.generate_solidity_function(vulnerable);
@@ -186,7 +202,7 @@ mod tests {
     fn fuzzer_generates_different_outputs() {
         let mut fuzzer1 = CodeFuzzer::new(Some(100));
         let mut fuzzer2 = CodeFuzzer::new(Some(200));
-        
+
         let func1 = fuzzer1.generate_solidity_function(true);
         let func2 = fuzzer2.generate_solidity_function(true);
         assert_ne!(func1, func2);
@@ -196,7 +212,7 @@ mod tests {
     fn fuzzer_deterministic_with_seed() {
         let mut f1 = CodeFuzzer::new(Some(999));
         let mut f2 = CodeFuzzer::new(Some(999));
-        
+
         assert_eq!(
             f1.generate_solidity_function(true),
             f2.generate_solidity_function(true)
@@ -208,7 +224,7 @@ mod tests {
         let mut fuzzer = CodeFuzzer::new(Some(123));
         let vuln = fuzzer.generate_merkle_pattern(true);
         let safe = fuzzer.generate_merkle_pattern(false);
-        
+
         assert!(vuln.contains("bytes32(0)"));
         assert!(safe.contains("keccak256"));
     }

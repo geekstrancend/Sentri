@@ -2,7 +2,6 @@
 ///
 /// Automatically generates changelogs, release notes, and API documentation
 /// from detector implementations and test results.
-
 use std::collections::HashMap;
 
 /// Release version information
@@ -207,11 +206,17 @@ pub fn generate_v0_3_0_changelog() -> String {
     v0_3_0.add_feature("Integration testing against real exploits (25+ H-codes)".to_string());
 
     // Improvements
-    v0_3_0.add_improvement("Detector architecture optimized for speed (~1-2ms per detector)".to_string());
+    v0_3_0.add_improvement(
+        "Detector architecture optimized for speed (~1-2ms per detector)".to_string(),
+    );
     v0_3_0.add_improvement("False positive minimization through pattern refinement".to_string());
-    v0_3_0.add_improvement("Full metadata tracking for all findings (exploit_id, loss, year, vulnerability_type)".to_string());
+    v0_3_0.add_improvement(
+        "Full metadata tracking for all findings (exploit_id, loss, year, vulnerability_type)"
+            .to_string(),
+    );
     v0_3_0.add_improvement("Cross-chain consistency in detector patterns".to_string());
-    v0_3_0.add_improvement("4-5 comprehensive tests per detector (50+ total test cases)".to_string());
+    v0_3_0
+        .add_improvement("4-5 comprehensive tests per detector (50+ total test cases)".to_string());
 
     generator.add_release(v0_3_0);
     generator.generate()
@@ -253,13 +258,11 @@ mod tests {
         let module = ModuleDoc {
             name: "detectors".to_string(),
             description: "Vulnerability detectors".to_string(),
-            exports: vec![
-                ExportDoc {
-                    name: "detect_reentrancy".to_string(),
-                    doc: "Detects reentrancy vulnerabilities".to_string(),
-                    since_version: "0.1.0".to_string(),
-                },
-            ],
+            exports: vec![ExportDoc {
+                name: "detect_reentrancy".to_string(),
+                doc: "Detects reentrancy vulnerabilities".to_string(),
+                since_version: "0.1.0".to_string(),
+            }],
         };
 
         gen.add_module(module);

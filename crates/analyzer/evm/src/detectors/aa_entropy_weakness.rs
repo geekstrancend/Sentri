@@ -8,15 +8,21 @@
 /// 3. Attacker can predict and precompute account addresses
 /// 4. Can be combined with other attacks for account takeover
 ///
-
 use lazy_static::lazy_static;
 use regex::Regex;
 use sentri_core::Finding;
 
 lazy_static! {
-    static ref AA_FACTORY: Regex = Regex::new(r"(?i)(createAccount|create2Account|deployAccount|AccountFactory)").unwrap();
-    static ref NONCE_PATTERN: Regex = Regex::new(r"(?i)nonce\s*\+\+|nonce\s*=\s*block\.(timestamp|number)|nonce\s*=\s*msg\.sender").unwrap();
-    static ref RANDOMNESS_GOOD: Regex = Regex::new(r"(?i)(blockhash.*?prevrandao|keccak256.*?abi\.encode.*?block)|random\s*=\s*oracle").unwrap();
+    static ref AA_FACTORY: Regex =
+        Regex::new(r"(?i)(createAccount|create2Account|deployAccount|AccountFactory)").unwrap();
+    static ref NONCE_PATTERN: Regex = Regex::new(
+        r"(?i)nonce\s*\+\+|nonce\s*=\s*block\.(timestamp|number)|nonce\s*=\s*msg\.sender"
+    )
+    .unwrap();
+    static ref RANDOMNESS_GOOD: Regex = Regex::new(
+        r"(?i)(blockhash.*?prevrandao|keccak256.*?abi\.encode.*?block)|random\s*=\s*oracle"
+    )
+    .unwrap();
 }
 
 pub fn detect_aa_entropy_weakness(source: &str, file_path: &str) -> Vec<Finding> {
@@ -49,13 +55,13 @@ pub fn detect_aa_entropy_weakness(source: &str, file_path: &str) -> Vec<Finding>
                     "Account abstraction uses weak entropy for nonce/salt generation. Predictable nonces enable account prediction attacks.".to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H54")
-                .with_metadata("exploit_name", "AA Entropy Weakness")
-                .with_metadata("loss", "$5.2M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "weak_randomness")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Use prevrandao or oracle randomness for salt generation"),
+                .with_metadata("exploit_id".to_string(), "H54".to_string())
+                .with_metadata("exploit_name".to_string(), "AA Entropy Weakness".to_string())
+                .with_metadata("loss".to_string(), "$5.2M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata("vulnerability_type".to_string(), "weak_randomness".to_string())
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata("remediation".to_string(), "Use prevrandao or oracle randomness for salt generation".to_string()),
             );
         }
     }

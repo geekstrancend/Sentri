@@ -2,8 +2,7 @@
 /// Property-based testing for merkle root zero-value vulnerabilities
 ///
 /// Validates detection of uninitialized or zero merkle roots used in proof verification.
-
-use sentri_core::CodeFuzzer;
+use crate::CodeFuzzer;
 
 /// Merkle root fuzzer test suite
 pub struct MerkleRootFuzzer {
@@ -27,14 +26,14 @@ impl MerkleRootFuzzer {
         for i in 0..size {
             let seed = self.fuzzer.seed.wrapping_add(i as u64);
             let _fuzzer = CodeFuzzer::new(Some(seed));
-            
+
             let vulnerable = i % 3 == 0;
             let pattern = if vulnerable {
                 self.gen_vulnerable_pattern()
             } else {
                 self.gen_safe_pattern()
             };
-            
+
             corpus.push((pattern, vulnerable));
         }
 
@@ -98,10 +97,10 @@ impl MerkleRootFuzzer {
             };
 
             // Simulate detector: check for zero root initialization
-            let detected = pattern.contains("bytes32(0)") && 
-                          pattern.contains("merkleRoot") &&
-                          !pattern.contains("require(merkleRoot != bytes32(0)");
-            
+            let detected = pattern.contains("bytes32(0)")
+                && pattern.contains("merkleRoot")
+                && !pattern.contains("require(merkleRoot != bytes32(0)");
+
             if vulnerable && detected {
                 detections += 1;
             } else if vulnerable && !detected {
@@ -183,7 +182,7 @@ mod tests {
     fn fuzzer_detects_zero_root() {
         let mut fuzzer = MerkleRootFuzzer::new(Some(123));
         let result = fuzzer.fuzz(100);
-        
+
         assert!(result.true_positives > 0);
         assert!(result.precision() > 0.8);
     }
@@ -196,7 +195,7 @@ mod tests {
             false_negatives: 8,
             total: 40,
         };
-        
+
         assert!(result.precision() > 0.9);
         assert!(result.recall() > 0.7);
         assert!(result.f1_score() > 0.8);

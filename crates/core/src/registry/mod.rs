@@ -35,9 +35,8 @@ pub struct Exploit {
 static EXPLOIT_REGISTRY_JSON: &[u8] = include_bytes!("exploits.json");
 
 /// Loaded exploit registry (lazy singleton).
-pub static EXPLOIT_REGISTRY: Lazy<ExploitRegistry> = Lazy::new(|| {
-    ExploitRegistry::load().expect("Failed to parse exploit registry")
-});
+pub static EXPLOIT_REGISTRY: Lazy<ExploitRegistry> =
+    Lazy::new(|| ExploitRegistry::load().expect("Failed to parse exploit registry"));
 
 /// The exploit registry container.
 #[derive(Debug, Clone)]
@@ -108,7 +107,7 @@ mod tests {
         let registry = &*EXPLOIT_REGISTRY;
         let all = registry.all();
         assert!(!all.is_empty());
-        
+
         // Each exploit should have required fields
         for exploit in all {
             assert!(!exploit.id.is_empty());

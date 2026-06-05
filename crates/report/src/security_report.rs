@@ -2,7 +2,6 @@
 ///
 /// Generates multi-format security analysis reports with severity aggregation,
 /// remediation guidance, and industry-standard formatting.
-
 use sentri_core::{Finding, Severity};
 use std::collections::HashMap;
 
@@ -70,11 +69,11 @@ impl SeverityStats {
             return 0.0;
         }
 
-        let weighted = (self.critical as f64 * 100.0) +
-                       (self.high as f64 * 75.0) +
-                       (self.medium as f64 * 50.0) +
-                       (self.low as f64 * 25.0) +
-                       (self.info as f64 * 10.0);
+        let weighted = (self.critical as f64 * 100.0)
+            + (self.high as f64 * 75.0)
+            + (self.medium as f64 * 50.0)
+            + (self.low as f64 * 25.0)
+            + (self.info as f64 * 10.0);
 
         (weighted / (total * 100.0)).min(100.0)
     }
@@ -107,10 +106,12 @@ impl SecurityReport {
         executive_summary: String,
     ) -> Self {
         let severity_stats = SeverityStats::from_findings(&findings);
-        
+
         let mut chain_breakdown = HashMap::new();
         for finding in &findings {
-            let count = chain_breakdown.entry(finding.vulnerability_id.clone()).or_insert(0);
+            let count = chain_breakdown
+                .entry(finding.invariant_id.clone())
+                .or_insert(0);
             *count += 1;
         }
 
@@ -157,22 +158,10 @@ impl SecurityReport {
             "- **Critical:** {}\n",
             self.severity_stats.critical
         ));
-        report.push_str(&format!(
-            "- **High:** {}\n",
-            self.severity_stats.high
-        ));
-        report.push_str(&format!(
-            "- **Medium:** {}\n",
-            self.severity_stats.medium
-        ));
-        report.push_str(&format!(
-            "- **Low:** {}\n",
-            self.severity_stats.low
-        ));
-        report.push_str(&format!(
-            "- **Info:** {}\n",
-            self.severity_stats.info
-        ));
+        report.push_str(&format!("- **High:** {}\n", self.severity_stats.high));
+        report.push_str(&format!("- **Medium:** {}\n", self.severity_stats.medium));
+        report.push_str(&format!("- **Low:** {}\n", self.severity_stats.low));
+        report.push_str(&format!("- **Info:** {}\n", self.severity_stats.info));
         report.push_str(&format!(
             "- **Risk Score:** {:.1}/100.0\n\n",
             self.severity_stats.risk_score()
@@ -188,35 +177,30 @@ impl SecurityReport {
         // Findings by Severity
         report.push_str("## Detailed Findings\n\n");
 
-        for severity_level in &[Severity::Critical, Severity::High, Severity::Medium, Severity::Low, Severity::Info] {
-            let severity_findings: Vec<_> = self.findings
+        for severity_level in &[
+            Severity::Critical,
+            Severity::High,
+            Severity::Medium,
+            Severity::Low,
+            Severity::Info,
+        ] {
+            let severity_findings: Vec<_> = self
+                .findings
                 .iter()
                 .filter(|f| f.severity == *severity_level)
                 .collect();
 
             if !severity_findings.is_empty() {
-                report.push_str(&format!(
-                    "### {:?} Severity\n\n",
-                    severity_level
-                ));
+                report.push_str(&format!("### {:?} Severity\n\n", severity_level));
 
                 for finding in severity_findings {
-                    report.push_str(&format!(
-                        "#### {}\n",
-                        finding.message
-                    ));
-                    report.push_str(&format!(
-                        "- **File:** {}\n",
-                        finding.file_path
-                    ));
+                    report.push_str(&format!("#### {}\n", finding.message));
+                    report.push_str(&format!("- **File:** {}\n", finding.file));
                     report.push_str(&format!(
                         "- **Location:** Line {}, Column {}\n",
-                        finding.line_number, finding.column_number
+                        finding.line, finding.col
                     ));
-                    report.push_str(&format!(
-                        "- **Code:** {}\n",
-                        finding.code_snippet
-                    ));
+                    report.push_str(&format!("- **Code:** {}\n", finding.snippet));
                     report.push_str("\n");
                 }
             }
@@ -298,9 +282,9 @@ impl SecurityReport {
             csv.push_str(&format!(
                 "{:?},{},{},{},{}\n",
                 finding.severity,
-                finding.vulnerability_id,
-                finding.file_path,
-                finding.line_number,
+                finding.invariant_id,
+                finding.file,
+                finding.line,
                 finding.message.replace(',', ";")
             ));
         }

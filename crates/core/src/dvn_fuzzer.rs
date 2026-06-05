@@ -2,8 +2,7 @@
 /// Property-based testing for DVN (Decentralized Verifier Network) configuration vulnerabilities
 ///
 /// Tests detection of single point of failure in DVN setups.
-
-use sentri_core::CodeFuzzer;
+use crate::CodeFuzzer;
 
 /// DVN single point fuzzer
 pub struct DVNSinglePointFuzzer {
@@ -80,10 +79,10 @@ impl DVNSinglePointFuzzer {
                 self.gen_safe_pattern()
             };
 
-            let detected = pattern.contains("require(dvns.length > 0") && 
-                          !pattern.contains("MIN_DVNS") &&
-                          !pattern.contains("require(_dvns.length >=");
-            
+            let detected = pattern.contains("require(dvns.length > 0")
+                && !pattern.contains("MIN_DVNS")
+                && !pattern.contains("require(_dvns.length >=");
+
             if vulnerable && detected {
                 detections += 1;
             } else if vulnerable && !detected {
@@ -114,18 +113,30 @@ pub struct FuzzResult {
 impl FuzzResult {
     pub fn precision(&self) -> f64 {
         let total = self.true_positives + self.false_positives;
-        if total == 0 { 0.0 } else { self.true_positives as f64 / total as f64 }
+        if total == 0 {
+            0.0
+        } else {
+            self.true_positives as f64 / total as f64
+        }
     }
 
     pub fn recall(&self) -> f64 {
         let total = self.true_positives + self.false_negatives;
-        if total == 0 { 0.0 } else { self.true_positives as f64 / total as f64 }
+        if total == 0 {
+            0.0
+        } else {
+            self.true_positives as f64 / total as f64
+        }
     }
 
     pub fn f1_score(&self) -> f64 {
         let p = self.precision();
         let r = self.recall();
-        if p + r == 0.0 { 0.0 } else { 2.0 * p * r / (p + r) }
+        if p + r == 0.0 {
+            0.0
+        } else {
+            2.0 * p * r / (p + r)
+        }
     }
 }
 

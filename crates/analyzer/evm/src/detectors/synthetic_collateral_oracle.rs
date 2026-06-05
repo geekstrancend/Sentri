@@ -26,7 +26,6 @@
 ///     return synthBalance[synthetic] * price;
 /// }
 /// ```
-
 use lazy_static::lazy_static;
 use regex::Regex;
 use sentri_core::Finding;
@@ -93,13 +92,22 @@ pub fn detect_synthetic_collateral_oracle(source: &str, file_path: &str) -> Vec<
                         .to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H45")
-                .with_metadata("exploit_name", "Rhea Finance Oracle Failure")
-                .with_metadata("loss", "$7.6M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "oracle_dependency")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Add fallback oracle, price sanity checks, staleness validation"),
+                .with_metadata("exploit_id".to_string(), "H45".to_string())
+                .with_metadata(
+                    "exploit_name".to_string(),
+                    "Rhea Finance Oracle Failure".to_string(),
+                )
+                .with_metadata("loss".to_string(), "$7.6M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata(
+                    "vulnerability_type".to_string(),
+                    "oracle_dependency".to_string(),
+                )
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata(
+                    "remediation".to_string(),
+                    "Add fallback oracle, price sanity checks, staleness validation".to_string(),
+                ),
             );
         } else if has_fallback && !has_safety_checks {
             // Fallback exists but no validation
@@ -115,13 +123,22 @@ pub fn detect_synthetic_collateral_oracle(source: &str, file_path: &str) -> Vec<
                         .to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H45")
-                .with_metadata("exploit_name", "Rhea Finance - Weak Safety Checks")
-                .with_metadata("loss", "$7.6M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "oracle_dependency")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Add price divergence validation between oracles"),
+                .with_metadata("exploit_id".to_string(), "H45".to_string())
+                .with_metadata(
+                    "exploit_name".to_string(),
+                    "Rhea Finance - Weak Safety Checks".to_string(),
+                )
+                .with_metadata("loss".to_string(), "$7.6M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata(
+                    "vulnerability_type".to_string(),
+                    "oracle_dependency".to_string(),
+                )
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata(
+                    "remediation".to_string(),
+                    "Add price divergence validation between oracles".to_string(),
+                ),
             );
         }
     }
@@ -144,8 +161,14 @@ mod tests {
         "#;
 
         let findings = detect_synthetic_collateral_oracle(vulnerable, "test.sol");
-        assert!(!findings.is_empty(), "Should detect unprotected oracle call");
-        assert_eq!(findings[0].metadata.get("exploit_id"), Some(&"H45".to_string()));
+        assert!(
+            !findings.is_empty(),
+            "Should detect unprotected oracle call"
+        );
+        assert_eq!(
+            findings[0].metadata.get("exploit_id"),
+            Some(&"H45".to_string())
+        );
     }
 
     #[test]
@@ -165,9 +188,14 @@ mod tests {
 
         let findings = detect_synthetic_collateral_oracle(safe, "test.sol");
         // Safe pattern with proper checks should not trigger
-        let critical_findings: Vec<_> =
-            findings.iter().filter(|f| f.severity == sentri_core::Severity::Critical).collect();
-        assert!(critical_findings.is_empty(), "Should not flag properly protected oracle");
+        let critical_findings: Vec<_> = findings
+            .iter()
+            .filter(|f| f.severity == sentri_core::Severity::Critical)
+            .collect();
+        assert!(
+            critical_findings.is_empty(),
+            "Should not flag properly protected oracle"
+        );
     }
 
     #[test]
@@ -182,8 +210,10 @@ mod tests {
         "#;
 
         let findings = detect_synthetic_collateral_oracle(weak, "test.sol");
-        let high_findings: Vec<_> =
-            findings.iter().filter(|f| f.severity == sentri_core::Severity::High).collect();
+        let high_findings: Vec<_> = findings
+            .iter()
+            .filter(|f| f.severity == sentri_core::Severity::High)
+            .collect();
         assert!(
             !high_findings.is_empty(),
             "Should flag fallback without proper validation"
@@ -222,6 +252,9 @@ mod tests {
         "#;
 
         let findings = detect_synthetic_collateral_oracle(normal, "test.sol");
-        assert!(findings.is_empty(), "Should not flag regular non-synthetic oracle usage");
+        assert!(
+            findings.is_empty(),
+            "Should not flag regular non-synthetic oracle usage"
+        );
     }
 }

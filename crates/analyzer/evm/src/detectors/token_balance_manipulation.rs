@@ -8,16 +8,17 @@
 /// 3. No guards against balance manipulation via callbacks
 /// 4. Can drain protocols via re-entrancy loops
 ///
-
 use lazy_static::lazy_static;
 use regex::Regex;
 use sentri_core::Finding;
 
 lazy_static! {
-    static ref BALANCE_OF_CALL: Regex = 
-        Regex::new(r"(?i)(token\.balanceOf|ERC20\(.*?\)\.balanceOf|IERC20\(.*?\)\.balanceOf)").unwrap();
-    static ref TRANSFER_AFTER_CHECK: Regex = 
-        Regex::new(r"(?i)balance\s*=.*?balanceOf.*?transfer|amount\s*=.*?balanceOf.*?transferFrom").unwrap();
+    static ref BALANCE_OF_CALL: Regex =
+        Regex::new(r"(?i)(token\.balanceOf|ERC20\(.*?\)\.balanceOf|IERC20\(.*?\)\.balanceOf)")
+            .unwrap();
+    static ref TRANSFER_AFTER_CHECK: Regex =
+        Regex::new(r"(?i)balance\s*=.*?balanceOf.*?transfer|amount\s*=.*?balanceOf.*?transferFrom")
+            .unwrap();
     static ref REENTRANCY_GUARD: Regex = Regex::new(r"(?i)nonReentrant|ReentrancyGuard").unwrap();
 }
 
@@ -51,13 +52,13 @@ pub fn detect_token_balance_manipulation(source: &str, file_path: &str) -> Vec<F
                     "Token balance check followed by transfer without reentrancy guard. Vulnerable to reentrant calls via token callback.".to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H50")
-                .with_metadata("exploit_name", "Token Balance Manipulation")
-                .with_metadata("loss", "$3.8M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "reentrancy")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Add nonReentrant modifier to function"),
+                .with_metadata("exploit_id".to_string(), "H50".to_string())
+                .with_metadata("exploit_name".to_string(), "Token Balance Manipulation".to_string())
+                .with_metadata("loss".to_string(), "$3.8M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata("vulnerability_type".to_string(), "reentrancy".to_string())
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata("remediation".to_string(), "Add nonReentrant modifier to function".to_string()),
             );
         }
     }

@@ -8,21 +8,21 @@
 /// 3. Malicious implementation can steal funds
 /// 4. No time locks or governance checks on upgrades
 ///
-
 use lazy_static::lazy_static;
 use regex::Regex;
 use sentri_core::Finding;
 
 lazy_static! {
-    static ref UPGRADE_FUNCTION: Regex = 
-        Regex::new(r"(?i)(upgradeTo|setImplementation|updateImplementation|_setImplementation)").unwrap();
-    static ref NEW_IMPL_PARAM: Regex = 
+    static ref UPGRADE_FUNCTION: Regex =
+        Regex::new(r"(?i)(upgradeTo|setImplementation|updateImplementation|_setImplementation)")
+            .unwrap();
+    static ref NEW_IMPL_PARAM: Regex =
         Regex::new(r"(?i)newImplementation|newImpl|impl|implementation\s*:").unwrap();
-    static ref IMPLEMENTATION_CHECK: Regex = 
+    static ref IMPLEMENTATION_CHECK: Regex =
         Regex::new(r"(?i)require\s*\(.*?implementation.*?(code.*?size|ERC1967)").unwrap();
-    static ref TIMELOCK_CHECK: Regex = 
+    static ref TIMELOCK_CHECK: Regex =
         Regex::new(r"(?i)timelock|delay|pendingImplementation|schedule|execute").unwrap();
-    static ref INTERFACE_CHECK: Regex = 
+    static ref INTERFACE_CHECK: Regex =
         Regex::new(r"(?i)supportsInterface|implementsInterface|INTERFACE_ID").unwrap();
 }
 
@@ -44,7 +44,7 @@ pub fn detect_upgrade_path_verification(source: &str, file_path: &str) -> Vec<Fi
 
         let has_impl_check = IMPLEMENTATION_CHECK.is_match(&function_body);
         let has_timelock = TIMELOCK_CHECK.is_match(&function_body);
-        let has_interface = INTERFACE_CHECK.is_match(&function_body);
+        let _has_interface = INTERFACE_CHECK.is_match(&function_body);
 
         if !has_impl_check && !has_timelock {
             findings.push(
@@ -57,13 +57,13 @@ pub fn detect_upgrade_path_verification(source: &str, file_path: &str) -> Vec<Fi
                     "Upgrade function lacks implementation validation or timelock. Add code size check and delay mechanism.".to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H47")
-                .with_metadata("exploit_name", "Unvalidated Upgrade")
-                .with_metadata("loss", "$1.2M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "unsafe_upgrade")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Add implementation validation and timelock delay"),
+                .with_metadata("exploit_id".to_string(), "H47".to_string())
+                .with_metadata("exploit_name".to_string(), "Unvalidated Upgrade".to_string())
+                .with_metadata("loss".to_string(), "$1.2M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata("vulnerability_type".to_string(), "unsafe_upgrade".to_string())
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata("remediation".to_string(), "Add implementation validation and timelock delay".to_string()),
             );
         }
     }

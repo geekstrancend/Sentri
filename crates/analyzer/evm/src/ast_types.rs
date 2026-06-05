@@ -5,7 +5,6 @@
 
 use serde::{Deserialize, Serialize};
 
-
 /// Parse a "start:length:file" source location string
 pub fn parse_src(src: &str) -> (u64, u64, u64) {
     let parts: Vec<&str> = src.split(':').collect();

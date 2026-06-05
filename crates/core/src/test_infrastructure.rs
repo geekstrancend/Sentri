@@ -2,8 +2,6 @@
 ///
 /// Provides unified testing framework for validating detector implementations
 /// across EVM, Solana, and Move chains with consistent test patterns.
-
-use sentri_core::Finding;
 use std::collections::HashMap;
 
 /// Test result for a detector
@@ -31,20 +29,32 @@ impl DetectorTestResult {
     /// Calculate precision (TP / (TP + FP))
     pub fn precision(&self) -> f64 {
         let total = self.true_positives + self.false_positives;
-        if total == 0 { 1.0 } else { self.true_positives as f64 / total as f64 }
+        if total == 0 {
+            1.0
+        } else {
+            self.true_positives as f64 / total as f64
+        }
     }
 
     /// Calculate recall (TP / (TP + FN))
     pub fn recall(&self) -> f64 {
         let total = self.true_positives + self.false_negatives;
-        if total == 0 { 1.0 } else { self.true_positives as f64 / total as f64 }
+        if total == 0 {
+            1.0
+        } else {
+            self.true_positives as f64 / total as f64
+        }
     }
 
     /// Calculate F1 score
     pub fn f1_score(&self) -> f64 {
         let p = self.precision();
         let r = self.recall();
-        if p + r == 0.0 { 0.0 } else { 2.0 * p * r / (p + r) }
+        if p + r == 0.0 {
+            0.0
+        } else {
+            2.0 * p * r / (p + r)
+        }
     }
 
     /// Check if test passes quality threshold
@@ -118,10 +128,7 @@ impl DetectorTestSuite {
         let mut avg_f1 = 0.0;
 
         for (detector, result) in &self.results {
-            report.push_str(&format!(
-                "### {} ({})\n",
-                detector, result.chain
-            ));
+            report.push_str(&format!("### {} ({})\n", detector, result.chain));
 
             report.push_str(&format!(
                 "- **Vulnerable Patterns Tested:** {}\n",
@@ -147,20 +154,18 @@ impl DetectorTestSuite {
                 "- **Precision:** {:.2}%\n",
                 result.precision() * 100.0
             ));
-            report.push_str(&format!(
-                "- **Recall:** {:.2}%\n",
-                result.recall() * 100.0
-            ));
-            report.push_str(&format!(
-                "- **F1 Score:** {:.4}\n",
-                result.f1_score()
-            ));
+            report.push_str(&format!("- **Recall:** {:.2}%\n", result.recall() * 100.0));
+            report.push_str(&format!("- **F1 Score:** {:.4}\n", result.f1_score()));
             report.push_str(&format!(
                 "- **Execution Time:** {} ms\n",
                 result.execution_time_ms
             ));
 
-            let status = if result.passes_quality_threshold() { "✓ PASS" } else { "✗ FAIL" };
+            let status = if result.passes_quality_threshold() {
+                "✓ PASS"
+            } else {
+                "✗ FAIL"
+            };
             report.push_str(&format!("- **Status:** {}\n\n", status));
 
             total_tests += 1;
@@ -176,8 +181,14 @@ impl DetectorTestSuite {
         if !self.results.is_empty() {
             let count = self.results.len() as f64;
             report.push_str("\n## Aggregate Metrics\n\n");
-            report.push_str(&format!("- **Total Detectors Tested:** {}\n", self.results.len()));
-            report.push_str(&format!("- **Passed Quality Threshold:** {}/{}\n", passed_tests, total_tests));
+            report.push_str(&format!(
+                "- **Total Detectors Tested:** {}\n",
+                self.results.len()
+            ));
+            report.push_str(&format!(
+                "- **Passed Quality Threshold:** {}/{}\n",
+                passed_tests, total_tests
+            ));
             report.push_str(&format!(
                 "- **Average Precision:** {:.2}%\n",
                 (avg_precision / count) * 100.0
@@ -186,10 +197,7 @@ impl DetectorTestSuite {
                 "- **Average Recall:** {:.2}%\n",
                 (avg_recall / count) * 100.0
             ));
-            report.push_str(&format!(
-                "- **Average F1 Score:** {:.4}\n",
-                avg_f1 / count
-            ));
+            report.push_str(&format!("- **Average F1 Score:** {:.4}\n", avg_f1 / count));
         }
 
         report
@@ -201,17 +209,19 @@ pub mod utils {
     /// Extract code snippet from finding
     pub fn extract_code_context(code: &str, line: usize, context_lines: usize) -> String {
         let lines: Vec<&str> = code.lines().collect();
-        let start = if line > context_lines { line - context_lines } else { 0 };
+        let start = if line > context_lines {
+            line - context_lines
+        } else {
+            0
+        };
         let end = std::cmp::min(line + context_lines, lines.len());
-        
+
         lines[start..end].join("\n")
     }
 
     /// Compare two findings for equality
-    pub fn findings_match(f1: &sentri_core::Finding, f2: &sentri_core::Finding) -> bool {
-        f1.vulnerability_id == f2.vulnerability_id &&
-        f1.file_path == f2.file_path &&
-        f1.line_number == f2.line_number
+    pub fn findings_match(f1: &crate::Finding, f2: &crate::Finding) -> bool {
+        f1.invariant_id == f2.invariant_id && f1.file == f2.file && f1.line == f2.line
     }
 
     /// Generate test code variant
@@ -273,7 +283,7 @@ mod tests {
 
         suite.add_result("test_detector".to_string(), result);
         let report = suite.generate_report();
-        
+
         assert!(report.contains("test_detector"));
         assert!(report.contains("Precision"));
         assert!(report.contains("Recall"));

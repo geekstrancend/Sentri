@@ -4,9 +4,9 @@
 //! proper validation or increment. This pattern was exploited in H46 Drift Protocol
 //! ($285M, 2026) where transaction replay attacks were possible.
 
-use sentri_core::Finding;
-use regex::Regex;
 use lazy_static::lazy_static;
+use regex::Regex;
+use sentri_core::Finding;
 
 lazy_static! {
     /// Regex to match durable nonce read operations
@@ -75,14 +75,19 @@ pub fn detect_solana_durable_nonce_validation(source: &str, file_path: &str) -> 
                     .with_metadata("loss".to_string(), "$285M".to_string())
                     .with_metadata("year".to_string(), "2026".to_string())
                     .with_metadata("chain".to_string(), "Solana".to_string())
-                    .with_metadata("vulnerability_type".to_string(), "replay_attack".to_string())
+                    .with_metadata(
+                        "vulnerability_type".to_string(),
+                        "replay_attack".to_string(),
+                    )
                     .with_metadata("detector".to_string(), "nonce_validation_check".to_string())
                     .with_source_fragment(handler_body),
                 );
             }
 
             // Pattern 4: Check if nonce is NOT incremented after validation
-            if validates_nonce_after_read(&handler_body) && !increments_nonce_after_validation(&handler_body) {
+            if validates_nonce_after_read(&handler_body)
+                && !increments_nonce_after_validation(&handler_body)
+            {
                 let message = format!(
                     "Durable nonce validated in '{}' but never incremented. \
                      Must increment nonce atomically after validation to prevent replay. \
@@ -101,7 +106,10 @@ pub fn detect_solana_durable_nonce_validation(source: &str, file_path: &str) -> 
                         handler_line.trim().to_string(),
                     )
                     .with_metadata("exploit_id".to_string(), "H46".to_string())
-                    .with_metadata("vulnerability_type".to_string(), "nonce_not_incremented".to_string())
+                    .with_metadata(
+                        "vulnerability_type".to_string(),
+                        "nonce_not_incremented".to_string(),
+                    )
                     .with_metadata("detector".to_string(), "nonce_increment_check".to_string()),
                 );
             }
@@ -125,33 +133,33 @@ fn extract_handler_name(line: &str) -> String {
 /// Check if handler body reads nonce field
 fn reads_nonce_field(handler_body: &str) -> bool {
     let handler_lower = handler_body.to_lowercase();
-    handler_lower.contains("nonce") || 
-    handler_lower.contains("durable") ||
-    handler_lower.contains("authorized")
+    handler_lower.contains("nonce")
+        || handler_lower.contains("durable")
+        || handler_lower.contains("authorized")
 }
 
 /// Check if nonce is validated after being read
 fn validates_nonce_after_read(handler_body: &str) -> bool {
     let handler_lower = handler_body.to_lowercase();
-    
+
     // Look for validation patterns
-    handler_lower.contains("require") ||
-    handler_lower.contains("assert") ||
-    handler_lower.contains("is_signer") ||
-    handler_lower.contains("verify") ||
-    handler_lower.contains("validate_nonce")
+    handler_lower.contains("require")
+        || handler_lower.contains("assert")
+        || handler_lower.contains("is_signer")
+        || handler_lower.contains("verify")
+        || handler_lower.contains("validate_nonce")
 }
 
 /// Check if nonce is incremented after validation
 fn increments_nonce_after_validation(handler_body: &str) -> bool {
     let handler_lower = handler_body.to_lowercase();
-    
+
     // Look for nonce increment patterns
-    handler_lower.contains("nonce_account.try_borrow_mut_data") ||
-    handler_lower.contains("nonce += 1") ||
-    handler_lower.contains("nonce_counter") ||
-    handler_lower.contains("next_nonce") ||
-    handler_lower.contains("advance_nonce")
+    handler_lower.contains("nonce_account.try_borrow_mut_data")
+        || handler_lower.contains("nonce += 1")
+        || handler_lower.contains("nonce_counter")
+        || handler_lower.contains("next_nonce")
+        || handler_lower.contains("advance_nonce")
 }
 
 #[cfg(test)]
@@ -180,7 +188,10 @@ mod tests {
         "#;
 
         let findings = detect_solana_durable_nonce_validation(code, "drift.rs");
-        assert!(!findings.is_empty(), "Should detect missing nonce validation");
+        assert!(
+            !findings.is_empty(),
+            "Should detect missing nonce validation"
+        );
         assert!(findings[0].invariant_id.contains("durable_nonce"));
     }
 
@@ -240,6 +251,9 @@ mod tests {
         "#;
 
         let findings = detect_solana_durable_nonce_validation(code, "safe.rs");
-        assert!(findings.is_empty(), "Should not flag with proper nonce handling");
+        assert!(
+            findings.is_empty(),
+            "Should not flag with proper nonce handling"
+        );
     }
 }

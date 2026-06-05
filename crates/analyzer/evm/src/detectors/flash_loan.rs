@@ -71,7 +71,8 @@ impl<'a> AstVisitor for FlashLoanDetector<'a> {
         let call_line_num = offset_to_line(self.source, offset);
 
         if Self::is_balance_oracle_read(call) {
-            self.balance_oracle_calls.push((call_line_num, func.name.clone()));
+            self.balance_oracle_calls
+                .push((call_line_num, func.name.clone()));
         }
 
         // Detect functions that use balance reads to compute prices
@@ -79,7 +80,7 @@ impl<'a> AstVisitor for FlashLoanDetector<'a> {
             for &(balance_call_line, ref balance_func_name) in &self.balance_oracle_calls {
                 if balance_call_line < call_line_num && balance_func_name == &func.name {
                     // This function reads balance and computes price — flash loan vector
-                    let lines: Vec<&str> = self.source.lines().collect();
+                    let _lines: Vec<&str> = self.source.lines().collect();
 
                     // TODO: Use proper violation type from sentri_core when available
                     // For now, just track the detection in debug logs

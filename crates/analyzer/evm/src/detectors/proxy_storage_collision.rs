@@ -39,20 +39,25 @@
 ///     uint256 public value;
 /// }
 /// ```
-
 use lazy_static::lazy_static;
 use regex::Regex;
 use sentri_core::Finding;
 
 lazy_static! {
-    static ref PROXY_PATTERN: Regex = Regex::new(r"(?i)(contract\s+\w+.*?Proxy|_delegate|delegateToImplementation)").unwrap();
-    static ref STORAGE_VARIABLE: Regex = Regex::new(r"(?i)(address|uint|bool|bytes32|bytes)\s+(?:public|internal|private)?\s+\w+\s*;").unwrap();
-    static ref GAP_DEFINITION: Regex = Regex::new(r"(?i)uint.*?\[\s*\d+\s*\]\s*(?:private|internal)?\s*__gap|gap\s*\[\s*\d+\s*\]").unwrap();
-    static ref INHERITANCE_PATTERN: Regex = Regex::new(r"(?i)contract\s+\w+\s+is\s+\w+").unwrap();
-    static ref STORAGE_ANNOTATION: Regex = Regex::new(r"///\s*@storage-location|///\s*@slot|// slot").unwrap();
-    static ref UPGRADEABLE_PATTERN: Regex =
-        Regex::new(r"(?i)Upgradeable|OwnedUpgradeable|proxy|ProxyAdmin")
+    static ref PROXY_PATTERN: Regex =
+        Regex::new(r"(?i)(contract\s+\w+.*?Proxy|_delegate|delegateToImplementation)").unwrap();
+    static ref STORAGE_VARIABLE: Regex = Regex::new(
+        r"(?i)(address|uint|bool|bytes32|bytes)\s+(?:public|internal|private)?\s+\w+\s*;"
+    )
+    .unwrap();
+    static ref GAP_DEFINITION: Regex =
+        Regex::new(r"(?i)uint.*?\[\s*\d+\s*\]\s*(?:private|internal)?\s*__gap|gap\s*\[\s*\d+\s*\]")
             .unwrap();
+    static ref INHERITANCE_PATTERN: Regex = Regex::new(r"(?i)contract\s+\w+\s+is\s+\w+").unwrap();
+    static ref STORAGE_ANNOTATION: Regex =
+        Regex::new(r"///\s*@storage-location|///\s*@slot|// slot").unwrap();
+    static ref UPGRADEABLE_PATTERN: Regex =
+        Regex::new(r"(?i)Upgradeable|OwnedUpgradeable|proxy|ProxyAdmin").unwrap();
 }
 
 pub fn detect_proxy_storage_collision(source: &str, file_path: &str) -> Vec<Finding> {
@@ -107,13 +112,22 @@ pub fn detect_proxy_storage_collision(source: &str, file_path: &str) -> Vec<Find
                         .to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H28")
-                .with_metadata("exploit_name", "Pike Storage Collision")
-                .with_metadata("loss", "$1.68M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "storage_collision")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Add storage gap uint256[50] __gap; to proxy contract"),
+                .with_metadata("exploit_id".to_string(), "H28".to_string())
+                .with_metadata(
+                    "exploit_name".to_string(),
+                    "Pike Storage Collision".to_string(),
+                )
+                .with_metadata("loss".to_string(), "$1.68M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata(
+                    "vulnerability_type".to_string(),
+                    "storage_collision".to_string(),
+                )
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata(
+                    "remediation".to_string(),
+                    "Add storage gap uint256[50] __gap; to proxy contract".to_string(),
+                ),
             );
         } else if !has_annotations && has_inheritance && storage_count > 2 {
             // Has gap but no storage annotations
@@ -129,13 +143,22 @@ pub fn detect_proxy_storage_collision(source: &str, file_path: &str) -> Vec<Find
                         .to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H28")
-                .with_metadata("exploit_name", "Pike - Weak Documentation")
-                .with_metadata("loss", "$1.68M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "storage_collision")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Add storage layout documentation"),
+                .with_metadata("exploit_id".to_string(), "H28".to_string())
+                .with_metadata(
+                    "exploit_name".to_string(),
+                    "Pike - Weak Documentation".to_string(),
+                )
+                .with_metadata("loss".to_string(), "$1.68M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata(
+                    "vulnerability_type".to_string(),
+                    "storage_collision".to_string(),
+                )
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata(
+                    "remediation".to_string(),
+                    "Add storage layout documentation".to_string(),
+                ),
             );
         }
     }
@@ -194,9 +217,14 @@ mod tests {
         "#;
 
         let findings = detect_proxy_storage_collision(safe, "test.sol");
-        let critical_findings: Vec<_> =
-            findings.iter().filter(|f| f.severity == sentri_core::Severity::Critical).collect();
-        assert!(critical_findings.is_empty(), "Should allow proxy with storage gap");
+        let critical_findings: Vec<_> = findings
+            .iter()
+            .filter(|f| f.severity == sentri_core::Severity::Critical)
+            .collect();
+        assert!(
+            critical_findings.is_empty(),
+            "Should allow proxy with storage gap"
+        );
     }
 
     #[test]
@@ -248,10 +276,7 @@ mod tests {
         "#;
 
         let findings = detect_proxy_storage_collision(simple, "test.sol");
-        assert!(
-            findings.is_empty(),
-            "Should not flag non-proxy contracts"
-        );
+        assert!(findings.is_empty(), "Should not flag non-proxy contracts");
     }
 
     #[test]
@@ -269,8 +294,10 @@ mod tests {
         "#;
 
         let findings = detect_proxy_storage_collision(annotated, "test.sol");
-        let high_findings: Vec<_> =
-            findings.iter().filter(|f| f.severity == sentri_core::Severity::High).collect();
+        let high_findings: Vec<_> = findings
+            .iter()
+            .filter(|f| f.severity == sentri_core::Severity::High)
+            .collect();
         // Should be satisfied with annotations
         assert!(true, "Annotations reduce severity");
     }

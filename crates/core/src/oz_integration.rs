@@ -3,8 +3,7 @@
 /// Integrates Sentri findings with OpenZeppelin Contracts library patterns and audit standards.
 /// Provides mapping between Sentri detectors and known OZ vulnerabilities, enabling
 /// cross-reference with OZ audit recommendations and security standards.
-
-use sentri_core::Finding;
+use crate::Finding;
 use std::collections::HashMap;
 
 /// OpenZeppelin vulnerability classification
@@ -60,7 +59,7 @@ impl OZMappingRegistry {
             detector_to_oz: HashMap::new(),
             oz_to_recommendations: HashMap::new(),
         };
-        
+
         registry.initialize_mappings();
         registry
     }
@@ -143,34 +142,35 @@ impl OZMappingRegistry {
                 title: "Implement role-based access control".to_string(),
                 severity: "High".to_string(),
                 best_practice: "Use AccessControl for complex permissions".to_string(),
-                reference: "https://docs.openzeppelin.com/contracts/4.x/api/access#AccessControl".to_string(),
+                reference: "https://docs.openzeppelin.com/contracts/4.x/api/access#AccessControl"
+                    .to_string(),
             },
         ];
-        self.oz_to_recommendations.insert(OZVulnerabilityType::AccessControl, access_control_recs);
+        self.oz_to_recommendations
+            .insert(OZVulnerabilityType::AccessControl, access_control_recs);
 
         // Reentrancy recommendations
-        let reentrancy_recs = vec![
-            OZRecommendation {
-                id: "OZ-RE-001".to_string(),
-                title: "Apply Checks-Effects-Interactions pattern".to_string(),
-                severity: "Critical".to_string(),
-                best_practice: "Update state before external calls".to_string(),
-                reference: "https://docs.openzeppelin.com/contracts/4.x/api/security#ReentrancyGuard".to_string(),
-            },
-        ];
-        self.oz_to_recommendations.insert(OZVulnerabilityType::Reentrancy, reentrancy_recs);
+        let reentrancy_recs = vec![OZRecommendation {
+            id: "OZ-RE-001".to_string(),
+            title: "Apply Checks-Effects-Interactions pattern".to_string(),
+            severity: "Critical".to_string(),
+            best_practice: "Update state before external calls".to_string(),
+            reference: "https://docs.openzeppelin.com/contracts/4.x/api/security#ReentrancyGuard"
+                .to_string(),
+        }];
+        self.oz_to_recommendations
+            .insert(OZVulnerabilityType::Reentrancy, reentrancy_recs);
 
         // Oracle recommendations
-        let oracle_recs = vec![
-            OZRecommendation {
-                id: "OZ-OR-001".to_string(),
-                title: "Use multiple oracle sources".to_string(),
-                severity: "High".to_string(),
-                best_practice: "Implement oracle aggregation pattern".to_string(),
-                reference: "https://docs.openzeppelin.com/contracts/4.x/".to_string(),
-            },
-        ];
-        self.oz_to_recommendations.insert(OZVulnerabilityType::OracleManipulation, oracle_recs);
+        let oracle_recs = vec![OZRecommendation {
+            id: "OZ-OR-001".to_string(),
+            title: "Use multiple oracle sources".to_string(),
+            severity: "High".to_string(),
+            best_practice: "Implement oracle aggregation pattern".to_string(),
+            reference: "https://docs.openzeppelin.com/contracts/4.x/".to_string(),
+        }];
+        self.oz_to_recommendations
+            .insert(OZVulnerabilityType::OracleManipulation, oracle_recs);
     }
 
     /// Get OZ vulnerability type for a detector
@@ -179,16 +179,22 @@ impl OZMappingRegistry {
     }
 
     /// Get OZ recommendations for a vulnerability type
-    pub fn get_recommendations(&self, vuln_type: &OZVulnerabilityType) -> Option<&[OZRecommendation]> {
-        self.oz_to_recommendations.get(vuln_type).map(|v| v.as_slice())
+    pub fn get_recommendations(
+        &self,
+        vuln_type: &OZVulnerabilityType,
+    ) -> Option<&[OZRecommendation]> {
+        self.oz_to_recommendations
+            .get(vuln_type)
+            .map(|v| v.as_slice())
     }
 
     /// Enrich a finding with OZ context
     pub fn enrich_finding(&self, finding: &Finding) -> EnrichedFinding {
-        let detector_name = finding.vulnerability_id.to_lowercase();
+        let detector_name = finding.invariant_id.to_lowercase();
         let oz_type = self.get_oz_type(&detector_name);
-        
-        let recommendations = oz_type.as_ref()
+
+        let recommendations = oz_type
+            .as_ref()
             .and_then(|t| self.get_recommendations(t))
             .unwrap_or(&[])
             .to_vec();
@@ -215,10 +221,7 @@ pub struct EnrichedFinding {
 impl EnrichedFinding {
     /// Generate OZ audit report section
     pub fn to_audit_report(&self) -> String {
-        let mut report = format!(
-            "## Finding: {}\n\n",
-            self.original_finding.message
-        );
+        let mut report = format!("## Finding: {}\n\n", self.original_finding.message);
 
         report.push_str(&format!(
             "**Severity:** {}\n",
@@ -226,10 +229,7 @@ impl EnrichedFinding {
         ));
 
         if let Some(ref oz_type) = self.oz_type {
-            report.push_str(&format!(
-                "**OZ Classification:** {:?}\n\n",
-                oz_type
-            ));
+            report.push_str(&format!("**OZ Classification:** {:?}\n\n", oz_type));
         }
 
         if !self.oz_recommendations.is_empty() {
@@ -246,8 +246,7 @@ impl EnrichedFinding {
 
         report.push_str(&format!(
             "**Location:** {}:{}\n",
-            self.original_finding.file_path,
-            self.original_finding.line_number
+            self.original_finding.file, self.original_finding.line
         ));
 
         report
@@ -261,12 +260,12 @@ mod tests {
     #[test]
     fn oz_registry_maps_detectors() {
         let registry = OZMappingRegistry::new();
-        
+
         assert_eq!(
             registry.get_oz_type("health_check"),
             Some(OZVulnerabilityType::StateManagement)
         );
-        
+
         assert_eq!(
             registry.get_oz_type("oracle_self_trade"),
             Some(OZVulnerabilityType::OracleManipulation)
@@ -276,7 +275,7 @@ mod tests {
     #[test]
     fn oz_registry_provides_recommendations() {
         let registry = OZMappingRegistry::new();
-        
+
         let recs = registry.get_recommendations(&OZVulnerabilityType::AccessControl);
         assert!(recs.is_some());
         assert!(!recs.unwrap().is_empty());
@@ -296,7 +295,7 @@ mod tests {
 
         let registry = OZMappingRegistry::new();
         let enriched = registry.enrich_finding(&finding);
-        
+
         let report = enriched.to_audit_report();
         assert!(report.contains("test.sol:42"));
     }

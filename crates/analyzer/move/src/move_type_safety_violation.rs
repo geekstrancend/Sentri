@@ -8,20 +8,15 @@
 /// 3. Unsafe casting or type confusion
 /// 4. Can lead to fund loss or privilege escalation
 ///
-
 use lazy_static::lazy_static;
 use regex::Regex;
 use sentri_core::Finding;
 
 lazy_static! {
-    static ref GENERIC_TYPE: Regex = 
-        Regex::new(r"(?i)<T\s*:|<Token\s*:|generic\s*type").unwrap();
-    static ref UNSAFE_AS: Regex = 
-        Regex::new(r"(?i)as\s*(&?[A-Z]\w*<|T|Coin)").unwrap();
-    static ref RESOURCE_CAST: Regex = 
-        Regex::new(r"(?i)(Coin|Asset|Token)<.*>\s*as\s*").unwrap();
-    static ref TYPE_ANNOTATION: Regex = 
-        Regex::new(r"(?i)let.*:\s*&?\w+<.*>").unwrap();
+    static ref GENERIC_TYPE: Regex = Regex::new(r"(?i)<T\s*:|<Token\s*:|generic\s*type").unwrap();
+    static ref UNSAFE_AS: Regex = Regex::new(r"(?i)as\s*(&?[A-Z]\w*<|T|Coin)").unwrap();
+    static ref RESOURCE_CAST: Regex = Regex::new(r"(?i)(Coin|Asset|Token)<.*>\s*as\s*").unwrap();
+    static ref TYPE_ANNOTATION: Regex = Regex::new(r"(?i)let.*:\s*&?\w+<.*>").unwrap();
 }
 
 pub fn detect_move_type_safety_violation(source: &str, file_path: &str) -> Vec<Finding> {
@@ -51,16 +46,20 @@ pub fn detect_move_type_safety_violation(source: &str, file_path: &str) -> Vec<F
                     file_path.to_string(),
                     line_num + 1,
                     0,
-                    "Unsafe type casting in Move. Verify type safety with explicit annotations.".to_string(),
+                    "Unsafe type casting in Move. Verify type safety with explicit annotations."
+                        .to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H52")
-                .with_metadata("exploit_name", "Move Type Safety")
-                .with_metadata("loss", "$2.1M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "type_safety")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Use explicit type annotations and avoid unsafe casts"),
+                .with_metadata("exploit_id".to_string(), "H52".to_string())
+                .with_metadata("exploit_name".to_string(), "Move Type Safety".to_string())
+                .with_metadata("loss".to_string(), "$2.1M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata("vulnerability_type".to_string(), "type_safety".to_string())
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata(
+                    "remediation".to_string(),
+                    "Use explicit type annotations and avoid unsafe casts".to_string(),
+                ),
             );
         }
     }

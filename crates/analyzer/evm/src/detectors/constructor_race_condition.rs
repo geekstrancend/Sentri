@@ -8,18 +8,17 @@
 /// 3. Attacker can reinitialize contract to reset state
 /// 4. Can steal ownership or reset balances
 ///
-
 use lazy_static::lazy_static;
 use regex::Regex;
 use sentri_core::Finding;
 
 lazy_static! {
     static ref CONSTRUCTOR: Regex = Regex::new(r"(?i)constructor\s*\(").unwrap();
-    static ref INITIALIZATION_FUNCTION: Regex = 
+    static ref INITIALIZATION_FUNCTION: Regex =
         Regex::new(r"(?i)function\s+(initialize|init|setup|configure|setOwner)\s*\(").unwrap();
-    static ref INIT_FLAG: Regex = 
+    static ref INIT_FLAG: Regex =
         Regex::new(r"(?i)initialized|_initialized|hasInitialized|init_flag").unwrap();
-    static ref REQUIRE_NOT_INIT: Regex = 
+    static ref REQUIRE_NOT_INIT: Regex =
         Regex::new(r"(?i)require\s*\(\s*!.*?initialized|require\s*\(\s*!.*?_initialized").unwrap();
 }
 
@@ -40,7 +39,7 @@ pub fn detect_constructor_race_condition(source: &str, file_path: &str) -> Vec<F
             .join("\n");
 
         let has_init_check = REQUIRE_NOT_INIT.is_match(&function_body);
-        
+
         // Check if this is in a proxy context (has initialize pattern)
         if !has_init_check {
             findings.push(
@@ -53,13 +52,13 @@ pub fn detect_constructor_race_condition(source: &str, file_path: &str) -> Vec<F
                     "Initialization function lacks re-entrancy check. Add require(!initialized) to prevent re-initialization attacks.".to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H46")
-                .with_metadata("exploit_name", "Constructor Race")
-                .with_metadata("loss", "$0.9M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "initialization_race")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Add require(!initialized) and set initialized = true"),
+                .with_metadata("exploit_id".to_string(), "H46".to_string())
+                .with_metadata("exploit_name".to_string(), "Constructor Race".to_string())
+                .with_metadata("loss".to_string(), "$0.9M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata("vulnerability_type".to_string(), "initialization_race".to_string())
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata("remediation".to_string(), "Add require(!initialized) and set initialized = true".to_string()),
             );
         }
     }
@@ -105,7 +104,7 @@ mod tests {
         }
         "#;
         let findings = detect_constructor_race_condition(safe, "test.sol");
-        assert!(findings.is_empty());  // initializer modifier provides protection
+        assert!(findings.is_empty()); // initializer modifier provides protection
     }
 
     #[test]

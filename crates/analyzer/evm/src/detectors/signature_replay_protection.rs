@@ -8,19 +8,17 @@
 /// 3. Same signature works across different chains or multiple times
 /// 4. Attacker can replay transactions
 ///
-
 use lazy_static::lazy_static;
 use regex::Regex;
 use sentri_core::Finding;
 
 lazy_static! {
-    static ref ECDSA_RECOVER: Regex = 
-        Regex::new(r"(?i)(ECDSA\.recover|ecrecover)\s*\(").unwrap();
-    static ref CHAIN_ID_CHECK: Regex = 
+    static ref ECDSA_RECOVER: Regex = Regex::new(r"(?i)(ECDSA\.recover|ecrecover)\s*\(").unwrap();
+    static ref CHAIN_ID_CHECK: Regex =
         Regex::new(r"(?i)chainid|chain\.id|block\.chainid|CHAIN_ID").unwrap();
-    static ref NONCE_CHECK: Regex = 
+    static ref NONCE_CHECK: Regex =
         Regex::new(r"(?i)nonce\[.*?\]\+\+|require\s*\(.*?nonce.*?\)").unwrap();
-    static ref MESSAGE_HASH: Regex = 
+    static ref MESSAGE_HASH: Regex =
         Regex::new(r"(?i)keccak256\s*\(\s*abi\.encode.*?(address|uint|bytes)").unwrap();
 }
 
@@ -55,13 +53,13 @@ pub fn detect_signature_replay_protection(source: &str, file_path: &str) -> Vec<
                     "Signature validation missing replay protection (chain ID and/or nonce). Add chainid and nonce to signed message digest.".to_string(),
                     line.trim().to_string(),
                 )
-                .with_metadata("exploit_id", "H48")
-                .with_metadata("exploit_name", "Signature Replay")
-                .with_metadata("loss", "$2.4M")
-                .with_metadata("year", "2023")
-                .with_metadata("vulnerability_type", "replay_attack")
-                .with_metadata("detector", "pattern_analysis")
-                .with_metadata("remediation", "Include chainid and nonce in message digest"),
+                .with_metadata("exploit_id".to_string(), "H48".to_string())
+                .with_metadata("exploit_name".to_string(), "Signature Replay".to_string())
+                .with_metadata("loss".to_string(), "$2.4M".to_string())
+                .with_metadata("year".to_string(), "2023".to_string())
+                .with_metadata("vulnerability_type".to_string(), "replay_attack".to_string())
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata("remediation".to_string(), "Include chainid and nonce in message digest".to_string()),
             );
         }
     }

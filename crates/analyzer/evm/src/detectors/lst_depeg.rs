@@ -4,9 +4,9 @@
 //! as collateral without depeg protection. This pattern was exploited in H47 KelpDAO/rsETH
 //! ($292M, 2026) when rsETH depegged from ETH.
 
-use sentri_core::Finding;
-use regex::Regex;
 use lazy_static::lazy_static;
+use regex::Regex;
+use sentri_core::Finding;
 
 lazy_static! {
     /// List of known liquid staking tokens
@@ -80,13 +80,19 @@ pub fn detect_lst_depeg_collateral_risk(source: &str, file_path: &str) -> Vec<Fi
                             func_line.trim().to_string(),
                         )
                         .with_metadata("exploit_id".to_string(), "H47".to_string())
-                        .with_metadata("exploit_name".to_string(), "KelpDAO/rsETH Depeg".to_string())
+                        .with_metadata(
+                            "exploit_name".to_string(),
+                            "KelpDAO/rsETH Depeg".to_string(),
+                        )
                         .with_metadata("loss".to_string(), "$292M".to_string())
                         .with_metadata("year".to_string(), "2026".to_string())
                         .with_metadata("token".to_string(), lst.to_string())
-                        .with_metadata("vulnerability_type".to_string(), "depeg_cascade".to_string())
+                        .with_metadata(
+                            "vulnerability_type".to_string(),
+                            "depeg_cascade".to_string(),
+                        )
                         .with_metadata("detector".to_string(), "oracle_risk_analysis".to_string())
-                        .with_source_fragment(func_body),
+                        .with_source_fragment(func_body.clone()),
                     );
                 }
             }
@@ -110,7 +116,7 @@ fn extract_function_name(line: &str) -> String {
 /// Check if function has depeg protection
 fn has_depeg_protection(func_body: &str) -> bool {
     let func_lower = func_body.to_lowercase();
-    
+
     // Patterns indicating depeg checks
     let depeg_patterns = vec![
         "depeg",
@@ -120,8 +126,8 @@ fn has_depeg_protection(func_body: &str) -> bool {
         "peg_threshold",
         "price_band",
         "ratio_band",
-        "0.95",  // 95% peg band
-        "0.9",   // 90% peg band
+        "0.95", // 95% peg band
+        "0.9",  // 90% peg band
         "require(.*price",
         "max_collateral_ratio",
     ];
@@ -173,7 +179,10 @@ mod tests {
         "#;
 
         let findings = detect_lst_depeg_collateral_risk(code, "lender.sol");
-        assert!(!findings.is_empty(), "Should detect stETH without depeg protection");
+        assert!(
+            !findings.is_empty(),
+            "Should detect stETH without depeg protection"
+        );
     }
 
     #[test]
@@ -233,7 +242,10 @@ mod tests {
         "#;
 
         let findings = detect_lst_depeg_collateral_risk(code, "multilst.sol");
-        assert!(!findings.is_empty(), "Should detect LST depeg risk for multiple tokens");
+        assert!(
+            !findings.is_empty(),
+            "Should detect LST depeg risk for multiple tokens"
+        );
     }
 
     #[test]

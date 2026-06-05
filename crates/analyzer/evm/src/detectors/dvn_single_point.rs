@@ -4,9 +4,9 @@
 //! a critical single point of failure. This pattern was exploited in H47 KelpDAO/LayerZero
 //! ($292M, 2026) where only 1 DVN was configured.
 
-use sentri_core::Finding;
-use regex::Regex;
 use lazy_static::lazy_static;
+use regex::Regex;
+use sentri_core::Finding;
 
 lazy_static! {
     /// Regex to match DVN array/mapping declarations
@@ -28,14 +28,15 @@ pub fn detect_dvn_single_point_failure(source: &str, file_path: &str) -> Vec<Fin
 
     // Pattern 1: Find DVN configuration functions
     for (func_line_num, func_line) in source.lines().enumerate() {
-        if !DVN_SETTER_REGEX.is_match(func_line) &&
-           !func_line.to_lowercase().contains("setdvn") &&
-           !func_line.to_lowercase().contains("adddvn") {
+        if !DVN_SETTER_REGEX.is_match(func_line)
+            && !func_line.to_lowercase().contains("setdvn")
+            && !func_line.to_lowercase().contains("adddvn")
+        {
             continue;
         }
 
         let func_name = extract_function_name(func_line);
-        
+
         // Extract function body (~30 lines)
         let func_start = func_line_num;
         let func_end = (func_line_num + 30).min(source.lines().count());
@@ -75,8 +76,14 @@ pub fn detect_dvn_single_point_failure(source: &str, file_path: &str) -> Vec<Fin
                 .with_metadata("exploit_name".to_string(), "KelpDAO/LayerZero".to_string())
                 .with_metadata("loss".to_string(), "$292M".to_string())
                 .with_metadata("year".to_string(), "2026".to_string())
-                .with_metadata("vulnerability_type".to_string(), "single_point_failure".to_string())
-                .with_metadata("detector".to_string(), "configuration_validation".to_string())
+                .with_metadata(
+                    "vulnerability_type".to_string(),
+                    "single_point_failure".to_string(),
+                )
+                .with_metadata(
+                    "detector".to_string(),
+                    "configuration_validation".to_string(),
+                )
                 .with_source_fragment(func_body),
             );
         }
@@ -99,25 +106,25 @@ fn extract_function_name(line: &str) -> String {
 /// Check if DVN configuration allows single DVN without validation
 fn allows_single_dvn(func_body: &str) -> bool {
     let func_lower = func_body.to_lowercase();
-    
+
     // Red flag: Has DVN assignment/setting but no minimum length check
-    let has_dvn_operation = func_lower.contains("dvn[") ||
-                            func_lower.contains("dvns.push") ||
-                            func_lower.contains("dvns =") ||
-                            func_lower.contains("dvn_list") ||
-                            func_lower.contains("verifiers");
+    let has_dvn_operation = func_lower.contains("dvn[")
+        || func_lower.contains("dvns.push")
+        || func_lower.contains("dvns =")
+        || func_lower.contains("dvn_list")
+        || func_lower.contains("verifiers");
 
     if !has_dvn_operation {
         return false;
     }
 
     // Check if there's NO minimum count enforcement
-    let has_minimum_check = func_lower.contains("length >=") ||
-                            func_lower.contains("length > 0") ||
-                            func_lower.contains("require(dvn") ||
-                            func_lower.contains("require(verifier") ||
-                            func_lower.contains("dvn_count") ||
-                            func_lower.contains("min_dvn");
+    let has_minimum_check = func_lower.contains("length >=")
+        || func_lower.contains("length > 0")
+        || func_lower.contains("require(dvn")
+        || func_lower.contains("require(verifier")
+        || func_lower.contains("dvn_count")
+        || func_lower.contains("min_dvn");
 
     !has_minimum_check
 }
@@ -144,7 +151,10 @@ mod tests {
         "#;
 
         let findings = detect_dvn_single_point_failure(code, "bridge.sol");
-        assert!(!findings.is_empty(), "Should detect single DVN vulnerability");
+        assert!(
+            !findings.is_empty(),
+            "Should detect single DVN vulnerability"
+        );
         assert!(findings[0].invariant_id.contains("dvn_single_point"));
     }
 
@@ -179,7 +189,10 @@ mod tests {
         "#;
 
         let findings = detect_dvn_single_point_failure(code, "bridge.sol");
-        assert!(findings.is_empty(), "Should not flag when minimum DVN check present");
+        assert!(
+            findings.is_empty(),
+            "Should not flag when minimum DVN check present"
+        );
     }
 
     #[test]
@@ -212,6 +225,9 @@ mod tests {
         "#;
 
         let findings = detect_dvn_single_point_failure(code, "bridge.sol");
-        assert!(!findings.is_empty(), "Should detect unconstrained configuration");
+        assert!(
+            !findings.is_empty(),
+            "Should detect unconstrained configuration"
+        );
     }
 }

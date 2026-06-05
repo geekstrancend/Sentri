@@ -4,9 +4,9 @@
 //! or lack explicit initialization. This pattern was exploited in H16 Nomad Bridge
 //! ($190M, 2022) where any proof with root == 0 would pass verification.
 
-use sentri_core::Finding;
-use regex::Regex;
 use lazy_static::lazy_static;
+use regex::Regex;
+use sentri_core::Finding;
 
 lazy_static! {
     /// Regex to match merkle root mappings
@@ -35,7 +35,7 @@ pub fn detect_merkle_root_zero_default(source: &str, file_path: &str) -> Vec<Fin
         // Pattern 2: Check if initialized to zero or not initialized
         if is_zero_initialized(var_line) || is_uninitialized(var_line) {
             let var_name = extract_variable_name(var_line);
-            
+
             let message = format!(
                 "Merkle root mapping '{}' is initialized to zero or uninitialized. \
                  This allows anyone to submit a proof with root == 0 and have it accepted \
@@ -62,7 +62,10 @@ pub fn detect_merkle_root_zero_default(source: &str, file_path: &str) -> Vec<Fin
                 .with_metadata("exploit_name".to_string(), "Nomad Bridge".to_string())
                 .with_metadata("loss".to_string(), "$190M".to_string())
                 .with_metadata("year".to_string(), "2022".to_string())
-                .with_metadata("detector".to_string(), "state_variable_analysis".to_string()),
+                .with_metadata(
+                    "detector".to_string(),
+                    "state_variable_analysis".to_string(),
+                ),
             );
         }
     }
@@ -74,7 +77,7 @@ pub fn detect_merkle_root_zero_default(source: &str, file_path: &str) -> Vec<Fin
         }
 
         let func_name = extract_function_name(func_line);
-        
+
         // Extract function body (~40 lines)
         let func_start = func_line_num;
         let func_end = (func_line_num + 40).min(source.lines().count());
@@ -108,8 +111,14 @@ pub fn detect_merkle_root_zero_default(source: &str, file_path: &str) -> Vec<Fin
                 .with_metadata("exploit_name".to_string(), "Nomad Bridge".to_string())
                 .with_metadata("loss".to_string(), "$190M".to_string())
                 .with_metadata("year".to_string(), "2022".to_string())
-                .with_metadata("vulnerability_type".to_string(), "zero_root_acceptance".to_string())
-                .with_metadata("detector".to_string(), "proof_verification_analysis".to_string())
+                .with_metadata(
+                    "vulnerability_type".to_string(),
+                    "zero_root_acceptance".to_string(),
+                )
+                .with_metadata(
+                    "detector".to_string(),
+                    "proof_verification_analysis".to_string(),
+                )
                 .with_source_fragment(func_body),
             );
         }
@@ -121,15 +130,14 @@ pub fn detect_merkle_root_zero_default(source: &str, file_path: &str) -> Vec<Fin
 /// Check if a line is a merkle root variable declaration
 fn is_merkle_root_var(line: &str) -> bool {
     let line_lower = line.to_lowercase();
-    (line_lower.contains("mapping") && line_lower.contains("root")) ||
-    (line_lower.contains("mapping") && line_lower.contains("confirmed")) ||
-    (line_lower.contains("bytes32") && line_lower.contains("root"))
+    (line_lower.contains("mapping") && line_lower.contains("root"))
+        || (line_lower.contains("mapping") && line_lower.contains("confirmed"))
+        || (line_lower.contains("bytes32") && line_lower.contains("root"))
 }
 
 /// Check if merkle root is initialized to zero
 fn is_zero_initialized(line: &str) -> bool {
-    line.contains("= 0") || 
-    (line.contains("bytes32") && line.contains(";") && !line.contains("="))
+    line.contains("= 0") || (line.contains("bytes32") && line.contains(";") && !line.contains("="))
 }
 
 /// Check if merkle root has no explicit initialization
@@ -162,14 +170,14 @@ fn extract_function_name(line: &str) -> String {
 /// Check if proof verification function accepts zero root
 fn accepts_zero_merkle_root(func_body: &str) -> bool {
     let func_lower = func_body.to_lowercase();
-    
+
     // Check for missing zero-root validation
     // Pattern: no "!= 0" or "require" check on the root parameter
-    
-    let has_zero_check = func_lower.contains("!= 0") ||
-                         func_lower.contains("!= bytes32(0)") ||
-                         func_lower.contains("require(root") ||
-                         func_lower.contains("require(_root");
+
+    let has_zero_check = func_lower.contains("!= 0")
+        || func_lower.contains("!= bytes32(0)")
+        || func_lower.contains("require(root")
+        || func_lower.contains("require(_root");
 
     // If there's a root parameter/variable but no zero check, it's vulnerable
     (func_lower.contains("root") || func_lower.contains("merkle")) && !has_zero_check
@@ -226,7 +234,10 @@ mod tests {
         "#;
 
         let findings = detect_merkle_root_zero_default(code, "bridge.sol");
-        assert!(findings.is_empty(), "Should not flag when zero check is present");
+        assert!(
+            findings.is_empty(),
+            "Should not flag when zero check is present"
+        );
     }
 
     #[test]
@@ -247,6 +258,9 @@ mod tests {
         "#;
 
         let findings = detect_merkle_root_zero_default(code, "bridge.sol");
-        assert!(!findings.is_empty(), "Should detect Nomad-like vulnerability");
+        assert!(
+            !findings.is_empty(),
+            "Should detect Nomad-like vulnerability"
+        );
     }
 }

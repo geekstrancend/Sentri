@@ -2,8 +2,7 @@
 ///
 /// Comprehensive integration tests against real exploit patterns and documented vulnerabilities.
 /// Tests detectors using actual code from documented exploits to validate real-world effectiveness.
-
-use sentri_core::Finding;
+use crate::Finding;
 use std::collections::HashMap;
 
 /// Real exploit test case
@@ -55,7 +54,7 @@ impl IntegrationTestSuite {
             test_cases: Vec::new(),
             results: HashMap::new(),
         };
-        
+
         suite.initialize_real_exploits();
         suite
     }
@@ -74,7 +73,8 @@ function depositCollateral(address asset, uint256 amount) public {
     // Missing: require(isHealthy(msg.sender));
     emit DepositCollateral(asset, amount);
 }
-            "#.to_string(),
+            "#
+            .to_string(),
             expected_detections: vec!["health_check".to_string()],
             min_findings: 1,
         });
@@ -97,7 +97,8 @@ function verifyMessage(bytes32[] calldata proof) public {
         executeMessage();
     }
 }
-            "#.to_string(),
+            "#
+            .to_string(),
             expected_detections: vec!["merkle_root".to_string()],
             min_findings: 1,
         });
@@ -120,7 +121,8 @@ function sendMessage(bytes calldata message) external {
     (bool success,) = dvns[0].call(message);
     require(success);
 }
-            "#.to_string(),
+            "#
+            .to_string(),
             expected_detections: vec!["dvn_single_point".to_string()],
             min_findings: 1,
         });
@@ -136,7 +138,8 @@ function mint(uint256 amount) public {
     totalMinted += amount;
     balances[msg.sender] += amount;
 }
-            "#.to_string(),
+            "#
+            .to_string(),
             expected_detections: vec!["synthetic_mint".to_string()],
             min_findings: 1,
         });
@@ -154,7 +157,8 @@ function swapWithOracle() public {
     tokenPrice[msg.sender] = price;
     executeSwap(price);
 }
-            "#.to_string(),
+            "#
+            .to_string(),
             expected_detections: vec!["oracle_self_trade".to_string()],
             min_findings: 1,
         });
@@ -188,10 +192,7 @@ function swapWithOracle() public {
                 failed += 1;
             }
 
-            let matching_detectors = findings
-                .iter()
-                .map(|f| f.vulnerability_id.clone())
-                .collect();
+            let matching_detectors = findings.iter().map(|f| f.invariant_id.clone()).collect();
 
             let result = IntegrationTestResult {
                 h_code: test_case.h_code.clone(),
@@ -241,7 +242,11 @@ pub struct IntegrationTestResults {
 impl IntegrationTestResults {
     /// Success rate as percentage
     pub fn success_rate(&self) -> f64 {
-        if self.total == 0 { 0.0 } else { (self.passed as f64 / self.total as f64) * 100.0 }
+        if self.total == 0 {
+            0.0
+        } else {
+            (self.passed as f64 / self.total as f64) * 100.0
+        }
     }
 
     /// Generate report
@@ -252,11 +257,18 @@ impl IntegrationTestResults {
         );
         report.push_str(&format!("- **Passed:** {}\n", self.passed));
         report.push_str(&format!("- **Failed:** {}\n", self.failed));
-        report.push_str(&format!("- **Success Rate:** {:.1}%\n\n", self.success_rate()));
+        report.push_str(&format!(
+            "- **Success Rate:** {:.1}%\n\n",
+            self.success_rate()
+        ));
 
         report.push_str("## Details\n\n");
         for result in &self.results {
-            let status = if result.passed { "✓ PASS" } else { "✗ FAIL" };
+            let status = if result.passed {
+                "✓ PASS"
+            } else {
+                "✗ FAIL"
+            };
             report.push_str(&format!(
                 "### {} {}\n- **Findings:** {}\n- **Time:** {} ms\n\n",
                 result.h_code, status, result.findings_count, result.execution_time_ms
