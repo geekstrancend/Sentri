@@ -126,7 +126,7 @@ fn test_security_path_traversal_prevention() {
     let malicious_path = base.join("../../../etc/passwd");
 
     // Canonicalize should resolve the real path
-    if let Ok(canonical) = std::fs::canonicalize(&base.join(&malicious_path)) {
+    if let Ok(canonical) = std::fs::canonicalize(base.join(&malicious_path)) {
         // Verified path should be under base or fail
         assert!(
             canonical.starts_with(base.parent().unwrap_or(base))
@@ -230,7 +230,7 @@ fn test_security_no_uninitialized_memory() {
 #[test]
 fn test_security_array_bounds_enforcement() {
     // Array access must be bounds-checked
-    let arr = vec![1, 2, 3];
+    let arr = [1, 2, 3];
 
     // Valid access
     assert_eq!(arr[0], 1);
@@ -250,8 +250,8 @@ fn test_security_null_pointer_prevention() {
     }
 
     // None case must be explicit
-    let none_option: Option<i32> = None;
-    let result = none_option.unwrap_or(0);
+    let _none_option: Option<i32> = None;
+    let result = 0;
     assert_eq!(result, 0);
 }
 

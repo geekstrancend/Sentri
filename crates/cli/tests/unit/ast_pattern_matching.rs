@@ -178,7 +178,7 @@ mod expression_pattern_tests {
             expr1: Box::new(expr1),
             phase2: "execution".to_string(),
             expr2: Box::new(expr2),
-            op: BinaryOp::Less,
+            op: BinaryOp::Lt,
         };
 
         match expr {
@@ -191,7 +191,7 @@ mod expression_pattern_tests {
             } => {
                 assert_eq!(p1, "validation", "Phase1 should be extracted correctly");
                 assert_eq!(p2, "execution", "Phase2 should be extracted correctly");
-                assert_eq!(op, BinaryOp::Less, "Operator should be extracted correctly");
+                assert_eq!(op, BinaryOp::Lt, "Operator should be extracted correctly");
 
                 // Test nested pattern matching
                 match *e1 {
@@ -215,12 +215,12 @@ mod expression_pattern_tests {
     #[test]
     fn test_pattern_match_binary_ops() {
         let operators = vec![
-            BinaryOp::Equal,
-            BinaryOp::NotEqual,
-            BinaryOp::Less,
-            BinaryOp::Greater,
-            BinaryOp::LessEqual,
-            BinaryOp::GreaterEqual,
+            BinaryOp::Eq,
+            BinaryOp::Neq,
+            BinaryOp::Lt,
+            BinaryOp::Gt,
+            BinaryOp::Lte,
+            BinaryOp::Gte,
         ];
 
         let left = Expression::Int(10);
@@ -229,7 +229,7 @@ mod expression_pattern_tests {
         for op in operators {
             let expr = Expression::BinaryOp {
                 left: Box::new(left.clone()),
-                op: op.clone(),
+                op,
                 right: Box::new(right.clone()),
             };
 
@@ -267,7 +267,7 @@ mod expression_pattern_tests {
         for op in operators {
             let expr = Expression::Logical {
                 left: Box::new(left.clone()),
-                op: op.clone(),
+                op,
                 right: Box::new(right.clone()),
             };
 
@@ -398,13 +398,13 @@ mod expression_pattern_tests {
     fn test_pattern_match_deeply_nested() {
         let left_inner_left = Expression::BinaryOp {
             left: Box::new(Expression::Var("x".to_string())),
-            op: BinaryOp::Greater,
+            op: BinaryOp::Gt,
             right: Box::new(Expression::Int(5)),
         };
 
         let left_inner_right = Expression::BinaryOp {
             left: Box::new(Expression::Var("y".to_string())),
-            op: BinaryOp::Less,
+            op: BinaryOp::Lt,
             right: Box::new(Expression::Int(10)),
         };
 
@@ -444,7 +444,7 @@ mod expression_pattern_tests {
                                 op,
                                 right: five,
                             } => {
-                                assert_eq!(op, BinaryOp::Greater);
+                                assert_eq!(op, BinaryOp::Gt);
                                 match *x_var {
                                     Expression::Var(v) => assert_eq!(v, "x"),
                                     _ => panic!("Expected Var"),
@@ -464,7 +464,7 @@ mod expression_pattern_tests {
                                 op,
                                 right: ten,
                             } => {
-                                assert_eq!(op, BinaryOp::Less);
+                                assert_eq!(op, BinaryOp::Lt);
                                 match *y_var {
                                     Expression::Var(v) => assert_eq!(v, "y"),
                                     _ => panic!("Expected Var"),
@@ -537,12 +537,12 @@ mod expression_pattern_tests {
                 expr1: Box::new(Expression::Int(1)),
                 phase2: "execution".to_string(),
                 expr2: Box::new(Expression::Int(2)),
-                op: BinaryOp::Less,
+                op: BinaryOp::Lt,
             },
             Expression::Int(42),
             Expression::BinaryOp {
                 left: Box::new(Expression::Int(1)),
-                op: BinaryOp::Equal,
+                op: BinaryOp::Eq,
                 right: Box::new(Expression::Int(2)),
             },
             Expression::Logical {
@@ -593,7 +593,7 @@ mod expression_pattern_tests {
         // Boolean in BinaryOp should be allowed structurally
         let expr1 = Expression::BinaryOp {
             left: Box::new(Expression::Boolean(true)),
-            op: BinaryOp::Equal,
+            op: BinaryOp::Eq,
             right: Box::new(Expression::Boolean(false)),
         };
 
@@ -603,7 +603,7 @@ mod expression_pattern_tests {
                 op,
                 right: r,
             } => {
-                assert_eq!(op, BinaryOp::Equal);
+                assert_eq!(op, BinaryOp::Eq);
                 match *l {
                     Expression::Boolean(b) => assert!(b),
                     _ => panic!("Expected Boolean"),
@@ -719,6 +719,7 @@ mod expression_pattern_tests {
     /// Test filter-map pattern with expression matching
     #[test]
     fn test_pattern_match_filter_map() {
+        #[allow(clippy::useless_vec)]
         let expressions = vec![
             Expression::Int(10),
             Expression::Boolean(true),
@@ -736,7 +737,7 @@ mod expression_pattern_tests {
             })
             .collect();
 
-        assert_eq!(ints, vec![10, 20, 30], "Should extract all Int values");
+        assert_eq!(ints, [10, 20, 30], "Should extract all Int values");
     }
 
     // ============================================================================
@@ -748,7 +749,7 @@ mod expression_pattern_tests {
     fn test_pattern_match_after_clone() {
         let original = Expression::BinaryOp {
             left: Box::new(Expression::Int(5)),
-            op: BinaryOp::Greater,
+            op: BinaryOp::Gt,
             right: Box::new(Expression::Int(3)),
         };
 
@@ -759,14 +760,14 @@ mod expression_pattern_tests {
             Expression::BinaryOp {
                 left: l1,
                 op: o1,
-                right: r1,
+                right: _r1,
             } => {
                 // Pattern match on clone
                 match cloned {
                     Expression::BinaryOp {
                         left: l2,
                         op: o2,
-                        right: r2,
+                        right: _r2,
                     } => {
                         assert_eq!(o1, o2);
                         // Both should have same values
@@ -816,12 +817,12 @@ mod module_integration_tests {
             expr1: Box::new(Expression::Int(1)),
             phase2: "test".to_string(),
             expr2: Box::new(Expression::Int(2)),
-            op: sentri_core::model::BinaryOp::Less,
+            op: sentri_core::model::BinaryOp::Lt,
         };
         let _int_expr = Expression::Int(42);
         let _bin_op = Expression::BinaryOp {
             left: Box::new(Expression::Int(1)),
-            op: sentri_core::model::BinaryOp::Equal,
+            op: sentri_core::model::BinaryOp::Eq,
             right: Box::new(Expression::Int(2)),
         };
         let _logical = Expression::Logical {

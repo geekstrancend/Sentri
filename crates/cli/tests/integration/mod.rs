@@ -4,7 +4,6 @@
 //! including parsing, analysis, code generation, and reporting.
 
 use std::fs;
-use std::path::PathBuf;
 use tempfile::TempDir;
 
 /// Create a minimal valid DSL invariant
@@ -307,13 +306,13 @@ fn test_integration_invariant_categories() {
         ("token", create_share_mint_invariant()),
     ];
 
-    for (category, content) in categories {
+    for (category, content) in &categories {
         fs::write(base.join(format!("{}.invar", category)), content)
             .expect("Failed to write category invariant");
     }
 
     // Verify all categories exist
-    for (category, _) in categories {
+    for (category, _) in &categories {
         assert!(base.join(format!("{}.invar", category)).exists());
     }
 }

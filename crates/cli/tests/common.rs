@@ -2,8 +2,8 @@
 //!
 //! This module provides shared utilities for all test categories.
 
+use regex::Regex;
 use std::fs;
-use std::path::PathBuf;
 
 /// Initialize test environment.
 pub fn init_test_env() {
@@ -13,7 +13,7 @@ pub fn init_test_env() {
 }
 
 /// Create a temporary test directory with a given structure.
-pub fn create_test_project(name: &str, content: &[(String, String)]) -> tempfile::TempDir {
+pub fn create_test_project(_name: &str, content: &[(String, String)]) -> tempfile::TempDir {
     let temp_dir = tempfile::TempDir::new().expect("Failed to create temp dir");
     let base_path = temp_dir.path();
 
@@ -75,7 +75,7 @@ impl OutputCapture {
 
     /// Assert the output matches a regex.
     pub fn assert_matches_regex(&self, pattern: &str) {
-        let re = regex::Regex::new(pattern).expect("Invalid regex pattern");
+        let re = Regex::new(pattern).expect("Invalid regex pattern");
         assert!(
             re.is_match(&self.output),
             "Output does not match regex '{}'. Output: {}",

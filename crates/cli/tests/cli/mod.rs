@@ -90,7 +90,7 @@ fn test_cli_invalid_chain_exits_with_error() {
 
 #[test]
 fn test_cli_verbose_flag_produces_output() {
-    let temp = setup_test_project();
+    let _temp = setup_test_project();
 
     let mut cmd = Command::cargo_bin("sentri").expect("Failed to find binary");
     cmd.arg("--verbose").arg("list");
@@ -216,7 +216,7 @@ mod determinism {
 
     #[test]
     fn test_same_input_same_output() {
-        let temp = setup_test_project();
+        let _temp = setup_test_project();
 
         // Run the same command twice
         let mut cmd1 = Command::cargo_bin("sentri").expect("Failed to find binary");

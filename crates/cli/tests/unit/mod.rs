@@ -93,7 +93,7 @@ mod parser_tests {
 
 mod type_checker_tests {
     use sentri_core::model::Expression;
-    use sentri_core::types::Type;
+
     use sentri_core::TypeChecker;
 
     #[test]
@@ -165,7 +165,7 @@ mod type_checker_tests {
         let right = Box::new(Expression::Int(3));
         let expr = Expression::BinaryOp {
             left,
-            op: sentri_core::model::BinaryOp::Greater,
+            op: sentri_core::model::BinaryOp::Gt,
             right,
         };
 
@@ -214,7 +214,7 @@ mod evaluator_tests {
         let right = Box::new(Expression::Int(3));
         let expr = Expression::BinaryOp {
             left,
-            op: sentri_core::model::BinaryOp::Greater,
+            op: sentri_core::model::BinaryOp::Gt,
             right,
         };
         let result = evaluator.evaluate(&expr);
@@ -335,7 +335,7 @@ mod ast_tests {
     #[test]
     fn test_placeholder() {
         // Placeholder test - see ast_pattern_matching.rs for comprehensive tests
-        assert!(true);
+        // This test ensures the test module compiles
     }
 }
 

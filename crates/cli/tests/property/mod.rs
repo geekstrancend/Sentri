@@ -111,7 +111,7 @@ mod evaluator_properties {
 
 mod type_checker_properties {
     use proptest::prelude::*;
-    use sentri_core::{model::Expression, TypeChecker};
+    use sentri_core::model::Expression;
 
     proptest! {
         #[test]
