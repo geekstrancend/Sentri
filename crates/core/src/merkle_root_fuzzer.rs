@@ -42,44 +42,42 @@ impl MerkleRootFuzzer {
 
     /// Generate vulnerable merkle root pattern
     fn gen_vulnerable_pattern(&self) -> String {
-        format!(
-            r#"contract Bridge {{
+        r#"contract Bridge {
     bytes32 public merkleRoot;
     
-    function initialize() public {{
+    function initialize() public {
         // Vulnerable: Root is zero (uninitialized or explicitly set)
         merkleRoot = bytes32(0);
-    }}
+    }
     
-    function verifyAndExecute(bytes32[] calldata proof) public {{
+    function verifyAndExecute(bytes32[] calldata proof) public {
         // Accepts zero root in proof verification
         require(merkleRoot == bytes32(0) || verifyProof(proof, merkleRoot));
         executeTransaction();
-    }}
-}}"#
-        )
+    }
+}"#
+        .to_string()
     }
 
     /// Generate safe merkle root pattern
     fn gen_safe_pattern(&self) -> String {
-        format!(
-            r#"contract Bridge {{
+        r#"contract Bridge {
     bytes32 public merkleRoot;
     
-    function initialize(bytes32[] memory leaves) public {{
+    function initialize(bytes32[] memory leaves) public {
         // Safe: Root computed from actual leaves
         merkleRoot = computeMerkleRoot(leaves);
         require(merkleRoot != bytes32(0), "Invalid root");
-    }}
+    }
     
-    function verifyAndExecute(bytes32[] calldata proof) public {{
+    function verifyAndExecute(bytes32[] calldata proof) public {
         // Rejects zero root
         require(merkleRoot != bytes32(0), "Root not initialized");
         require(verifyProof(proof, merkleRoot), "Invalid proof");
         executeTransaction();
-    }}
-}}"#
-        )
+    }
+}"#
+        .to_string()
     }
 
     /// Run fuzzer and return results

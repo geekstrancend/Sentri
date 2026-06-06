@@ -69,23 +69,24 @@ pub fn detect_oracle_self_trade(source: &str, file_path: &str) -> Vec<Finding> {
 
     // Look for trades where maker and taker are derived from same signer
     for (line_num, line) in source.lines().enumerate() {
-        if (line.contains("maker") && line.contains("taker"))
-            || (line.contains("owner") && line.contains("owner"))
+        if ((line.contains("maker") && line.contains("taker"))
+            || (line.contains("owner") && line.contains("owner")))
+            && line.contains("signer")
+            && !line.contains("require")
+            && !line.contains("assert")
         {
-            if line.contains("signer") && !line.contains("require") && !line.contains("assert") {
-                findings.push(
-                    Finding::new(
-                        "sol_oracle_self_trade".to_string(),
-                        Severity::High,
-                        file_path.to_string(),
-                        line_num + 1,
-                        0,
-                        "Single signer controls both sides of price trade".to_string(),
-                        line.trim().to_string(),
-                    )
-                    .with_metadata("chain".to_string(), "solana".to_string()),
-                );
-            }
+            findings.push(
+                Finding::new(
+                    "sol_oracle_self_trade".to_string(),
+                    Severity::High,
+                    file_path.to_string(),
+                    line_num + 1,
+                    0,
+                    "Single signer controls both sides of price trade".to_string(),
+                    line.trim().to_string(),
+                )
+                .with_metadata("chain".to_string(), "solana".to_string()),
+            );
         }
     }
 

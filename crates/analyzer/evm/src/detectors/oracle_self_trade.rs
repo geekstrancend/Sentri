@@ -138,7 +138,7 @@ fn has_oracle_safety_checks(func_body: &str) -> bool {
         || func_lower.contains("deviation");
 
     // Need at least 2 safety measures
-    vec![
+    [
         has_twap,
         has_staleness_check,
         has_price_impact,

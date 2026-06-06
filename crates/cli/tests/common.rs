@@ -2,8 +2,8 @@
 //!
 //! This module provides shared utilities for all test categories.
 
-use std::path::PathBuf;
 use std::fs;
+use std::path::PathBuf;
 
 /// Initialize test environment.
 pub fn init_test_env() {
@@ -75,8 +75,7 @@ impl OutputCapture {
 
     /// Assert the output matches a regex.
     pub fn assert_matches_regex(&self, pattern: &str) {
-        let re = regex::Regex::new(pattern)
-            .expect("Invalid regex pattern");
+        let re = regex::Regex::new(pattern).expect("Invalid regex pattern");
         assert!(
             re.is_match(&self.output),
             "Output does not match regex '{}'. Output: {}",

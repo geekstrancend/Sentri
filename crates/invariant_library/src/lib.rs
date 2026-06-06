@@ -1,5 +1,5 @@
-#![warn(missing_docs)]
 #![deny(unsafe_code)]
+#![allow(missing_docs)]
 
 //! Invariant library: Load invariants from TOML files.
 

@@ -9,7 +9,6 @@ use std::fmt::Write;
 /// ANSI color codes for terminal output
 const ANSI_RESET: &str = "\x1b[0m";
 const ANSI_BOLD: &str = "\x1b[1m";
-const ANSI_RED: &str = "\x1b[31m";
 const ANSI_BOLD_RED: &str = "\x1b[1;31m";
 const ANSI_YELLOW: &str = "\x1b[33m";
 const ANSI_BOLD_YELLOW: &str = "\x1b[1;33m";

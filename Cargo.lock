@@ -1242,7 +1242,7 @@ checksum = "d767eb0aabc880b29956c35734170f26ed551a859dbd361d140cdbeca61ab1e2"
 
 [[package]]
 name = "sentri-analyzer-evm"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "anyhow",
  "criterion",
@@ -1265,7 +1265,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-analyzer-move"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "anyhow",
  "lazy_static",
@@ -1282,7 +1282,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-analyzer-solana"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "anyhow",
  "lazy_static",
@@ -1302,7 +1302,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-cli"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "anyhow",
  "clap",
@@ -1331,7 +1331,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-core"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "anyhow",
  "once_cell",
@@ -1346,7 +1346,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-dsl-parser"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "anyhow",
  "pest",
@@ -1360,7 +1360,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-generator-evm"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "anyhow",
  "sentri-analyzer-evm",
@@ -1375,7 +1375,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-generator-move"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "anyhow",
  "sentri-analyzer-move",
@@ -1390,7 +1390,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-generator-solana"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "anyhow",
  "proc-macro2",
@@ -1409,7 +1409,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-ir"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "anyhow",
  "sentri-core",
@@ -1419,7 +1419,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-library"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "anyhow",
  "sentri-core",
@@ -1434,7 +1434,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-report"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "anyhow",
  "chrono",
@@ -1448,7 +1448,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-solana-macro"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -1457,7 +1457,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-utils"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "anyhow",
  "chrono",

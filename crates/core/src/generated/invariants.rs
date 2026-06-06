@@ -13,10 +13,10 @@ pub struct CompiledInvariant {
 }
 
 pub static INVARIANT_REGISTRY: Lazy<BTreeMap<&'static str, CompiledInvariant>> = 
-    Lazy::new(|| BTreeMap::new());
+    Lazy::new(BTreeMap::new);
 
 pub fn get_invariant(id: &str) -> Option<&'static CompiledInvariant> {
-    INVARIANT_REGISTRY.get(id).map(|i| i)
+    INVARIANT_REGISTRY.get(id)
 }
 
 pub fn invariants_for_chain(_chain: &str) -> Vec<&'static CompiledInvariant> {

@@ -240,8 +240,7 @@ mod tests {
 
         let findings = detect_proxy_storage_collision(weak, "test.sol");
         // May trigger high severity if inheritance detected
-        let all_findings = findings.len();
-        assert!(all_findings >= 0, "Storage gap present"); // Valid state
+        let _all_findings = findings.len();
     }
 
     #[test]
@@ -294,11 +293,10 @@ mod tests {
         "#;
 
         let findings = detect_proxy_storage_collision(annotated, "test.sol");
-        let high_findings: Vec<_> = findings
+        let _high_findings: Vec<_> = findings
             .iter()
             .filter(|f| f.severity == sentri_core::Severity::High)
             .collect();
         // Should be satisfied with annotations
-        assert!(true, "Annotations reduce severity");
     }
 }

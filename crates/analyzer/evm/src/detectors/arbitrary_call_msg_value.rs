@@ -59,7 +59,7 @@ pub fn detect_arbitrary_call_msg_value(source: &str, file_path: &str) -> Vec<Fin
         }
 
         // Extract function context (150 lines backward and forward)
-        let start = if line_num > 150 { line_num - 150 } else { 0 };
+        let start = line_num.saturating_sub(150);
         let end = std::cmp::min(line_num + 100, source.lines().count());
         let function_context = source
             .lines()
@@ -76,18 +76,14 @@ pub fn detect_arbitrary_call_msg_value(source: &str, file_path: &str) -> Vec<Fin
 
         // Check for address validation
         let has_validation = ADDRESS_VALIDATION.is_match(&function_context);
-        let has_delegatecall = DELEGATECALL_PATTERN.is_match(line);
+        let _has_delegatecall = DELEGATECALL_PATTERN.is_match(line);
         let has_function_check = FUNCTION_SELECTOR_CHECK.is_match(&function_context);
 
         // Extract the call line to check for hardcoded addresses
         let is_hardcoded = line.contains("address(this)") || line.contains("0x");
 
         if !has_validation && !is_hardcoded {
-            let severity = if has_delegatecall {
-                sentri_core::Severity::Critical
-            } else {
-                sentri_core::Severity::Critical
-            };
+            let severity = sentri_core::Severity::Critical;
 
             findings.push(
                 Finding::new(

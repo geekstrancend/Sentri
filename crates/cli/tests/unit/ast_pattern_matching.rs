@@ -18,7 +18,7 @@ mod expression_pattern_tests {
     #[test]
     fn test_pattern_match_boolean_literal() {
         let expr = Expression::Boolean(true);
-        
+
         // Test match with value extraction
         match expr {
             Expression::Boolean(b) => {
@@ -43,7 +43,7 @@ mod expression_pattern_tests {
 
         for value in test_values {
             let expr = Expression::Int(value);
-            
+
             match expr {
                 Expression::Int(i) => {
                     assert_eq!(i, value, "Int value should be extracted correctly");
@@ -64,7 +64,7 @@ mod expression_pattern_tests {
 
         for name in var_names {
             let expr = Expression::Var(name.to_string());
-            
+
             match expr {
                 Expression::Var(v) => {
                     assert_eq!(v, name, "Variable name should be extracted correctly");
@@ -90,7 +90,7 @@ mod expression_pattern_tests {
                 layer: layer.to_string(),
                 var: var.to_string(),
             };
-            
+
             match expr {
                 Expression::LayerVar { layer: l, var: v } => {
                     assert_eq!(l, layer, "Layer should be extracted correctly");
@@ -116,7 +116,7 @@ mod expression_pattern_tests {
                 layer: layer.to_string(),
                 var: var.to_string(),
             };
-            
+
             match expr {
                 Expression::PhaseQualifiedVar {
                     phase: p,
@@ -149,9 +149,12 @@ mod expression_pattern_tests {
         };
 
         match expr {
-            Expression::PhaseConstraint { phase: p, constraint: c } => {
+            Expression::PhaseConstraint {
+                phase: p,
+                constraint: c,
+            } => {
                 assert_eq!(p, "validation", "Phase should be extracted correctly");
-                
+
                 // Test nested pattern matching on constraint
                 match *c {
                     Expression::Int(i) => {
@@ -169,7 +172,7 @@ mod expression_pattern_tests {
     fn test_pattern_match_cross_phase_relation() {
         let expr1 = Expression::Int(50);
         let expr2 = Expression::Int(100);
-        
+
         let expr = Expression::CrossPhaseRelation {
             phase1: "validation".to_string(),
             expr1: Box::new(expr1),
@@ -302,14 +305,12 @@ mod expression_pattern_tests {
         let expr = Expression::Not(Box::new(inner));
 
         match expr {
-            Expression::Not(inner_expr) => {
-                match *inner_expr {
-                    Expression::Boolean(b) => {
-                        assert!(b, "Inner boolean should be extracted correctly");
-                    }
-                    _ => panic!("Expected Boolean in Not"),
+            Expression::Not(inner_expr) => match *inner_expr {
+                Expression::Boolean(b) => {
+                    assert!(b, "Inner boolean should be extracted correctly");
                 }
-            }
+                _ => panic!("Expected Boolean in Not"),
+            },
             _ => panic!("Expected Not variant"),
         }
     }
@@ -330,7 +331,10 @@ mod expression_pattern_tests {
 
         match expr {
             Expression::FunctionCall { name: n, args: a } => {
-                assert_eq!(n, "sum_values", "Function name should be extracted correctly");
+                assert_eq!(
+                    n, "sum_values",
+                    "Function name should be extracted correctly"
+                );
                 assert_eq!(a.len(), 3, "Should have 3 arguments");
 
                 // Test nested pattern matching on arguments
@@ -418,7 +422,11 @@ mod expression_pattern_tests {
 
         // Match and extract all levels
         match expr {
-            Expression::Logical { left: l, op: o1, right: r } => {
+            Expression::Logical {
+                left: l,
+                op: o1,
+                right: r,
+            } => {
                 assert_eq!(o1, LogicalOp::Or);
 
                 match *l {
@@ -551,8 +559,17 @@ mod expression_pattern_tests {
         ];
 
         let expected_names = vec![
-            "Boolean", "Var", "LayerVar", "PhaseQualifiedVar", "PhaseConstraint",
-            "CrossPhaseRelation", "Int", "BinaryOp", "Logical", "Not", "FunctionCall",
+            "Boolean",
+            "Var",
+            "LayerVar",
+            "PhaseQualifiedVar",
+            "PhaseConstraint",
+            "CrossPhaseRelation",
+            "Int",
+            "BinaryOp",
+            "Logical",
+            "Not",
+            "FunctionCall",
             "Tuple",
         ];
 

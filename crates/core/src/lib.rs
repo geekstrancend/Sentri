@@ -1,5 +1,5 @@
-#![warn(missing_docs)]
 #![deny(unsafe_code)]
+#![allow(missing_docs)]
 
 //! Invar Core: Base abstractions for multi-chain invariant analysis.
 //!

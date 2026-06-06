@@ -284,11 +284,10 @@ mod tests {
         "#;
 
         let findings = detect_bridge_address_cryptographic_verify(replay_risk, "test.sol");
-        let high_findings: Vec<_> = findings
+        let _high_findings: Vec<_> = findings
             .iter()
             .filter(|f| f.severity == sentri_core::Severity::High)
             .collect();
         // May trigger for replay risk due to missing hash
-        assert!(true, "Replay risk may or may not trigger");
     }
 }

@@ -1,5 +1,5 @@
-#![warn(missing_docs)]
 #![deny(unsafe_code)]
+#![allow(missing_docs)]
 
 //! Reporting engine: Generate JSON, Markdown, and CLI reports.
 

@@ -275,7 +275,7 @@ impl SolidityParser {
             .and_then(|obj| obj.values().next())
             .and_then(|contract| contract.as_object())
             .and_then(|obj| obj.keys().next())
-            .and_then(|name| Some(name.trim_start_matches(':').to_string()))
+            .map(|name| name.trim_start_matches(':').to_string())
             .unwrap_or_else(|| "Unknown".to_string())
     }
 

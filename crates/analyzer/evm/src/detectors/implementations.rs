@@ -3,7 +3,6 @@
 //! Each detector discovers invariant violations and returns them as Finding objects.
 
 use sentri_core::{Finding, Severity};
-use std::collections::BTreeMap;
 
 /// Detects classic reentrancy: external call before state update (CEI violated)
 pub fn detect_reentrancy_classic(source: &str, file_path: &str) -> Vec<Finding> {

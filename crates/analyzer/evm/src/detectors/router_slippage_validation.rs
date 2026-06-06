@@ -18,7 +18,7 @@ lazy_static! {
     ).unwrap();
     static ref AMOUNT_OUT_MIN: Regex = Regex::new(r"(?i)amountOutMin|minAmountOut|minOut|minimumAmount").unwrap();
     static ref SLIPPAGE_CALC: Regex =
-        Regex::new(r"(?i)amountOutMin\s*=\s*amount.*?(\*\s*99|*\s*98|/\s*100|slippage)").unwrap();
+        Regex::new(r"(?i)amountOutMin\s*=\s*amount.*?(\*\s*99|\*\s*98|/\s*100|slippage)").unwrap();
     static ref REQUIRE_CHECK: Regex = Regex::new(r"(?i)require\s*\(.*?amount.*?>=.*?amountOutMin").unwrap();
 }
 

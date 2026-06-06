@@ -49,6 +49,7 @@ pub struct IntegrationTestResult {
 
 impl IntegrationTestSuite {
     /// Create new integration test suite
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         let mut suite = Self {
             test_cases: Vec::new(),

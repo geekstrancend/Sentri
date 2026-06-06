@@ -1,5 +1,5 @@
-#![warn(missing_docs)]
 #![deny(unsafe_code)]
+#![allow(missing_docs)]
 
 //! Solana program analyzer: Extracts program model from Rust source.
 

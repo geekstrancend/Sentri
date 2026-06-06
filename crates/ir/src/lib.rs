@@ -1,5 +1,5 @@
-#![warn(missing_docs)]
 #![deny(unsafe_code)]
+#![allow(missing_docs)]
 
 //! Intermediate Representation: Chain-agnostic program model and invariant IR.
 //!

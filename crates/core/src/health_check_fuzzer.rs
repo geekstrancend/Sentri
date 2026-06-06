@@ -45,29 +45,27 @@ impl HealthCheckFuzzer {
     fn gen_vulnerable_pattern(&self, _fuzzer: &mut CodeFuzzer) -> String {
         let _vars: Vec<String> = vec![];
 
-        format!(
-            r#"function updateLending() public {{
+        r#"function updateLending() public {
         // Modify state without health check
         collateral[msg.sender] = collateral[msg.sender] + 1000;
         debt[msg.sender] = debt[msg.sender] - 100;
         // Missing: require(isHealthy(msg.sender));
         emit Updated(msg.sender);
-    }}"#
-        )
+    }"#
+        .to_string()
     }
 
     /// Generate safe health check pattern
     fn gen_safe_pattern(&self, _fuzzer: &mut CodeFuzzer) -> String {
-        format!(
-            r#"function updateLending() public {{
+        r#"function updateLending() public {
         // Modify state
         collateral[msg.sender] = collateral[msg.sender] + 1000;
         debt[msg.sender] = debt[msg.sender] - 100;
         // Protected by health check
         require(isHealthy(msg.sender), "Unhealthy position");
         emit Updated(msg.sender);
-    }}"#
-        )
+    }"#
+        .to_string()
     }
 
     /// Run fuzzer and return mutation scores

@@ -54,6 +54,7 @@ pub struct OZMappingRegistry {
 
 impl OZMappingRegistry {
     /// Create new OZ mapping registry
+    #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         let mut registry = Self {
             detector_to_oz: HashMap::new(),
@@ -224,8 +225,8 @@ impl EnrichedFinding {
         let mut report = format!("## Finding: {}\n\n", self.original_finding.message);
 
         report.push_str(&format!(
-            "**Severity:** {}\n",
-            format!("{:?}", self.original_finding.severity)
+            "**Severity:** {:?}\n",
+            self.original_finding.severity
         ));
 
         if let Some(ref oz_type) = self.oz_type {

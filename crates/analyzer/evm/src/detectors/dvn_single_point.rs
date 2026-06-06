@@ -134,7 +134,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_vulnerable_single_dvn_kelpDAO() {
+    fn test_vulnerable_single_dvn_kelp_dao() {
         let code = r#"
             contract LayerZeroBridge {
                 address[] public dvns;

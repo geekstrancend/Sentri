@@ -15,7 +15,8 @@ description: "Basic invariant test"
 
 forall x in items:
     x > 0
-"#.to_string()
+"#
+    .to_string()
 }
 
 /// Create a vault conservation invariant (Solana example)
@@ -36,7 +37,8 @@ forall deposit in state.deposits:
 
 global:
     sum(state.deposits.amount) == state.vault_total
-"#.to_string()
+"#
+    .to_string()
 }
 
 /// Create a share mint safety invariant (EVM example)
@@ -57,7 +59,8 @@ forall mint in state.mints:
 
 global:
     total_shares() == sum(state.balances)
-"#.to_string()
+"#
+    .to_string()
 }
 
 /// Create a governance quorum invariant
@@ -71,7 +74,8 @@ forall proposal in state.proposals:
     proposal.votes >= MIN_QUORUM &&
     proposal.votes <= total_voting_power() &&
     proposal.end_time > now()
-"#.to_string()
+"#
+    .to_string()
 }
 
 #[test]
@@ -80,16 +84,17 @@ fn test_integration_parse_valid_dsl() {
     let dsl_path = temp.path().join("invariants.invar");
     let dsl_content = create_minimal_invariant();
 
-    fs::write(&dsl_path, &dsl_content)
-        .expect("Failed to write DSL file");
+    fs::write(&dsl_path, &dsl_content).expect("Failed to write DSL file");
 
     // Verify file was created
     assert!(dsl_path.exists(), "DSL file should be created");
-    
+
     // Verify content
-    let read_content = fs::read_to_string(&dsl_path)
-        .expect("Failed to read DSL file");
-    assert!(read_content.contains("invariant:"), "DSL should contain invariant declaration");
+    let read_content = fs::read_to_string(&dsl_path).expect("Failed to read DSL file");
+    assert!(
+        read_content.contains("invariant:"),
+        "DSL should contain invariant declaration"
+    );
 }
 
 #[test]
@@ -98,12 +103,10 @@ fn test_integration_vault_conservation_dsl() {
     let dsl_path = temp.path().join("vault.invar");
     let dsl_content = create_vault_invariant();
 
-    fs::write(&dsl_path, &dsl_content)
-        .expect("Failed to write vault DSL");
+    fs::write(&dsl_path, &dsl_content).expect("Failed to write vault DSL");
 
-    let content = fs::read_to_string(&dsl_path)
-        .expect("Failed to read file");
-    
+    let content = fs::read_to_string(&dsl_path).expect("Failed to read file");
+
     assert!(content.contains("vault_conservation"));
     assert!(content.contains("VaultState"));
     assert!(content.contains("Solana"));
@@ -115,12 +118,10 @@ fn test_integration_share_mint_evm_dsl() {
     let dsl_path = temp.path().join("share_mint.invar");
     let dsl_content = create_share_mint_invariant();
 
-    fs::write(&dsl_path, &dsl_content)
-        .expect("Failed to write share mint DSL");
+    fs::write(&dsl_path, &dsl_content).expect("Failed to write share mint DSL");
 
-    let content = fs::read_to_string(&dsl_path)
-        .expect("Failed to read file");
-    
+    let content = fs::read_to_string(&dsl_path).expect("Failed to read file");
+
     assert!(content.contains("share_mint_safety"));
     assert!(content.contains("EVM"));
     assert!(content.contains("exchange_rate"));
@@ -132,12 +133,10 @@ fn test_integration_governance_dsl() {
     let dsl_path = temp.path().join("governance.invar");
     let dsl_content = create_governance_invariant();
 
-    fs::write(&dsl_path, &dsl_content)
-        .expect("Failed to write governance DSL");
+    fs::write(&dsl_path, &dsl_content).expect("Failed to write governance DSL");
 
-    let content = fs::read_to_string(&dsl_path)
-        .expect("Failed to read file");
-    
+    let content = fs::read_to_string(&dsl_path).expect("Failed to read file");
+
     assert!(content.contains("governance_quorum"));
     assert!(content.contains("MIN_QUORUM"));
     assert!(content.contains("voting_power"));
@@ -147,7 +146,7 @@ fn test_integration_governance_dsl() {
 fn test_integration_multiple_invariants() {
     let temp = TempDir::new().expect("Failed to create temp dir");
     let multi_path = temp.path().join("multi.invar");
-    
+
     let content = format!(
         "{}\n\n{}\n\n{}\n\n{}",
         create_vault_invariant(),
@@ -156,12 +155,10 @@ fn test_integration_multiple_invariants() {
         create_minimal_invariant()
     );
 
-    fs::write(&multi_path, &content)
-        .expect("Failed to write multi-invariant file");
+    fs::write(&multi_path, &content).expect("Failed to write multi-invariant file");
 
-    let read_content = fs::read_to_string(&multi_path)
-        .expect("Failed to read file");
-    
+    let read_content = fs::read_to_string(&multi_path).expect("Failed to read file");
+
     assert!(read_content.contains("vault_conservation"));
     assert!(read_content.contains("share_mint_safety"));
     assert!(read_content.contains("governance_quorum"));
@@ -174,16 +171,10 @@ fn test_integration_invariant_project_structure() {
     let base = temp.path();
 
     // Create project structure
-    let dirs = vec![
-        "src",
-        "invariants",
-        "tests",
-        "docs",
-    ];
+    let dirs = vec!["src", "invariants", "tests", "docs"];
 
     for dir in dirs {
-        fs::create_dir_all(base.join(dir))
-            .expect("Failed to create directory");
+        fs::create_dir_all(base.join(dir)).expect("Failed to create directory");
     }
 
     let config_content = r#"
@@ -200,8 +191,7 @@ coverage_target = 90
 strict_mode = true
 "#;
 
-    fs::write(base.join("invar.toml"), config_content)
-        .expect("Failed to write config");
+    fs::write(base.join("invar.toml"), config_content).expect("Failed to write config");
 
     // Verify structure
     assert!(base.join("src").exists());
@@ -217,8 +207,7 @@ fn test_integration_solana_simulation_project() {
     let base = temp.path();
 
     // Create Solana-specific project layout
-    fs::create_dir_all(base.join("programs/vault"))
-        .expect("Failed to create programs directory");
+    fs::create_dir_all(base.join("programs/vault")).expect("Failed to create programs directory");
 
     let solana_program = r#"
 use solana_program::{
@@ -254,8 +243,9 @@ impl Vault {
     // Create invariants for the Solana program
     fs::write(
         base.join("invariants/vault.invar"),
-        create_vault_invariant()
-    ).expect("Failed to write invariants");
+        create_vault_invariant(),
+    )
+    .expect("Failed to write invariants");
 
     // Verify Solana project structure
     assert!(base.join("programs/vault/lib.rs").exists());
@@ -268,8 +258,7 @@ fn test_integration_evm_simulation_project() {
     let base = temp.path();
 
     // Create EVM-specific project layout
-    fs::create_dir_all(base.join("contracts"))
-        .expect("Failed to create contracts directory");
+    fs::create_dir_all(base.join("contracts")).expect("Failed to create contracts directory");
 
     let evm_contract = r#"
 pragma solidity ^0.8.0;
@@ -297,8 +286,9 @@ contract Token {
     // Create invariants for the EVM contract
     fs::write(
         base.join("invariants/token.invar"),
-        create_share_mint_invariant()
-    ).expect("Failed to write invariants");
+        create_share_mint_invariant(),
+    )
+    .expect("Failed to write invariants");
 
     // Verify EVM project structure
     assert!(base.join("contracts/Token.sol").exists());
@@ -318,10 +308,8 @@ fn test_integration_invariant_categories() {
     ];
 
     for (category, content) in categories {
-        fs::write(
-            base.join(format!("{}.invar", category)),
-            content
-        ).expect("Failed to write category invariant");
+        fs::write(base.join(format!("{}.invar", category)), content)
+            .expect("Failed to write category invariant");
     }
 
     // Verify all categories exist
@@ -334,15 +322,16 @@ fn test_integration_invariant_categories() {
 fn test_integration_no_file_corruption() {
     let temp = TempDir::new().expect("Failed to create temp dir");
     let path = temp.path().join("test.invar");
-    
+
     let original_content = create_vault_invariant();
-    fs::write(&path, &original_content)
-        .expect("Failed to write file");
+    fs::write(&path, &original_content).expect("Failed to write file");
 
     // Read it back
-    let read_content = fs::read_to_string(&path)
-        .expect("Failed to read file");
+    let read_content = fs::read_to_string(&path).expect("Failed to read file");
 
     // Content must be identical (no corruption)
-    assert_eq!(original_content, read_content, "File content should not be corrupted");
+    assert_eq!(
+        original_content, read_content,
+        "File content should not be corrupted"
+    );
 }

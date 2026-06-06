@@ -49,9 +49,10 @@ pub fn detect_lst_depeg_collateral_risk(source: &str, file_path: &str) -> Vec<Fi
 
         // Pattern 2: Check if function accepts LST and lacks depeg protection
         for lst in KNOWN_LSTS.iter() {
-            if func_body.to_lowercase().contains(&lst.to_lowercase()) {
-                if !has_depeg_protection(&func_body) {
-                    let message = format!(
+            if func_body.to_lowercase().contains(&lst.to_lowercase())
+                && !has_depeg_protection(&func_body)
+            {
+                let message = format!(
                         "Function '{}' accepts {} as collateral without depeg protection. \
                          Liquid staking tokens can depeg from their underlying asset. \
                          H47 KelpDAO ($292M) was exploited when rsETH depegged 10%+ from ETH, \
@@ -69,32 +70,31 @@ pub fn detect_lst_depeg_collateral_risk(source: &str, file_path: &str) -> Vec<Fi
                         func_name, lst
                     );
 
-                    findings.push(
-                        Finding::new(
-                            "evm_lst_depeg_collateral_risk".to_string(),
-                            sentri_core::Severity::Critical,
-                            file_path.to_string(),
-                            func_line_num + 1,
-                            0,
-                            message,
-                            func_line.trim().to_string(),
-                        )
-                        .with_metadata("exploit_id".to_string(), "H47".to_string())
-                        .with_metadata(
-                            "exploit_name".to_string(),
-                            "KelpDAO/rsETH Depeg".to_string(),
-                        )
-                        .with_metadata("loss".to_string(), "$292M".to_string())
-                        .with_metadata("year".to_string(), "2026".to_string())
-                        .with_metadata("token".to_string(), lst.to_string())
-                        .with_metadata(
-                            "vulnerability_type".to_string(),
-                            "depeg_cascade".to_string(),
-                        )
-                        .with_metadata("detector".to_string(), "oracle_risk_analysis".to_string())
-                        .with_source_fragment(func_body.clone()),
-                    );
-                }
+                findings.push(
+                    Finding::new(
+                        "evm_lst_depeg_collateral_risk".to_string(),
+                        sentri_core::Severity::Critical,
+                        file_path.to_string(),
+                        func_line_num + 1,
+                        0,
+                        message,
+                        func_line.trim().to_string(),
+                    )
+                    .with_metadata("exploit_id".to_string(), "H47".to_string())
+                    .with_metadata(
+                        "exploit_name".to_string(),
+                        "KelpDAO/rsETH Depeg".to_string(),
+                    )
+                    .with_metadata("loss".to_string(), "$292M".to_string())
+                    .with_metadata("year".to_string(), "2026".to_string())
+                    .with_metadata("token".to_string(), lst.to_string())
+                    .with_metadata(
+                        "vulnerability_type".to_string(),
+                        "depeg_cascade".to_string(),
+                    )
+                    .with_metadata("detector".to_string(), "oracle_risk_analysis".to_string())
+                    .with_source_fragment(func_body.clone()),
+                );
             }
         }
     }
@@ -142,7 +142,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_vulnerable_no_depeg_protection_kelpDAO() {
+    fn test_vulnerable_no_depeg_protection_kelp_dao() {
         let code = r#"
             contract KelpDAO {
                 function deposit(uint256 amount, address token) external {

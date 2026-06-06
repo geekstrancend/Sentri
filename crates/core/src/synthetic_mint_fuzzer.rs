@@ -19,34 +19,32 @@ impl SyntheticMintFuzzer {
 
     /// Generate vulnerable pattern
     fn gen_vulnerable_pattern(&self) -> String {
-        format!(
-            r#"contract SyntheticToken {{
+        r#"contract SyntheticToken {
     mapping(address => uint256) collateral;
     uint256 public totalMinted;
     uint256 constant MINT_RATIO = 2; // 2:1 ratio required
     
-    function mint(address user, uint256 amount) public {{
+    function mint(address user, uint256 amount) public {
         // Vulnerable: No collateral verification
         totalMinted += amount;
         balances[user] += amount;
-    }}
+    }
     
-    function addCollateral(address user, uint256 amount) public {{
+    function addCollateral(address user, uint256 amount) public {
         collateral[user] += amount;
-    }}
-}}"#
-        )
+    }
+}"#
+        .to_string()
     }
 
     /// Generate safe pattern
     fn gen_safe_pattern(&self) -> String {
-        format!(
-            r#"contract SyntheticToken {{
+        r#"contract SyntheticToken {
     mapping(address => uint256) collateral;
     uint256 public totalMinted;
     uint256 constant MINT_RATIO = 2;
     
-    function mint(address user, uint256 amount) public {{
+    function mint(address user, uint256 amount) public {
         // Safe: Validates collateral backing
         uint256 requiredCollateral = amount / MINT_RATIO;
         require(
@@ -59,14 +57,14 @@ impl SyntheticMintFuzzer {
         
         // Verify conservation invariant
         assert(totalMinted <= getTotalCollateral() / MINT_RATIO);
-    }}
+    }
     
-    function addCollateral(address user, uint256 amount) public {{
+    function addCollateral(address user, uint256 amount) public {
         require(amount > 0, "Invalid amount");
         collateral[user] += amount;
-    }}
-}}"#
-        )
+    }
+}"#
+        .to_string()
     }
 
     /// Run fuzz tests

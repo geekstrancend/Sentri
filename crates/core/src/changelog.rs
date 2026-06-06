@@ -95,6 +95,12 @@ pub struct ChangelogGenerator {
     releases: Vec<ReleaseVersion>,
 }
 
+impl Default for ChangelogGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ChangelogGenerator {
     /// Create new changelog generator
     pub fn new() -> Self {
@@ -148,6 +154,12 @@ pub struct ExportDoc {
     pub since_version: String,
 }
 
+impl Default for APIDocGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl APIDocGenerator {
     /// Create new API doc generator
     pub fn new() -> Self {
@@ -165,7 +177,7 @@ impl APIDocGenerator {
     pub fn generate(&self) -> String {
         let mut doc = "# Sentri API Reference\n\n".to_string();
 
-        for (_, module) in &self.modules {
+        for module in self.modules.values() {
             doc.push_str(&format!("## {}\n\n", module.name));
             doc.push_str(&format!("{}\n\n", module.description));
 

@@ -86,15 +86,15 @@ mod parser_tests {
     }
 }
 
-//! Unit tests for type checker.
-//!
-//! These tests validate type checking correctness.
-//! Coverage target: 95%+ for type_checker module.
+// Unit tests for type checker.
+//
+// These tests validate type checking correctness.
+// Coverage target: 95%+ for type_checker module.
 
 mod type_checker_tests {
-    use sentri_core::TypeChecker;
     use sentri_core::model::Expression;
     use sentri_core::types::Type;
+    use sentri_core::TypeChecker;
 
     #[test]
     fn test_type_inference_number() {
@@ -127,7 +127,7 @@ mod type_checker_tests {
             op: sentri_core::model::LogicalOp::And,
             right,
         };
-        
+
         let result = checker.check_expr(&expr);
         assert!(result.is_ok() || result.is_err());
     }
@@ -159,7 +159,7 @@ mod type_checker_tests {
     #[test]
     fn test_type_consistency_int_operations() {
         let checker = TypeChecker::new();
-        
+
         // Create a binary comparison: 5 > 3
         let left = Box::new(Expression::Int(5));
         let right = Box::new(Expression::Int(3));
@@ -168,19 +168,19 @@ mod type_checker_tests {
             op: sentri_core::model::BinaryOp::Greater,
             right,
         };
-        
+
         let result = checker.check_expr(&expr);
         assert!(result.is_ok() || result.is_err());
     }
 }
 
-//! Unit tests for expression evaluator.
-//!
-//! These tests validate evaluation correctness.
-//! Coverage target: 95%+ for evaluator module.
+// Unit tests for expression evaluator.
+//
+// These tests validate evaluation correctness.
+// Coverage target: 95%+ for evaluator module.
 
 mod evaluator_tests {
-    use sentri_core::{Evaluator, ExecutionContext, model::Expression};
+    use sentri_core::{model::Expression, Evaluator, ExecutionContext};
 
     #[test]
     fn test_evaluate_literal() {
@@ -189,7 +189,10 @@ mod evaluator_tests {
         let expr = Expression::Int(42);
         let result = evaluator.evaluate(&expr);
 
-        assert!(result.is_ok() || result.is_err(), "Should evaluate without panic");
+        assert!(
+            result.is_ok() || result.is_err(),
+            "Should evaluate without panic"
+        );
     }
 
     #[test]
@@ -206,7 +209,7 @@ mod evaluator_tests {
     fn test_evaluate_comparison() {
         let context = ExecutionContext::new();
         let evaluator = Evaluator::new(context);
-        
+
         let left = Box::new(Expression::Int(5));
         let right = Box::new(Expression::Int(3));
         let expr = Expression::BinaryOp {
@@ -216,14 +219,17 @@ mod evaluator_tests {
         };
         let result = evaluator.evaluate(&expr);
 
-        assert!(result.is_ok() || result.is_err(), "Should evaluate comparison");
+        assert!(
+            result.is_ok() || result.is_err(),
+            "Should evaluate comparison"
+        );
     }
 
     #[test]
     fn test_evaluate_logical() {
         let context = ExecutionContext::new();
         let evaluator = Evaluator::new(context);
-        
+
         let left = Box::new(Expression::Boolean(true));
         let right = Box::new(Expression::Boolean(false));
         let expr = Expression::Logical {
@@ -233,14 +239,17 @@ mod evaluator_tests {
         };
         let result = evaluator.evaluate(&expr);
 
-        assert!(result.is_ok() || result.is_err(), "Should evaluate logical AND");
+        assert!(
+            result.is_ok() || result.is_err(),
+            "Should evaluate logical AND"
+        );
     }
 
     #[test]
     fn test_evaluate_logical_or() {
         let context = ExecutionContext::new();
         let evaluator = Evaluator::new(context);
-        
+
         let left = Box::new(Expression::Boolean(true));
         let right = Box::new(Expression::Boolean(false));
         let expr = Expression::Logical {
@@ -257,7 +266,7 @@ mod evaluator_tests {
     fn test_evaluate_negation() {
         let context = ExecutionContext::new();
         let evaluator = Evaluator::new(context);
-        
+
         let expr = Expression::Not(Box::new(Expression::Boolean(true)));
         let result = evaluator.evaluate(&expr);
 
@@ -284,14 +293,14 @@ mod evaluator_tests {
     }
 }
 
-//! Unit tests for AST construction.
-//!
-//! These tests validate AST structure and generation.
-//! Coverage target: 95%+ for AST module.
-//!
-//! NOTE: The following tests reference AstNode and LiteralNode which are not currently
-//! defined in the sentri_ir::ast module. These tests are kept for reference but are
-//! disabled. See ast_pattern_matching.rs for comprehensive Expression pattern matching tests.
+// Unit tests for AST construction.
+//
+// These tests validate AST structure and generation.
+// Coverage target: 95%+ for AST module.
+//
+// NOTE: The following tests reference AstNode and LiteralNode which are not currently
+// defined in the sentri_ir::ast module. These tests are kept for reference but are
+// disabled. See ast_pattern_matching.rs for comprehensive Expression pattern matching tests.
 
 mod ast_tests {
     // use sentri_ir::ast::*;

@@ -201,7 +201,7 @@ impl SecurityReport {
                         finding.line, finding.col
                     ));
                     report.push_str(&format!("- **Code:** {}\n", finding.snippet));
-                    report.push_str("\n");
+                    report.push('\n');
                 }
             }
         }

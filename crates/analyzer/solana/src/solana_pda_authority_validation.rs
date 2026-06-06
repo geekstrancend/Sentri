@@ -42,7 +42,7 @@ pub fn detect_solana_pda_authority_validation(source: &str, file_path: &str) -> 
 
         let has_authority_param = AUTHORITY_PARAM.is_match(&function_body);
         let has_validation = AUTHORITY_VALIDATION.is_match(&function_body);
-        let has_signer_check = SIGNER_CHECK.is_match(&function_body);
+        let _has_signer_check = SIGNER_CHECK.is_match(&function_body);
 
         if has_authority_param && !has_validation {
             findings.push(

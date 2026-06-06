@@ -84,6 +84,12 @@ pub struct DetectorTestSuite {
     results: HashMap<String, DetectorTestResult>,
 }
 
+impl Default for DetectorTestSuite {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl DetectorTestSuite {
     /// Create new test suite
     pub fn new() -> Self {
@@ -97,7 +103,7 @@ impl DetectorTestSuite {
     pub fn add_test_case(&mut self, detector_name: String, test_case: DetectorTestCase) {
         self.test_cases
             .entry(detector_name)
-            .or_insert_with(Vec::new)
+            .or_default()
             .push(test_case);
     }
 
@@ -209,11 +215,7 @@ pub mod utils {
     /// Extract code snippet from finding
     pub fn extract_code_context(code: &str, line: usize, context_lines: usize) -> String {
         let lines: Vec<&str> = code.lines().collect();
-        let start = if line > context_lines {
-            line - context_lines
-        } else {
-            0
-        };
+        let start = line.saturating_sub(context_lines);
         let end = std::cmp::min(line + context_lines, lines.len());
 
         lines[start..end].join("\n")

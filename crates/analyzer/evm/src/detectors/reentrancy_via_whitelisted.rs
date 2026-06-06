@@ -61,7 +61,7 @@ pub fn detect_reentrancy_via_whitelisted(source: &str, file_path: &str) -> Vec<F
         }
 
         // Extract function context (200 lines backward)
-        let start = if line_num > 200 { line_num - 200 } else { 0 };
+        let start = line_num.saturating_sub(200);
         let end = std::cmp::min(line_num + 50, source.lines().count());
         let function_context = source
             .lines()

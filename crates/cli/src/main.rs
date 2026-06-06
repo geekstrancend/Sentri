@@ -1,5 +1,6 @@
-#![warn(missing_docs)]
 #![deny(unsafe_code)]
+#![allow(dead_code)] // Functions used in future feature development
+#![allow(missing_docs)] // CLI is self-documenting via clap help
 
 //! Sentri CLI: Multi-chain smart contract invariant enforcement tool.
 //!
@@ -20,7 +21,7 @@ use ui::*;
 use sentri_analyzer_evm::EvmAnalyzer;
 use sentri_analyzer_move::MoveAnalyzer;
 use sentri_analyzer_solana::SolanaAnalyzer;
-use sentri_core::traits::{ChainAnalyzer, Simulator};
+use sentri_core::traits::ChainAnalyzer;
 use sentri_library::InvariantLibrary;
 // use sentri_simulator::SimulationEngine;  // DEPRECATED: Old simulator using revm, disabled for v0.3.0
 
@@ -435,7 +436,7 @@ fn cmd_check(args: CheckArgs, quiet: bool, verbose: bool) -> Result<()> {
         FormatArg::Text => {
             // Build text report
             let mut report_text = String::new();
-            
+
             // Display violations
             if !violations.is_empty() {
                 report_text.push_str(&render_violations(&violations));
@@ -550,6 +551,7 @@ fn generate_html_report(summary: &AnalysisSummary, violations: &[Violation]) -> 
         .collect::<Vec<_>>()
         .join("\n");
 
+    #[allow(clippy::useless_vec)]
     let severity_colors = vec![
         format!(
             "<li><strong>Critical:</strong> {} findings</li>",
@@ -776,8 +778,8 @@ fn run_analysis(source_path: &Path, chain: &ChainArg, verbose: bool) -> Result<V
 
     // DEPRECATED: Simulation engine disabled for v0.3.0
     // Using static analysis detectors directly
-    let mut violations = Vec::new();
-    
+    let violations = Vec::new();
+
     if verbose {
         eprintln!("⚠ Note: Using v0.3.0 static analysis detectors");
     }
@@ -788,7 +790,7 @@ fn run_analysis(source_path: &Path, chain: &ChainArg, verbose: bool) -> Result<V
     // - EVM: sentri_analyzer_evm::detectors::*
     // - Solana: sentri_analyzer_solana::*
     // - Move: sentri_analyzer_move::*
-    
+
     Ok(violations)
 }
 
@@ -1110,19 +1112,16 @@ fn get_vulnerability_reference(invariant_id: &str) -> String {
         ("balance_check", "#4-positive_balance"),
         ("conservation_check", "#5-supply_tracking"),
         ("conservation_check_absent", "#5-supply_tracking"),
-        
         // Access Control (IDs 6-9 in docs)
         ("missing_signer", "#6-owner_only_function"),
         ("access_control", "#7-role_based_access"),
         ("shallow_auth", "#7-role_based_access"),
         ("single_eoa_admin", "#8-admin_override_safe"),
         ("permission", "#9-permission_consistency"),
-        
         // State Consistency (IDs 10-13 in docs)
         ("state_transition", "#11-state_transition_valid"),
         ("reentrancy", "#12-no_reentrancy"),
         ("paused", "#13-paused_state_valid"),
-        
         // Cross-Chain (IDs 14-16 in docs)
         ("bridge", "#14-bridge_conservation"),
         ("oracle", "#15-oracle_freshness"),
@@ -1130,7 +1129,6 @@ fn get_vulnerability_reference(invariant_id: &str) -> String {
         ("oracle_self_trade", "#15-oracle_freshness"),
         ("oracle_rate", "#15-oracle_freshness"),
         ("canonical", "#16-canonical_state"),
-        
         // Transaction Safety (IDs 17-22 in docs)
         ("signature", "#17-signature_validation"),
         ("nonce", "#18-nonce_ordering"),
@@ -1138,7 +1136,6 @@ fn get_vulnerability_reference(invariant_id: &str) -> String {
         ("delegatecall", "#20-safe_delegatecall"),
         ("selfdestruct", "#21-safe_selfdestruct"),
         ("timestamp", "#22-no_timestamp_dependence"),
-        
         // Additional EVM-specific invariants
         ("flash_loan", "#12-no_reentrancy"),
         ("dvn", "#15-oracle_freshness"),
@@ -1162,7 +1159,6 @@ fn get_vulnerability_reference(invariant_id: &str) -> String {
         ("constructor_race", "#11-state_transition_valid"),
         ("proxy_storage", "#11-state_transition_valid"),
         ("arithmetic_rounding", "#2-no_integer_overflow"),
-        
         // Solana-specific
         ("signer", "#6-owner_only_function"),
         ("account_validation", "#6-owner_only_function"),
@@ -1172,28 +1168,33 @@ fn get_vulnerability_reference(invariant_id: &str) -> String {
         ("admin_timelock", "#8-admin_override_safe"),
         ("treasury_authority", "#8-admin_override_safe"),
         ("durable_nonce", "#18-nonce_ordering"),
-        
         // Move-specific
         ("liquidity_conservation", "#1-balance_conservation"),
         ("type_safety", "#11-state_transition_valid"),
         ("resource_destruction", "#1-balance_conservation"),
     ];
-    
+
     let id_lower = invariant_id.to_lowercase();
-    
+
     // Strip chain prefix (evm_, sol_, move_)
     let clean_id = id_lower
-        .strip_prefix("evm_").unwrap_or(&id_lower)
-        .strip_prefix("sol_").unwrap_or(&id_lower)
-        .strip_prefix("move_").unwrap_or(&id_lower);
-    
+        .strip_prefix("evm_")
+        .unwrap_or(&id_lower)
+        .strip_prefix("sol_")
+        .unwrap_or(&id_lower)
+        .strip_prefix("move_")
+        .unwrap_or(&id_lower);
+
     // Try to find a mapping for any substring match
     for (pattern, anchor) in invariant_mapping.iter() {
         if clean_id.contains(pattern) {
-            return format!("https://github.com/geekstrancend/Sentri/blob/main/docs/INVARIANT_LIBRARY.md{}", anchor);
+            return format!(
+                "https://github.com/geekstrancend/Sentri/blob/main/docs/INVARIANT_LIBRARY.md{}",
+                anchor
+            );
         }
     }
-    
+
     // Fallback to GitHub search if no mapping found
     format!(
         "https://github.com/geekstrancend/Sentri/search?q={}",
@@ -1761,7 +1762,7 @@ fn cmd_doctor(args: DoctorArgs, quiet: bool) -> Result<()> {
 }
 
 /// Handle the `scan` subcommand (enhanced version of check).
-fn cmd_scan(args: ScanArgs, quiet: bool, verbose: bool) -> Result<()> {
+fn cmd_scan(args: ScanArgs, quiet: bool, _verbose: bool) -> Result<()> {
     if !quiet {
         eprintln!(
             "▶ Scanning {} on {}...",
@@ -1950,7 +1951,7 @@ fn cmd_invariants(args: InvariantsArgs, quiet: bool) -> Result<()> {
 }
 
 /// Handle the `fuzz` subcommand.
-fn cmd_fuzz(args: FuzzArgs, quiet: bool, verbose: bool) -> Result<()> {
+fn cmd_fuzz(args: FuzzArgs, quiet: bool, _verbose: bool) -> Result<()> {
     if !quiet {
         eprintln!(
             "▶ Fuzzing {} on {} for {} iterations (depth: {})...",

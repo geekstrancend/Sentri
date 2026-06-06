@@ -1,7 +1,6 @@
 /// Fuzzer utilities for property-based vulnerability detection testing.
 ///
 /// Generates code patterns to test detector robustness and minimize false positives.
-
 /// Deterministic pseudo-random number generator for fuzz testing
 pub struct CodeFuzzer {
     pub seed: u64,

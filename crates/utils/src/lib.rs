@@ -1,5 +1,5 @@
-#![warn(missing_docs)]
 #![deny(unsafe_code)]
+#![allow(missing_docs)]
 
 //! Utilities for Sentri: logging, path handling, version management, and Solidity compiler integration.
 

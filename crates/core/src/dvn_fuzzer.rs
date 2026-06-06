@@ -19,50 +19,48 @@ impl DVNSinglePointFuzzer {
 
     /// Generate vulnerable pattern
     fn gen_vulnerable_pattern(&self) -> String {
-        format!(
-            r#"contract DVNConfig {{
+        r#"contract DVNConfig {
     address[] public dvns;
     
-    function setDVNs(address[] calldata _dvns) public {{
+    function setDVNs(address[] calldata _dvns) public {
         // Vulnerable: No minimum count validation
         dvns = _dvns;
-    }}
+    }
     
-    function sendMessage(bytes calldata message) public {{
+    function sendMessage(bytes calldata message) public {
         // Single DVN is insufficient
         require(dvns.length > 0, "DVN needed");
         (bool success,) = dvns[0].call(message);
         require(success, "Call failed");
-    }}
-}}"#
-        )
+    }
+}"#
+        .to_string()
     }
 
     /// Generate safe pattern
     fn gen_safe_pattern(&self) -> String {
-        format!(
-            r#"contract DVNConfig {{
+        r#"contract DVNConfig {
     address[] public dvns;
     uint256 public constant MIN_DVNS = 3;
     
-    function setDVNs(address[] calldata _dvns) public {{
+    function setDVNs(address[] calldata _dvns) public {
         // Safe: Enforces minimum DVN count
         require(_dvns.length >= MIN_DVNS, "Insufficient DVNs");
         dvns = _dvns;
-    }}
+    }
     
-    function sendMessage(bytes calldata message) public {{
+    function sendMessage(bytes calldata message) public {
         // Requires quorum
         require(dvns.length >= MIN_DVNS, "Not ready");
         uint256 successes = 0;
-        for (uint i = 0; i < dvns.length; i++) {{
+        for (uint i = 0; i < dvns.length; i++) {
             (bool success,) = dvns[i].call(message);
             if (success) successes++;
-        }}
+        }
         require(successes >= MIN_DVNS, "Quorum failed");
-    }}
-}}"#
-        )
+    }
+}"#
+        .to_string()
     }
 
     /// Run fuzz tests

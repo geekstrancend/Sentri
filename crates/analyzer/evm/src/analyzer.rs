@@ -6,17 +6,15 @@
 //! - Bytecode disassembly for compiled code analysis
 //! - Pattern-based vulnerability detection
 
-use std::collections::BTreeSet;
 use sentri_core::model::{FunctionModel, ProgramModel};
 use sentri_core::traits::ChainAnalyzer;
 use sentri_core::Finding;
 use sentri_core::{AnalysisContext, Result};
+use std::collections::BTreeSet;
 use std::path::Path;
 use tracing::{debug, info, warn};
 
 use crate::ast::{AstContract, SolidityParser, Visibility};
-use crate::ast_types::AstNode;
-use crate::ast_walker::AstWalker;
 use crate::bytecode::{IssueType, Severity};
 use crate::cfg::ControlFlowGraph;
 // DEPRECATED: Old detector imports disabled for v0.3.0
@@ -287,13 +285,13 @@ impl EvmAnalyzer {
     fn run_ast_detectors(
         &self,
         output: &sentri_utils::SolcOutput,
-        source: &str,
-        file_name: &str,
+        _source: &str,
+        _file_name: &str,
         _path: &Path,
     ) -> anyhow::Result<Vec<Finding>> {
-        let mut violations = Vec::new();
+        let violations = Vec::new();
 
-        for (_, source_data) in &output.sources {
+        for _ in output.sources.values() {
             // DEPRECATED: Old detectors disabled for v0.3.0
             /*
             // Run reentrancy detector

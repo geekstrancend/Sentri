@@ -52,7 +52,7 @@ mod parser_properties {
 
 mod evaluator_properties {
     use proptest::prelude::*;
-    use sentri_core::{Evaluator, ExecutionContext, model::Expression};
+    use sentri_core::{model::Expression, Evaluator, ExecutionContext};
 
     proptest! {
         #[test]
@@ -62,7 +62,7 @@ mod evaluator_properties {
             // Evaluator must never panic
             let context = ExecutionContext::new();
             let evaluator = Evaluator::new(context);
-            
+
             // Create a simple expression
             let expr = Expression::Int(a as i128);
             let _ = evaluator.evaluate(&expr);
@@ -95,7 +95,7 @@ mod evaluator_properties {
             a in 0i64..i64::MAX / 2,
         ) {
             let _a = a;
-            
+
             // This property tests that overflow is handled explicitly
             // In deterministic evaluation, large numbers should be handled safely
             let context = ExecutionContext::new();
@@ -111,7 +111,7 @@ mod evaluator_properties {
 
 mod type_checker_properties {
     use proptest::prelude::*;
-    use sentri_core::{TypeChecker, model::Expression};
+    use sentri_core::{model::Expression, TypeChecker};
 
     proptest! {
         #[test]
@@ -129,7 +129,7 @@ mod type_checker_properties {
             var_val in 0i64..100
         ) {
             let _var_val = var_val;
-            
+
             let checker1 = sentri_core::TypeChecker::new();
             let expr = Expression::Int(var_val as i128);
             let result1 = checker1.check_expr(&expr);
@@ -156,10 +156,10 @@ mod invariant_properties {
         ) {
             // Evaluating an invariant multiple times should yield same result
             // (assuming state doesn't change)
-            
+
             // This tests that invariant evaluation is stable:
             // eval(inv) == eval(eval(inv)) == eval(eval(eval(inv))) ...
-            
+
             let _iterations = iterations;
             // Property checked: idempotency holds
         }
