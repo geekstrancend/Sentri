@@ -1533,13 +1533,8 @@ fn cmd_report(args: ReportArgs, quiet: bool) -> Result<()> {
     let report_output = match args.format {
         FormatArg::Json => {
             // For JSON format, return the parsed data as a structured report
-            let now = std::time::SystemTime::now()
-                .duration_since(std::time::UNIX_EPOCH)
-                .map(|d| format!("Unix timestamp: {}", d.as_secs()))
-                .unwrap_or_else(|_| "unknown".to_string());
             json!({
                 "report_type": "analysis",
-                "generated_at": now,
                 "source": args.input.display().to_string(),
                 "data": analysis_data,
                 "format": "json"
