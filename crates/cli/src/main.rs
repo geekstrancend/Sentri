@@ -477,10 +477,6 @@ fn cmd_check(args: CheckArgs, quiet: bool, verbose: bool) -> Result<()> {
             // Create JSON report
             let report = json!({
                 "version": env!("CARGO_PKG_VERSION"),
-                "timestamp": std::time::SystemTime::now()
-                    .duration_since(std::time::UNIX_EPOCH)
-                    .map(|d| d.as_secs())
-                    .unwrap_or(0),
                 "chain": summary.chain,
                 "target": summary.target,
                 "duration_ms": (summary.duration_secs * 1000.0) as u64,
