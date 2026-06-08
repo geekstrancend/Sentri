@@ -5,45 +5,45 @@
 @layer base {
   :root {
     /* Material Design 3 Base Colors */
-    --color-surface: #131314;
-    --color-surface-dim: #131314;
-    --color-surface-bright: #39393a;
-    --color-surface-container-lowest: #0e0e0f;
-    --color-surface-container-low: #1c1b1d;
-    --color-surface-container: #201f21;
-    --color-surface-container-high: #2a2a2b;
-    --color-surface-container-highest: #353436;
-    --color-on-surface: #e5e2e3;
-    --color-on-surface-variant: #c7c6cd;
-    --color-outline: #909097;
-    --color-outline-variant: #46464c;
-    --color-primary: #c2c6db;
-    --color-primary-container: #0a0f1e;
-    --color-secondary: #bdc2ff;
-    --color-secondary-container: #2f3aa3;
-    --color-on-secondary: #131e8c;
-    --color-on-secondary-container: #a8afff;
-    --color-error: #ffb4ab;
-    --color-error-container: #93000a;
-    --color-background: #131314;
-    --color-on-background: #e5e2e3;
-    --color-surface-variant: #353436;
+    --surface: #131314;
+    --surface-dim: #131314;
+    --surface-bright: #39393a;
+    --surface-container-lowest: #0e0e0f;
+    --surface-container-low: #1c1b1d;
+    --surface-container: #201f21;
+    --surface-container-high: #2a2a2b;
+    --surface-container-highest: #353436;
+    --on-surface: #e5e2e3;
+    --on-surface-variant: #c7c6cd;
+    --outline: #909097;
+    --outline-variant: #46464c;
+    --primary: #c2c6db;
+    --primary-container: #0a0f1e;
+    --secondary: #bdc2ff;
+    --secondary-container: #2f3aa3;
+    --on-secondary: #131e8c;
+    --on-secondary-container: #a8afff;
+    --error: #ffb4ab;
+    --error-container: #93000a;
+    --background: #131314;
+    --on-background: #e5e2e3;
+    --surface-variant: #353436;
 
     /* Severity System */
-    --color-critical: #EF4444;
-    --color-critical-bg: rgba(239, 68, 68, 0.12);
-    --color-critical-border: rgba(239, 68, 68, 0.4);
-    --color-high: #FBBF24;
-    --color-high-bg: rgba(251, 191, 36, 0.12);
-    --color-high-border: rgba(251, 191, 36, 0.4);
-    --color-medium: #818CF8;
-    --color-medium-bg: rgba(129, 140, 248, 0.12);
-    --color-medium-border: rgba(129, 140, 248, 0.4);
-    --color-low: #4ADE80;
-    --color-low-bg: rgba(74, 222, 128, 0.12);
-    --color-low-border: rgba(74, 222, 128, 0.4);
-    --color-indigo: #818CF8;
-    --color-indigo-container: #2f3aa3;
+    --critical: #EF4444;
+    --critical-bg: rgba(239, 68, 68, 0.12);
+    --critical-border: rgba(239, 68, 68, 0.4);
+    --high: #FBBF24;
+    --high-bg: rgba(251, 191, 36, 0.12);
+    --high-border: rgba(251, 191, 36, 0.4);
+    --medium: #818CF8;
+    --medium-bg: rgba(129, 140, 248, 0.12);
+    --medium-border: rgba(129, 140, 248, 0.4);
+    --low: #4ADE80;
+    --low-bg: rgba(74, 222, 128, 0.12);
+    --low-border: rgba(74, 222, 128, 0.4);
+    --indigo: #818CF8;
+    --indigo-container: #2f3aa3;
   }
 
   html {
