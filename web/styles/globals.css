@@ -1,0 +1,213 @@
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@layer base {
+  :root {
+    /* Material Design 3 Base Colors */
+    --color-surface: #131314;
+    --color-surface-dim: #131314;
+    --color-surface-bright: #39393a;
+    --color-surface-container-lowest: #0e0e0f;
+    --color-surface-container-low: #1c1b1d;
+    --color-surface-container: #201f21;
+    --color-surface-container-high: #2a2a2b;
+    --color-surface-container-highest: #353436;
+    --color-on-surface: #e5e2e3;
+    --color-on-surface-variant: #c7c6cd;
+    --color-outline: #909097;
+    --color-outline-variant: #46464c;
+    --color-primary: #c2c6db;
+    --color-primary-container: #0a0f1e;
+    --color-secondary: #bdc2ff;
+    --color-secondary-container: #2f3aa3;
+    --color-on-secondary: #131e8c;
+    --color-on-secondary-container: #a8afff;
+    --color-error: #ffb4ab;
+    --color-error-container: #93000a;
+    --color-background: #131314;
+    --color-on-background: #e5e2e3;
+    --color-surface-variant: #353436;
+
+    /* Severity System */
+    --color-critical: #EF4444;
+    --color-critical-bg: rgba(239, 68, 68, 0.12);
+    --color-critical-border: rgba(239, 68, 68, 0.4);
+    --color-high: #FBBF24;
+    --color-high-bg: rgba(251, 191, 36, 0.12);
+    --color-high-border: rgba(251, 191, 36, 0.4);
+    --color-medium: #818CF8;
+    --color-medium-bg: rgba(129, 140, 248, 0.12);
+    --color-medium-border: rgba(129, 140, 248, 0.4);
+    --color-low: #4ADE80;
+    --color-low-bg: rgba(74, 222, 128, 0.12);
+    --color-low-border: rgba(74, 222, 128, 0.4);
+    --color-indigo: #818CF8;
+    --color-indigo-container: #2f3aa3;
+  }
+
+  html {
+    @apply dark;
+  }
+
+  body {
+    @apply bg-surface text-on-surface font-mono antialiased;
+    font-family: var(--font-jetbrains), monospace;
+  }
+
+
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-fraunces), serif;
+  }
+
+  /* Focus ring for accessibility */
+  :focus-visible {
+    @apply outline-2 outline-indigo outline-offset-2;
+  }
+
+  /* Remove default button styles */
+  button {
+    @apply cursor-pointer;
+  }
+
+  /* Smooth transitions handled per-component */
+  button, a {
+    @apply transition-colors duration-150 ease-out;
+  }
+
+  /* Remove default scrollbar styling for cleaner look */
+  ::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-surface-container-low;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-outline-variant rounded-full hover:bg-outline;
+  }
+}
+
+@layer components {
+  /* Typography utilities */
+  .text-display-lg {
+    @apply text-5xl leading-[64px] font-[600] tracking-[-0.02em];
+    font-family: var(--font-fraunces), serif;
+  }
+
+  .text-headline-lg {
+    @apply text-3xl leading-10 font-[600];
+    font-family: var(--font-fraunces), serif;
+  }
+
+  .text-headline-md {
+    @apply text-2xl leading-8 font-[500];
+    font-family: var(--font-fraunces), serif;
+  }
+
+  .text-headline-lg-mobile {
+    @apply text-[28px] leading-9 font-[600];
+    font-family: var(--font-fraunces), serif;
+  }
+
+  .text-body-lg {
+    @apply text-base leading-6 font-[400];
+  }
+
+  .text-body-md {
+    @apply text-sm leading-5 font-[400];
+  }
+
+  .text-code-block {
+    @apply text-[13px] leading-5 font-[400] font-mono;
+  }
+
+  .text-label-sm {
+    @apply text-xs leading-4 font-[600] uppercase tracking-[0.05em];
+  }
+
+  /* Spacing utilities */
+  .gap-xs {
+    @apply gap-1;
+  }
+
+  .gap-sm {
+    @apply gap-2;
+  }
+
+  .gap-md {
+    @apply gap-4;
+  }
+
+  .gap-lg {
+    @apply gap-6;
+  }
+
+  .gap-xl {
+    @apply gap-10;
+  }
+
+  .gap-xxl {
+    @apply gap-16;
+  }
+
+  .p-gutter {
+    @apply p-4;
+  }
+
+  .p-margin {
+    @apply p-6;
+  }
+
+  /* Border utilities - use Tailwind's border-outline-variant utility directly */
+
+  /* Common component styles */
+  .card-base {
+    @apply bg-surface-container-low border border-outline-variant rounded-lg;
+  }
+
+  .button-base {
+    @apply font-[600] text-sm px-4 py-2 rounded-sm transition-colors duration-150 cursor-pointer;
+  }
+
+  .button-primary {
+    @apply button-base bg-secondary-container border border-indigo text-on-background hover:bg-indigo/90;
+  }
+
+  .button-secondary {
+    @apply button-base bg-transparent border border-outline-variant text-on-surface-variant hover:border-indigo hover:text-on-surface;
+  }
+
+  .button-ghost {
+    @apply button-base bg-transparent border-0 text-outline hover:text-on-surface;
+  }
+}
+
+/* Animations */
+@keyframes blink-cursor {
+  0%, 50% {
+    opacity: 1;
+  }
+  51%, 100% {
+    opacity: 0;
+  }
+}
+
+.animate-blink-cursor {
+  animation: blink-cursor 1s infinite;
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
