@@ -18,9 +18,9 @@ lazy_static! {
     static ref MULDIV_SAFE: Regex =
         Regex::new(r"(?i)(mulDiv|FixedPointMathLib|PRBMath|Math\.(mul|div))").unwrap();
     static ref ROUNDING_UP: Regex =
-        Regex::new(r"(?i)\(.*?\+\s*(\w+|[0-9]+)\s*-\s*1\)\s*/|ceil|roundUp").unwrap();
+        Regex::new(r"(?i)(\+\s*\w+\s*-\s*1\)|ceil|roundUp|-\s*1\)\s*/)").unwrap();
     static ref SHARES_CALCULATION: Regex =
-        Regex::new(r"(?i)(shares|amount)\s*=.*?\*\s*totalSupply.*?/\s*totalAssets").unwrap();
+        Regex::new(r"(?i)(shares|amount)\s*=.*?(\*|/|totalSupply|totalAssets)").unwrap();
 }
 
 pub fn detect_arithmetic_rounding(source: &str, file_path: &str) -> Vec<Finding> {

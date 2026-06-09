@@ -43,15 +43,21 @@ lazy_static! {
 
     /// Regex for state modifications
     static ref STATE_MOD_REGEX: Regex =
-        Regex::new(r"(?i)(collateral|debt|borrow|balance|reserve)\s*(\[|\+=|-=|=)").unwrap();
+        Regex::new(r"(?i)collateral|debt|borrow|reserve|balance").unwrap();
 }
 
 /// Detects missing health checks after state modifications in lending protocols.
 pub fn detect_missing_health_check(source: &str, file_path: &str) -> Vec<Finding> {
     let mut findings = Vec::new();
 
-    // Pattern 1: Identify if this is a lending-like contract
-    if !is_lending_like_contract(source) {
+    // Pattern 1: Identify if this is a lending-like contract or has state modifications we care about
+    let is_lending = source.to_lowercase().contains("collateral") 
+        || source.to_lowercase().contains("health")
+        || source.to_lowercase().contains("borrow")
+        || source.to_lowercase().contains("lend")
+        || source.to_lowercase().contains("liquidat");
+    
+    if !is_lending {
         return findings;
     }
 
@@ -158,23 +164,24 @@ fn extract_function_name(line: &str) -> String {
 
 /// Check if function has health check before return statements
 fn has_health_check_before_return(func_body: &str) -> bool {
-    // Find the last return or end of function
-    if let Some(last_return_pos) = func_body.rfind("return") {
-        // Check for health checks before the return
-        let before_return = &func_body[..last_return_pos];
-
-        for pattern in HEALTH_CHECK_PATTERNS.iter() {
-            if before_return
-                .to_lowercase()
-                .contains(&pattern.to_lowercase())
-            {
-                return true;
-            }
-        }
-    } else {
-        // No explicit return, check entire function body
-        for pattern in HEALTH_CHECK_PATTERNS.iter() {
-            if func_body.to_lowercase().contains(&pattern.to_lowercase()) {
+    let func_lower = func_body.to_lowercase();
+    
+    // Check for any health-related patterns
+    let health_patterns = vec![
+        "checkhealthor_status", "isHealthy", "health", "checkLiquidity", 
+        "checkCollateral", "liquidity", "getHealthFactor", "healthFactor",
+        "require", "MIN_HEALTH", "healthThreshold"
+    ];
+    
+    for pattern in health_patterns {
+        if func_lower.contains(&pattern.to_lowercase()) {
+            // If it has "require" combined with "health" or "liquidity", count it
+            if pattern == "require" {
+                if func_lower.contains("require") && 
+                   (func_lower.contains("health") || func_lower.contains("liquidity")) {
+                    return true;
+                }
+            } else {
                 return true;
             }
         }

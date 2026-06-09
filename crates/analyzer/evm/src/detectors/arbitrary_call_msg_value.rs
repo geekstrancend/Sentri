@@ -32,10 +32,10 @@ lazy_static! {
     static ref ARBITRARY_CALL_PATTERN: Regex =
         Regex::new(r"(?i)(call|delegatecall)\s*\{\s*value\s*:\s*msg\.value\s*\}").unwrap();
     static ref EXTERNAL_ADDRESS_PARAM: Regex =
-        Regex::new(r"(?i)function\s+\w+\s*\([^)]*address\s+\w+[^)]*\)\s*external|public|payable")
+        Regex::new(r"(?i)(address\s+\w+.*?\)|external.*?payable|payable.*?address)")
             .unwrap();
     static ref ADDRESS_VALIDATION: Regex = Regex::new(
-        r"(?i)require\s*\(.*?(approved|whitelist|trusted|allowed)\s*\[.*?\]|isSafeTarget|isApproved"
+        r"(?i)(approved|whitelist|trusted|allowed|safe|verified)\s*\[|isSafeTarget|isApproved|require\s*\(.*?(approved|whitelist|trusted|allowed|safe)"
     )
     .unwrap();
     static ref DELEGATECALL_PATTERN: Regex = Regex::new(r"(?i)delegatecall\s*\{").unwrap();

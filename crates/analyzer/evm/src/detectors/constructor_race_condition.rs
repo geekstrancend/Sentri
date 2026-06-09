@@ -20,28 +20,29 @@ lazy_static! {
         Regex::new(r"(?i)initialized|_initialized|hasInitialized|init_flag").unwrap();
     static ref REQUIRE_NOT_INIT: Regex =
         Regex::new(r"(?i)require\s*\(\s*!.*?initialized|require\s*\(\s*!.*?_initialized").unwrap();
+    static ref INITIALIZER_MODIFIER: Regex =
+        Regex::new(r"(?i)\binitializer\b|\bonlyInitializing\b").unwrap();
 }
 
 pub fn detect_constructor_race_condition(source: &str, file_path: &str) -> Vec<Finding> {
     let mut findings = Vec::new();
+    let lines: Vec<&str> = source.lines().collect();
 
-    for (line_num, line) in source.lines().enumerate() {
+    for (line_num, line) in lines.iter().enumerate() {
         if line.trim().starts_with("//") || !INITIALIZATION_FUNCTION.is_match(line) {
             continue;
         }
 
-        let context_end = std::cmp::min(line_num + 150, source.lines().count());
-        let function_body = source
-            .lines()
-            .skip(line_num)
-            .take(context_end - line_num)
-            .collect::<Vec<_>>()
-            .join("\n");
+        // Check if this line or the following context has the initializer modifier
+        let has_initializer_modifier = INITIALIZER_MODIFIER.is_match(line);
+
+        let context_end = std::cmp::min(line_num + 150, lines.len());
+        let function_body = lines[line_num..context_end].join("\n");
 
         let has_init_check = REQUIRE_NOT_INIT.is_match(&function_body);
 
         // Check if this is in a proxy context (has initialize pattern)
-        if !has_init_check {
+        if !has_init_check && !has_initializer_modifier {
             findings.push(
                 Finding::new(
                     "evm_constructor_race_condition".to_string(),

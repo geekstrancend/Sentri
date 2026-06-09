@@ -44,13 +44,13 @@ use sentri_core::Finding;
 lazy_static! {
     static ref DEPOSIT_PATTERN: Regex = Regex::new(r"(?i)function\s+deposit\s*\(").unwrap();
     static ref SHARE_CALC_PATTERN: Regex = Regex::new(
-        r"(?i)(shares\s*=|return)\s*\(.*?assets\s*\*\s*totalSupply.*?\)\s*/\s*totalAssets"
+        r"(?i)(shares\s*=|return).*?\(.*?assets.*?\).*?/"
     )
     .unwrap();
     static ref MINIMUM_SHARES_CHECK: Regex =
         Regex::new(r"(?i)require\s*\(.*?(shares\s*>=|shares\s*>|MIN_SHARES)\s*.*?\)").unwrap();
     static ref ZERO_SUPPLY_PROTECTION: Regex =
-        Regex::new(r"(?i)(if|require).*?totalSupply.*?(==\s*0|isZero)").unwrap();
+        Regex::new(r"(?i)(if|require).*?totalSupply.*?(==\s*0|isZero)|(if|require).*?_supply.*?(==\s*0)").unwrap();
     static ref ROUNDING_PROTECTION: Regex =
         Regex::new(r"(?i)(roundUp|roundDown|ceil|floor|mulDiv|FixedPointMathLib)").unwrap();
 }
@@ -89,7 +89,8 @@ pub fn detect_erc4626_inflation_protection(source: &str, file_path: &str) -> Vec
         let has_zero_supply_protection = ZERO_SUPPLY_PROTECTION.is_match(&function_body);
         let has_rounding = ROUNDING_PROTECTION.is_match(&function_body);
 
-        if !has_min_check && !has_rounding {
+        // Critical if no min check and no rounding and no zero supply protection
+        if !has_min_check && !has_rounding && !has_zero_supply_protection {
             findings.push(
                 Finding::new(
                     "evm_erc4626_inflation_protection".to_string(),
@@ -113,7 +114,7 @@ pub fn detect_erc4626_inflation_protection(source: &str, file_path: &str) -> Vec
                     "Require MIN_SHARES per deposit or use rounding protections".to_string()
                 ),
             );
-        } else if !has_zero_supply_protection && has_min_check {
+        } else if !has_zero_supply_protection && has_min_check && !has_rounding {
             // Has min check but might miss zero supply case
             findings.push(
                 Finding::new(

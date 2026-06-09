@@ -43,10 +43,15 @@ pub fn detect_token_balance_manipulation(source: &str, file_path: &str) -> Vec<F
         let function_sig_end = lines[line_num..]
             .iter()
             .position(|l| l.contains("{"))
-            .map(|p| p + line_num)
-            .unwrap_or(line_num + 10);
+            .map(|p| std::cmp::min(p + line_num, lines.len() - 1))
+            .unwrap_or(std::cmp::min(line_num + 10, lines.len() - 1));
         
-        let function_signature = lines[function_sig_start..=function_sig_end].join(" ");
+        let sig_end_safe = std::cmp::min(function_sig_end, lines.len() - 1);
+        let function_signature = if function_sig_start <= sig_end_safe {
+            lines[function_sig_start..=sig_end_safe].join(" ")
+        } else {
+            String::new()
+        };
 
         let has_transfer_after = TRANSFER_AFTER_CHECK.is_match(&function_body);
         let has_guard = REENTRANCY_GUARD.is_match(&function_signature);
