@@ -17,29 +17,39 @@ lazy_static! {
         Regex::new(r"(?i)(token\.balanceOf|ERC20\(.*?\)\.balanceOf|IERC20\(.*?\)\.balanceOf)")
             .unwrap();
     static ref TRANSFER_AFTER_CHECK: Regex =
-        Regex::new(r"(?i)balance\s*=.*?balanceOf.*?transfer|amount\s*=.*?balanceOf.*?transferFrom")
+        Regex::new(r"(?i)(balance|amount)\s*=.*?balanceOf|balanceOf.*?(transfer|transferFrom)")
             .unwrap();
     static ref REENTRANCY_GUARD: Regex = Regex::new(r"(?i)nonReentrant|ReentrancyGuard").unwrap();
 }
 
 pub fn detect_token_balance_manipulation(source: &str, file_path: &str) -> Vec<Finding> {
     let mut findings = Vec::new();
+    let lines: Vec<&str> = source.lines().collect();
 
-    for (line_num, line) in source.lines().enumerate() {
+    for (line_num, line) in lines.iter().enumerate() {
         if line.trim().starts_with("//") || !BALANCE_OF_CALL.is_match(line) {
             continue;
         }
 
-        let context_end = std::cmp::min(line_num + 100, source.lines().count());
-        let function_body = source
-            .lines()
-            .skip(line_num)
-            .take(context_end - line_num)
-            .collect::<Vec<_>>()
-            .join("\n");
+        let context_end = std::cmp::min(line_num + 100, lines.len());
+        let function_body = lines[line_num..context_end].join("\n");
+
+        // Check if function has a guard in its signature (look backwards for 'function' keyword)
+        let function_sig_start = lines[..=line_num]
+            .iter()
+            .rposition(|l| l.contains("function"))
+            .unwrap_or(0);
+        
+        let function_sig_end = lines[line_num..]
+            .iter()
+            .position(|l| l.contains("{"))
+            .map(|p| p + line_num)
+            .unwrap_or(line_num + 10);
+        
+        let function_signature = lines[function_sig_start..=function_sig_end].join(" ");
 
         let has_transfer_after = TRANSFER_AFTER_CHECK.is_match(&function_body);
-        let has_guard = REENTRANCY_GUARD.is_match(&function_body);
+        let has_guard = REENTRANCY_GUARD.is_match(&function_signature);
 
         if has_transfer_after && !has_guard {
             findings.push(

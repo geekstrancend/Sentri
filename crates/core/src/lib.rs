@@ -1,8 +1,7 @@
 #![deny(unsafe_code)]
 #![allow(missing_docs)]
 
-//! Invar Core: Base abstractions for multi-chain invariant analysis.
-//!
+//! Invar Core: Base abstractions for multi-chain invariant analysis
 //! This module defines the core traits and types that are chain-agnostic
 //! and form the foundation for all analyzers and generators.
 
