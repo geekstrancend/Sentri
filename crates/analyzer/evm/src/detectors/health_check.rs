@@ -130,6 +130,7 @@ pub fn detect_missing_health_check(source: &str, file_path: &str) -> Vec<Finding
 }
 
 /// Check if contract contains lending-related functions
+#[allow(dead_code)]
 fn is_lending_like_contract(source: &str) -> bool {
     let lending_functions = vec![
         "borrow",
@@ -168,7 +169,7 @@ fn has_health_check_before_return(func_body: &str) -> bool {
 
     // Check for any health-related patterns
     let health_patterns = vec![
-        "checkhealthor_status",
+        "checkHealth",
         "isHealthy",
         "health",
         "checkLiquidity",
