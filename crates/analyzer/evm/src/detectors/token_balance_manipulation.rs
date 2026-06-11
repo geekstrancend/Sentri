@@ -39,13 +39,13 @@ pub fn detect_token_balance_manipulation(source: &str, file_path: &str) -> Vec<F
             .iter()
             .rposition(|l| l.contains("function"))
             .unwrap_or(0);
-        
+
         let function_sig_end = lines[line_num..]
             .iter()
             .position(|l| l.contains("{"))
             .map(|p| std::cmp::min(p + line_num, lines.len() - 1))
             .unwrap_or(std::cmp::min(line_num + 10, lines.len() - 1));
-        
+
         let sig_end_safe = std::cmp::min(function_sig_end, lines.len() - 1);
         let function_signature = if function_sig_start <= sig_end_safe {
             lines[function_sig_start..=sig_end_safe].join(" ")

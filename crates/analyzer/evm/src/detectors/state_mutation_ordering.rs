@@ -14,14 +14,15 @@ use sentri_core::Finding;
 
 lazy_static! {
     static ref EXTERNAL_CALL: Regex = Regex::new(
-        r"(?i)\.call\(|\.delegatecall\(|\.transfer\(|\.send\(|safeTransfer|safeTransferFrom"
+        r"(?i)\.call\s*[\(\{]|\.delegatecall|\.transfer\(|\.send\(|safeTransfer|safeTransferFrom"
     )
     .unwrap();
     static ref STATE_UPDATE: Regex =
         Regex::new(r"(?i)(balances|amounts|supply|shares|reserves)\s*\[\s*\w+\s*\]\s*(-=|\+=|=)")
             .unwrap();
     static ref EXTERNAL_CALL_BEFORE_STATE: Regex =
-        Regex::new(r"(?i)\.call.*?balances|transfer.*?balances\[.*?\]\s*-=").unwrap();
+        Regex::new(r"(?is)\.call[\s\S]*?balances|(?is)transfer[\s\S]*?balances\[[\s\S]*?\]\s*-=")
+            .unwrap();
 }
 
 pub fn detect_state_mutation_ordering(source: &str, file_path: &str) -> Vec<Finding> {

@@ -51,12 +51,12 @@ pub fn detect_missing_health_check(source: &str, file_path: &str) -> Vec<Finding
     let mut findings = Vec::new();
 
     // Pattern 1: Identify if this is a lending-like contract or has state modifications we care about
-    let is_lending = source.to_lowercase().contains("collateral") 
+    let is_lending = source.to_lowercase().contains("collateral")
         || source.to_lowercase().contains("health")
         || source.to_lowercase().contains("borrow")
         || source.to_lowercase().contains("lend")
         || source.to_lowercase().contains("liquidat");
-    
+
     if !is_lending {
         return findings;
     }
@@ -165,20 +165,29 @@ fn extract_function_name(line: &str) -> String {
 /// Check if function has health check before return statements
 fn has_health_check_before_return(func_body: &str) -> bool {
     let func_lower = func_body.to_lowercase();
-    
+
     // Check for any health-related patterns
     let health_patterns = vec![
-        "checkhealthor_status", "isHealthy", "health", "checkLiquidity", 
-        "checkCollateral", "liquidity", "getHealthFactor", "healthFactor",
-        "require", "MIN_HEALTH", "healthThreshold"
+        "checkhealthor_status",
+        "isHealthy",
+        "health",
+        "checkLiquidity",
+        "checkCollateral",
+        "liquidity",
+        "getHealthFactor",
+        "healthFactor",
+        "require",
+        "MIN_HEALTH",
+        "healthThreshold",
     ];
-    
+
     for pattern in health_patterns {
         if func_lower.contains(&pattern.to_lowercase()) {
             // If it has "require" combined with "health" or "liquidity", count it
             if pattern == "require" {
-                if func_lower.contains("require") && 
-                   (func_lower.contains("health") || func_lower.contains("liquidity")) {
+                if func_lower.contains("require")
+                    && (func_lower.contains("health") || func_lower.contains("liquidity"))
+                {
                     return true;
                 }
             } else {

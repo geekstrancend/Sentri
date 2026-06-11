@@ -19,8 +19,7 @@ lazy_static! {
     static ref NEW_IMPL_PARAM: Regex =
         Regex::new(r"(?i)newImplementation|newImpl|impl|implementation\s*:").unwrap();
     static ref IMPLEMENTATION_CHECK: Regex =
-        Regex::new(r"(?i)(code\.(size|length)|ERC1967)")
-            .unwrap();
+        Regex::new(r"(?i)(code\.(size|length)|ERC1967)").unwrap();
     static ref TIMELOCK_CHECK: Regex =
         Regex::new(r"(?i)timelock|delay|pendingImplementation|schedule|execute").unwrap();
     static ref INTERFACE_CHECK: Regex =

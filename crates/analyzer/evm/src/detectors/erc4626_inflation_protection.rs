@@ -43,14 +43,14 @@ use sentri_core::Finding;
 
 lazy_static! {
     static ref DEPOSIT_PATTERN: Regex = Regex::new(r"(?i)function\s+deposit\s*\(").unwrap();
-    static ref SHARE_CALC_PATTERN: Regex = Regex::new(
-        r"(?i)(shares\s*=|return).*?\(.*?assets.*?\).*?/"
-    )
-    .unwrap();
+    static ref SHARE_CALC_PATTERN: Regex =
+        Regex::new(r"(?i)(shares\s*=|return).*?\(.*?assets.*?\).*?/").unwrap();
     static ref MINIMUM_SHARES_CHECK: Regex =
         Regex::new(r"(?i)require\s*\(.*?(shares\s*>=|shares\s*>|MIN_SHARES)\s*.*?\)").unwrap();
-    static ref ZERO_SUPPLY_PROTECTION: Regex =
-        Regex::new(r"(?i)(if|require).*?totalSupply.*?(==\s*0|isZero)|(if|require).*?_supply.*?(==\s*0)").unwrap();
+    static ref ZERO_SUPPLY_PROTECTION: Regex = Regex::new(
+        r"(?i)(if|require).*?totalSupply.*?(==\s*0|isZero)|(if|require).*?_supply.*?(==\s*0)"
+    )
+    .unwrap();
     static ref ROUNDING_PROTECTION: Regex =
         Regex::new(r"(?i)(roundUp|roundDown|ceil|floor|mulDiv|FixedPointMathLib)").unwrap();
 }

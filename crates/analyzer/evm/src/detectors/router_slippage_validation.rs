@@ -18,7 +18,7 @@ lazy_static! {
     ).unwrap();
     static ref AMOUNT_OUT_MIN: Regex = Regex::new(r"(?i)amountOutMin|minAmountOut|minOut|minimumAmount").unwrap();
     static ref SLIPPAGE_CALC: Regex =
-        Regex::new(r"(?i)amountOutMin\s*=\s*amount.*?(\*\s*99|\*\s*98|/\s*100|slippage)").unwrap();
+        Regex::new(r"(?i)(amountOutMin|minOut|minimumAmount|minAmount).*?(\*\s*9[0-9]|/\s*100|slippage)").unwrap();
     static ref REQUIRE_CHECK: Regex = Regex::new(r"(?i)require\s*\(.*?amount.*?>=.*?amountOutMin").unwrap();
 }
 
@@ -30,11 +30,13 @@ pub fn detect_router_slippage_validation(source: &str, file_path: &str) -> Vec<F
             continue;
         }
 
-        let context_end = std::cmp::min(line_num + 100, source.lines().count());
+        // Look backward and forward for the entire function
+        let func_start = if line_num > 50 { line_num - 50 } else { 0 };
+        let func_end = std::cmp::min(line_num + 100, source.lines().count());
         let function_body = source
             .lines()
-            .skip(line_num)
-            .take(context_end - line_num)
+            .skip(func_start)
+            .take(func_end - func_start)
             .collect::<Vec<_>>()
             .join("\n");
 
