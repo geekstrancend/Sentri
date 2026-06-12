@@ -25,11 +25,27 @@ lazy_static! {
 pub fn detect_router_slippage_validation(source: &str, file_path: &str) -> Vec<Finding> {
     let mut findings = Vec::new();
 
+    // Quick check: must have both router swap + amount patterns
+    let has_swap = ROUTER_SWAP.is_match(source);
+    let has_amount = AMOUNT_OUT_MIN.is_match(source);
+    
+    if !has_swap || !has_amount {
+        return findings;
+    }
+
     for (line_num, line) in source.lines().enumerate() {
-        if line.trim().starts_with("//") || !ROUTER_SWAP.is_match(line) {
+        if line.trim().starts_with("//") {
             continue;
         }
 
+        // Check for amountOutMin/similar patterns (e.g., hardcoded values)
+        let line_lower = line.to_lowercase();
+        if !line_lower.contains("amountoutmin") && !line_lower.contains("minout")
+            && !line_lower.contains("minimumamount") && !line_lower.contains("minamount") {
+            continue;
+        }
+
+        // This line has a min amount definition or usage
         // Look backward and forward for the entire function
         let func_start = if line_num > 50 { line_num - 50 } else { 0 };
         let func_end = std::cmp::min(line_num + 100, source.lines().count());
@@ -40,9 +56,13 @@ pub fn detect_router_slippage_validation(source: &str, file_path: &str) -> Vec<F
             .collect::<Vec<_>>()
             .join("\n");
 
+        // Check if there's a router swap function call context
+        if !ROUTER_SWAP.is_match(&function_body) {
+            continue;
+        }
+
         let has_min_amount = AMOUNT_OUT_MIN.is_match(&function_body);
         let has_slippage_calc = SLIPPAGE_CALC.is_match(&function_body);
-        let _has_require = REQUIRE_CHECK.is_match(&function_body);
 
         if has_min_amount && !has_slippage_calc {
             findings.push(
@@ -63,6 +83,7 @@ pub fn detect_router_slippage_validation(source: &str, file_path: &str) -> Vec<F
                 .with_metadata("detector".to_string(), "pattern_analysis".to_string())
                 .with_metadata("remediation".to_string(), "Add slippage calculation: (amount * 99) / 100".to_string()),
             );
+            break;  // Only report once per function
         }
     }
 

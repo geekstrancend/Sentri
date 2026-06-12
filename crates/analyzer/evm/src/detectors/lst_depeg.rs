@@ -18,7 +18,7 @@ lazy_static! {
 
     /// Regex to match borrow/deposit functions
     static ref BORROW_DEPOSIT_REGEX: Regex =
-        Regex::new(r"(?i)function\s+(borrow|deposit|supply|collateralize)\s*\(").unwrap();
+        Regex::new(r"(?i)function\s+(borrow|deposit|supply|collateralize)\s*[\(\{]").unwrap();
 
     /// Regex to match oracle price functions
     static ref PRICE_REGEX: Regex =
@@ -28,74 +28,66 @@ lazy_static! {
 /// Detects LST depeg collateral risk in lending protocols.
 pub fn detect_lst_depeg_collateral_risk(source: &str, file_path: &str) -> Vec<Finding> {
     let mut findings = Vec::new();
+    let source_lower = source.to_lowercase();
 
-    // Pattern 1: Find borrow/deposit functions that accept collateral
-    for (func_line_num, func_line) in source.lines().enumerate() {
-        if !BORROW_DEPOSIT_REGEX.is_match(func_line) {
-            continue;
+    // Quick check: must have both lending keyword + LST keywords
+    if !source_lower.contains("collateral") && !source_lower.contains("deposit") {
+        return findings;
+    }
+
+    // Check for LST tokens in the code
+    let mut lst_found = "";
+    for lst in KNOWN_LSTS.iter() {
+        if source_lower.contains(&lst.to_lowercase()) {
+            lst_found = lst;
+            break;
         }
+    }
+    
+    if lst_found.is_empty() {
+        return findings;
+    }
 
-        let func_name = extract_function_name(func_line);
+    // Check if code has depeg protection - if it does, no findings
+    let has_protection = has_depeg_protection(&source_lower);
+    if has_protection {
+        return findings;
+    }
 
-        // Extract function body (~50 lines)
-        let func_start = func_line_num;
-        let func_end = (func_line_num + 50).min(source.lines().count());
-        let func_body = source
-            .lines()
-            .skip(func_start)
-            .take(func_end - func_start)
-            .collect::<Vec<&str>>()
-            .join("\n");
-
-        // Pattern 2: Check if function accepts LST and lacks depeg protection
-        for lst in KNOWN_LSTS.iter() {
-            if func_body.to_lowercase().contains(&lst.to_lowercase())
-                && !has_depeg_protection(&func_body)
-            {
-                let message = format!(
-                        "Function '{}' accepts {} as collateral without depeg protection. \
-                         Liquid staking tokens can depeg from their underlying asset. \
-                         H47 KelpDAO ($292M) was exploited when rsETH depegged 10%+ from ETH, \
-                         causing cascade liquidations of all positions using rsETH as collateral. \
-                         \
-                         Attack flow: \
-                         1. Large LST depeg event occurs (e.g., staking provider issues) \
-                         2. LST price drops 5-15% relative to ETH \
-                         3. Protocol liquidates all positions using LST, realizing large losses \
-                         4. Market panic cascades into full insolvency \
-                         \
-                         Required fix: Add depeg band validation: \
-                         require(lstPrice >= underlyingPrice * 0.95, \"LST depegged beyond threshold\"); \
-                         Recommended: Add dynamic risk multiplier to collateral value based on depeg risk.",
-                        func_name, lst
-                    );
-
-                findings.push(
-                    Finding::new(
-                        "evm_lst_depeg_collateral_risk".to_string(),
-                        sentri_core::Severity::Critical,
-                        file_path.to_string(),
-                        func_line_num + 1,
-                        0,
-                        message,
-                        func_line.trim().to_string(),
-                    )
-                    .with_metadata("exploit_id".to_string(), "H47".to_string())
-                    .with_metadata(
-                        "exploit_name".to_string(),
-                        "KelpDAO/rsETH Depeg".to_string(),
-                    )
-                    .with_metadata("loss".to_string(), "$292M".to_string())
-                    .with_metadata("year".to_string(), "2026".to_string())
-                    .with_metadata("token".to_string(), lst.to_string())
-                    .with_metadata(
-                        "vulnerability_type".to_string(),
-                        "depeg_cascade".to_string(),
-                    )
-                    .with_metadata("detector".to_string(), "oracle_risk_analysis".to_string())
-                    .with_source_fragment(func_body.clone()),
-                );
-            }
+    // Found LST usage without protection - flag it
+    for (line_num, line) in source.lines().enumerate() {
+        let line_lower = line.to_lowercase();
+        // Report first line that mentions deposit, borrow, transfer, collateral, or the LST token
+        if line_lower.contains("deposit") 
+            || line_lower.contains("borrow") 
+            || line_lower.contains("transfer") 
+            || line_lower.contains("collateral")
+            || line_lower.contains(&lst_found.to_lowercase()) {
+            findings.push(
+                Finding::new(
+                    "evm_lst_depeg".to_string(),
+                    sentri_core::Severity::Critical,
+                    file_path.to_string(),
+                    line_num + 1,
+                    0,
+                    format!(
+                        "Code accepts {} as collateral without depeg protection. \
+                         LSTs can depeg from their underlying asset. \
+                         H47 KelpDAO ($292M) was exploited when rsETH depegged, \
+                         causing cascade liquidations. Add price band validation.",
+                        lst_found
+                    ),
+                    line.trim().to_string(),
+                )
+                .with_metadata("exploit_id".to_string(), "H47".to_string())
+                .with_metadata("exploit_name".to_string(), "KelpDAO LST Depeg".to_string())
+                .with_metadata("loss".to_string(), "$292M".to_string())
+                .with_metadata("year".to_string(), "2024".to_string())
+                .with_metadata("vulnerability_type".to_string(), "collateral_depeg".to_string())
+                .with_metadata("detector".to_string(), "pattern_analysis".to_string())
+                .with_metadata("remediation".to_string(), "Add depeg protection: price bands, fallback oracle, reduce LTV".to_string())
+            );
+            break;
         }
     }
 
@@ -103,6 +95,7 @@ pub fn detect_lst_depeg_collateral_risk(source: &str, file_path: &str) -> Vec<Fi
 }
 
 /// Extract function name from function declaration
+#[allow(dead_code)]
 fn extract_function_name(line: &str) -> String {
     if let Some(start) = line.find("function ") {
         let after_function = &line[start + 9..];
@@ -114,27 +107,21 @@ fn extract_function_name(line: &str) -> String {
 }
 
 /// Check if function has depeg protection
-fn has_depeg_protection(func_body: &str) -> bool {
-    let func_lower = func_body.to_lowercase();
-
+fn has_depeg_protection(source_lower: &str) -> bool {
     // Patterns indicating depeg checks
-    let depeg_patterns = vec![
-        "depeg",
-        "peg_band",
-        "max_deviation",
-        "deviation_tolerance",
-        "peg_threshold",
-        "price_band",
-        "ratio_band",
-        "0.95", // 95% peg band
-        "0.9",  // 90% peg band
-        "require(.*price",
-        "max_collateral_ratio",
-    ];
-
-    depeg_patterns
-        .iter()
-        .any(|pattern| func_lower.contains(&pattern.to_lowercase()))
+    source_lower.contains("depeg")
+        || source_lower.contains("peg_band")
+        || source_lower.contains("max_deviation")
+        || source_lower.contains("deviation_tolerance")
+        || source_lower.contains("peg_threshold")
+        || source_lower.contains("price_band")
+        || source_lower.contains("ratio_band")
+        || source_lower.contains("95)")
+        || source_lower.contains("90)")
+        || source_lower.contains("* 95")
+        || source_lower.contains("* 90")
+        || source_lower.contains("require(")  && source_lower.contains("price")
+        || source_lower.contains("max_collateral_ratio")
 }
 
 #[cfg(test)]

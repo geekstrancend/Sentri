@@ -62,8 +62,13 @@ pub fn detect_missing_health_check(source: &str, file_path: &str) -> Vec<Finding
     }
 
     // Pattern 2: Find state-modifying functions
+    let source_lower = source.to_lowercase();
+    
     for (func_line_num, func_line) in source.lines().enumerate() {
-        if !FUNCTION_REGEX.is_match(func_line) {
+        let line_lower = func_line.to_lowercase();
+        
+        // Look for function declarations
+        if !line_lower.contains("function") || (!line_lower.contains("public") && !line_lower.contains("external")) {
             continue;
         }
 
@@ -82,8 +87,15 @@ pub fn detect_missing_health_check(source: &str, file_path: &str) -> Vec<Finding
             .collect::<Vec<&str>>()
             .join("\n");
 
+        let func_body_lower = func_body.to_lowercase();
+        
         // Pattern 3: Check if function modifies critical state
-        let modifies_state = STATE_MOD_REGEX.is_match(&func_body);
+        let modifies_state = func_body_lower.contains("collateral")
+            || func_body_lower.contains("debt")
+            || func_body_lower.contains("borrow")
+            || func_body_lower.contains("reserve")
+            || func_body_lower.contains("balance");
+        
         if !modifies_state {
             continue;
         }
@@ -154,9 +166,11 @@ fn is_lending_like_contract(source: &str) -> bool {
 
 /// Extract function name from function declaration
 fn extract_function_name(line: &str) -> String {
-    if let Some(start) = line.find("function ") {
+    let line_lower = line.to_lowercase();
+    if let Some(start) = line_lower.find("function ") {
         let after_function = &line[start + 9..];
-        if let Some(end) = after_function.find('(') {
+        let line_lower_after = &line_lower[start + 9..];
+        if let Some(end) = line_lower_after.find('(') {
             return after_function[..end].trim().to_string();
         }
     }
@@ -165,38 +179,54 @@ fn extract_function_name(line: &str) -> String {
 
 /// Check if function has health check before return statements
 fn has_health_check_before_return(func_body: &str) -> bool {
-    let func_lower = func_body.to_lowercase();
-
-    // Check for any health-related patterns
-    let health_patterns = vec![
-        "checkHealth",
-        "isHealthy",
-        "health",
-        "checkLiquidity",
-        "checkCollateral",
-        "liquidity",
-        "getHealthFactor",
-        "healthFactor",
-        "require",
-        "MIN_HEALTH",
-        "healthThreshold",
-    ];
-
-    for pattern in health_patterns {
-        if func_lower.contains(&pattern.to_lowercase()) {
-            // If it has "require" combined with "health" or "liquidity", count it
-            if pattern == "require" {
-                if func_lower.contains("require")
-                    && (func_lower.contains("health") || func_lower.contains("liquidity"))
-                {
-                    return true;
-                }
-            } else {
-                return true;
-            }
+    // Remove comments from analysis
+    let mut cleaned = String::new();
+    let mut in_comment = false;
+    let mut chars = func_body.chars().peekable();
+    
+    while let Some(ch) = chars.next() {
+        if !in_comment && ch == '/' && chars.peek() == Some(&'/') {
+            // Single line comment - skip until newline
+            in_comment = true;
+            chars.next();  // consume the second /
+            continue;
+        }
+        if in_comment && ch == '\n' {
+            in_comment = false;
+            cleaned.push('\n');
+            continue;
+        }
+        if !in_comment {
+            cleaned.push(ch);
         }
     }
-
+    
+    let func_lower = cleaned.to_lowercase();
+    
+    // Check 1: Direct function calls for health checks (e.g., _checkLiquidity, isHealthy)
+    if func_lower.contains("_checkliquidity") 
+        || func_lower.contains("_checkhealth")
+        || func_lower.contains("_checkcollateral")
+        || func_lower.contains("ishealthy")
+        || func_lower.contains("issolvable")
+        || func_lower.contains("checkcollateral") {
+        return true;
+    }
+    
+    // Check 2: Require/assert statements with health keywords (may be multiline)
+    if func_lower.contains("require(") || func_lower.contains("assert(") {
+        // Look for patterns like require(...calculateHealthFactor or require(isHealthy
+        if func_lower.contains("calculatehealthfactor")
+            || func_lower.contains("health_factor")
+            || func_lower.contains("healthfactor")
+            || func_lower.contains("ishealthy")
+            || func_lower.contains("min_health")
+            || (func_lower.contains("require(") && func_lower.contains("liquidity"))
+            || (func_lower.contains("require(") && func_lower.contains("collateral") && func_lower.contains("min")) {
+            return true;
+        }
+    }
+    
     false
 }
 

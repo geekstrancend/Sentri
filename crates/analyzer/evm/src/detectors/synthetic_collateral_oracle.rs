@@ -32,8 +32,7 @@ use sentri_core::Finding;
 
 lazy_static! {
     static ref SYNTHETIC_COLLATERAL_PATTERN: Regex =
-        Regex::new(r"(?i)(synthetic|synth|_synth|derivatives)\s*\[.*?\].*?\*.*?oracle|getPrice|priceOf")
-            .unwrap();
+        Regex::new(r"(?i)(synthetic|synth|_synth|derivatives)").unwrap();
     static ref ORACLE_CALL_PATTERN: Regex =
         Regex::new(r"(?i)(oracle|pricer|price_feed)\s*\.\s*(getPrice|getPriceOf|getLatestPrice|fetchPrice|price)\s*\(")
             .unwrap();

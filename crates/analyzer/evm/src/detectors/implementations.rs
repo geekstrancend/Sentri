@@ -11,28 +11,26 @@ pub fn detect_reentrancy_classic(source: &str, file_path: &str) -> Vec<Finding> 
     // Pattern: look for external calls (call, send, transfer) followed by state updates
     // in the same function without nonReentrant guard
 
-    // Simplified pattern matching:
-    if source.contains(".call{") && source.contains(".transfer(") {
-        // Check if nonReentrant is present
-        if !source.contains("nonReentrant") && !source.contains("nonreentrant") {
-            // Find line number of the pattern
-            for (line_num, line) in source.lines().enumerate() {
-                if (line.contains(".call{") || line.contains(".transfer("))
-                    && !line.trim().starts_with("//")
-                {
-                    findings.push(
-                        Finding::new(
-                            "evm_reentrancy_classic".to_string(),
-                            Severity::Critical,
-                            file_path.to_string(),
-                            line_num + 1,
-                            0,
-                            "External call detected before state update (Checks-Effects-Interactions pattern violated)".to_string(),
-                            line.trim().to_string(),
-                        )
-                        .with_metadata("detector".to_string(), "pattern_match".to_string())
-                    );
-                }
+    // Simplified pattern matching: check for external calls (either .call{ or .transfer)
+    if (source.contains(".call{") || source.contains(".transfer(") || source.contains(".send(")) 
+        && !source.contains("nonReentrant") && !source.contains("nonreentrant") {
+        // Find line number of the pattern
+        for (line_num, line) in source.lines().enumerate() {
+            if (line.contains(".call{") || line.contains(".transfer(") || line.contains(".send("))
+                && !line.trim().starts_with("//")
+            {
+                findings.push(
+                    Finding::new(
+                        "evm_reentrancy_classic".to_string(),
+                        Severity::Critical,
+                        file_path.to_string(),
+                        line_num + 1,
+                        0,
+                        "External call detected before state update (Checks-Effects-Interactions pattern violated)".to_string(),
+                        line.trim().to_string(),
+                    )
+                    .with_metadata("detector".to_string(), "pattern_match".to_string())
+                );
             }
         }
     }

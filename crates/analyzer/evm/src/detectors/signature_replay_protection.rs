@@ -19,22 +19,35 @@ lazy_static! {
     static ref NONCE_CHECK: Regex =
         Regex::new(r"(?i)nonce\[.*?\]\+\+|require\s*\(.*?nonce.*?\)").unwrap();
     static ref MESSAGE_HASH: Regex =
-        Regex::new(r"(?i)keccak256\s*\(\s*abi\.encode.*?(address|uint|bytes)").unwrap();
+        Regex::new(r"(?i)keccak256\s*\(\s*abi\.encode").unwrap();
 }
 
 pub fn detect_signature_replay_protection(source: &str, file_path: &str) -> Vec<Finding> {
     let mut findings = Vec::new();
+    let source_lower = source.to_lowercase();
+
+    // Check if code uses EIP712 safe patterns
+    let has_eip712_safe = source_lower.contains("_hashtypeddatav4")
+        || source_lower.contains("_domaintypehash")
+        || source_lower.contains("eip712domain")
+        || source_lower.contains("_buildseparator");
+    
+    if has_eip712_safe {
+        return findings;  // EIP712 is safe
+    }
 
     for (line_num, line) in source.lines().enumerate() {
         if line.trim().starts_with("//") || !ECDSA_RECOVER.is_match(line) {
             continue;
         }
 
-        let context_end = std::cmp::min(line_num + 150, source.lines().count());
+        // Look backward and forward for function context
+        let func_start = if line_num > 100 { line_num - 100 } else { 0 };
+        let context_end = std::cmp::min(line_num + 100, source.lines().count());
         let function_body = source
             .lines()
-            .skip(line_num)
-            .take(context_end - line_num)
+            .skip(func_start)
+            .take(context_end - func_start)
             .collect::<Vec<_>>()
             .join("\n");
 

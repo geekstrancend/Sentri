@@ -31,10 +31,10 @@ use sentri_core::Finding;
 
 lazy_static! {
     static ref TRANSFER_PATTERN: Regex = Regex::new(
-        r"(?i)(transfer|transferFrom|safeTransfer|safeTransferFrom|send|call)\s*\(\s*(?:to|recipient|msg\.sender|user)"
+        r"(?i)(transfer|transferFrom|safeTransfer|safeTransferFrom|send|call)\s*\("
     ).unwrap();
     static ref WHITELIST_CHECK: Regex =
-        Regex::new(r"(?i)require\s*\(\s*(?:whitelisted|approved|verified)\s*\[")
+        Regex::new(r"(?i)(?:whitelisted|approved|verified)\s*[\[\(]")
             .unwrap();
     static ref STATE_UPDATE_PATTERN: Regex = Regex::new(
         r"(?i)(balances|amount|supply|shares|value)\s*\[\s*\w+\s*\]\s*(-=|\+=|=\s*0|=\s*\w+\s*-)"
@@ -48,6 +48,12 @@ lazy_static! {
 
 pub fn detect_reentrancy_via_whitelisted(source: &str, file_path: &str) -> Vec<Finding> {
     let mut findings = Vec::new();
+    let source_lower = source.to_lowercase();
+
+    // Quick check: must have both whitelist and transfer patterns
+    if !source_lower.contains("transfer") || !source_lower.contains("whitelisted") {
+        return findings;
+    }
 
     for (line_num, line) in source.lines().enumerate() {
         // Skip comments
@@ -56,7 +62,8 @@ pub fn detect_reentrancy_via_whitelisted(source: &str, file_path: &str) -> Vec<F
         }
 
         // Look for transfer operations
-        if !TRANSFER_PATTERN.is_match(line) {
+        let line_lower = line.to_lowercase();
+        if !line_lower.contains("transfer") && !line_lower.contains("send") && !line_lower.contains("call") {
             continue;
         }
 
@@ -70,17 +77,26 @@ pub fn detect_reentrancy_via_whitelisted(source: &str, file_path: &str) -> Vec<F
             .collect::<Vec<_>>()
             .join("\n");
 
+        let function_context_lower = function_context.to_lowercase();
+
         // Check for whitelist check
-        let has_whitelist = WHITELIST_CHECK.is_match(&function_context);
+        let has_whitelist = function_context_lower.contains("whitelisted")
+            || function_context_lower.contains("approved")
+            || function_context_lower.contains("verified");
         if !has_whitelist {
             continue;
         }
 
         // Check CEI pattern: state update BEFORE transfer
-        let has_proper_order = STATE_BEFORE_TRANSFER.is_match(&function_context);
+        let has_proper_order = (function_context_lower.contains("balances") && function_context_lower.contains("-=")
+            && function_context_lower.find("balances").unwrap_or(0) < function_context_lower.find("transfer").unwrap_or(usize::MAX))
+            || (function_context_lower.contains("amount") && function_context_lower.contains("-=")
+                && function_context_lower.find("amount").unwrap_or(0) < function_context_lower.find("transfer").unwrap_or(usize::MAX));
 
         // Check for reentrancy guard
-        let has_guard = REENTRANCY_GUARD.is_match(&function_context);
+        let has_guard = function_context_lower.contains("nonreentrant")
+            || function_context_lower.contains("noreentrant")
+            || function_context_lower.contains("reentrancyguard");
 
         if !has_proper_order {
             findings.push(

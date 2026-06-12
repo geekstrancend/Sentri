@@ -89,8 +89,8 @@ pub fn detect_unbacked_synthetic_mint(source: &str, file_path: &str) -> Vec<Find
     }
 
     // Pattern 3: Check for conservation invariant violations
+    // Always check if contract lacks proper conservation checks
     if !has_conservation_check(source) {
-        // Additional finding if no conservation check exists in entire contract
         findings.push(
             Finding::new(
                 "evm_unbacked_synthetic_mint".to_string(),
@@ -98,9 +98,9 @@ pub fn detect_unbacked_synthetic_mint(source: &str, file_path: &str) -> Vec<Find
                 file_path.to_string(),
                 1,
                 0,
-                "Contract lacks conservation checks between totalMinted and totalBacking. \
-                 This is a synthetic token protocol that should enforce: \
-                 totalMinted <= totalCollateral * MAX_RATIO throughout all state transitions."
+                "Contract missing conservation invariant check for synthetic tokens. \
+                 Conservation checks ensure totalMinted <= totalCollateral * MAX_RATIO. \
+                 Without conservation checks, synthetic tokens can be minted without backing."
                     .to_string(),
                 "// Missing: require(totalMinted <= totalCollateral * MAX_RATIO);".to_string(),
             )
