@@ -42,12 +42,16 @@ export function MarketingNav({ className }: MarketingNavProps) {
 
         {/* Right Buttons */}
         <div className="flex items-center gap-3">
-          <Button variant="ghost" size="sm">
-            Log In
-          </Button>
-          <Button variant="primary" size="sm">
-            Launch App
-          </Button>
+          <Link href="/dashboard">
+            <Button variant="ghost" size="sm">
+              Log In
+            </Button>
+          </Link>
+          <Link href="/dashboard">
+            <Button variant="primary" size="sm">
+              Launch App
+            </Button>
+          </Link>
         </div>
       </div>
     </nav>

@@ -1,7 +1,9 @@
 'use client'
+import { useEffect, useState } from 'react'
 
 interface TerminalProps {
   title?: string
+  showBanner?: boolean
   output: Array<{
     prefix?: string
     text: string
@@ -9,7 +11,16 @@ interface TerminalProps {
   }>
 }
 
-export function Terminal({ title = 'sentri-cli --scan ./contracts/Vault.sol', output }: TerminalProps) {
+export function Terminal({ title = 'sentri-cli --scan ./contracts/Vault.sol', showBanner = false, output }: TerminalProps) {
+  const [visibleLines, setVisibleLines] = useState(0)
+
+  useEffect(() => {
+    if (visibleLines >= output.length) return
+    const delay = output[visibleLines]?.text === '' ? 200 : 500
+    const timer = setTimeout(() => setVisibleLines((v) => v + 1), delay)
+    return () => clearTimeout(timer)
+  }, [visibleLines, output.length])
+
   const getPrefixStyles = (type?: string) => {
     const baseStyles = 'inline-block px-1.5 py-0.5 rounded-xs font-[600] text-label-sm'
     
@@ -51,7 +62,22 @@ export function Terminal({ title = 'sentri-cli --scan ./contracts/Vault.sol', ou
 
       {/* Content */}
       <div className="p-5 font-mono text-code-block leading-5">
-        {output.map((line, idx) => (
+        {showBanner && (
+          <pre className="font-mono text-[8px] sm:text-[10px] leading-tight
+                           text-secondary mb-3 select-none whitespace-pre">
+{`  ███████╗███████╗███╗   ██╗████████╗██████╗ ██╗
+  ██╔════╝██╔════╝████╗  ██║╚══██╔══╝██╔══██╗██║
+  ███████╗█████╗  ██╔██╗ ██║   ██║   ██████╔╝██║
+  ╚════██║██╔══╝  ██║╚██╗██║   ██║   ██╔══██╗██║
+  ███████║███████╗██║ ╚████║   ██║   ██║  ██║██║
+  ╚══════╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝╚═╝`}
+            <span className="block text-outline text-[9px] sm:text-[11px] mt-1
+                              normal-case font-normal">
+              Multi-chain Smart Contract Invariant Checker · v0.2.1
+            </span>
+          </pre>
+        )}
+        {output.slice(0, visibleLines).map((line, idx) => (
           <div key={idx} className="flex gap-2 mb-1">
             {line.prefix && (
               <span className={getPrefixStyles(line.type)}>
@@ -59,7 +85,7 @@ export function Terminal({ title = 'sentri-cli --scan ./contracts/Vault.sol', ou
               </span>
             )}
             <span className={getTextColor(line.type)}>{line.text}</span>
-            {idx === output.length - 1 && (
+            {idx === visibleLines - 1 && (
               <span className="animate-blink-cursor">▊</span>
             )}
           </div>

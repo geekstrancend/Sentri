@@ -43,7 +43,7 @@ pub fn detect_lst_depeg_collateral_risk(source: &str, file_path: &str) -> Vec<Fi
             break;
         }
     }
-    
+
     if lst_found.is_empty() {
         return findings;
     }
@@ -58,11 +58,12 @@ pub fn detect_lst_depeg_collateral_risk(source: &str, file_path: &str) -> Vec<Fi
     for (line_num, line) in source.lines().enumerate() {
         let line_lower = line.to_lowercase();
         // Report first line that mentions deposit, borrow, transfer, collateral, or the LST token
-        if line_lower.contains("deposit") 
-            || line_lower.contains("borrow") 
-            || line_lower.contains("transfer") 
+        if line_lower.contains("deposit")
+            || line_lower.contains("borrow")
+            || line_lower.contains("transfer")
             || line_lower.contains("collateral")
-            || line_lower.contains(&lst_found.to_lowercase()) {
+            || line_lower.contains(&lst_found.to_lowercase())
+        {
             findings.push(
                 Finding::new(
                     "evm_lst_depeg".to_string(),
@@ -83,9 +84,15 @@ pub fn detect_lst_depeg_collateral_risk(source: &str, file_path: &str) -> Vec<Fi
                 .with_metadata("exploit_name".to_string(), "KelpDAO LST Depeg".to_string())
                 .with_metadata("loss".to_string(), "$292M".to_string())
                 .with_metadata("year".to_string(), "2024".to_string())
-                .with_metadata("vulnerability_type".to_string(), "collateral_depeg".to_string())
+                .with_metadata(
+                    "vulnerability_type".to_string(),
+                    "collateral_depeg".to_string(),
+                )
                 .with_metadata("detector".to_string(), "pattern_analysis".to_string())
-                .with_metadata("remediation".to_string(), "Add depeg protection: price bands, fallback oracle, reduce LTV".to_string())
+                .with_metadata(
+                    "remediation".to_string(),
+                    "Add depeg protection: price bands, fallback oracle, reduce LTV".to_string(),
+                ),
             );
             break;
         }
@@ -120,7 +127,7 @@ fn has_depeg_protection(source_lower: &str) -> bool {
         || source_lower.contains("90)")
         || source_lower.contains("* 95")
         || source_lower.contains("* 90")
-        || source_lower.contains("require(")  && source_lower.contains("price")
+        || source_lower.contains("require(") && source_lower.contains("price")
         || source_lower.contains("max_collateral_ratio")
 }
 

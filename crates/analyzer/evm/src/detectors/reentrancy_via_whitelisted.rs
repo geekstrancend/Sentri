@@ -30,20 +30,21 @@ use regex::Regex;
 use sentri_core::Finding;
 
 lazy_static! {
-    static ref TRANSFER_PATTERN: Regex = Regex::new(
-        r"(?i)(transfer|transferFrom|safeTransfer|safeTransferFrom|send|call)\s*\("
-    ).unwrap();
-    static ref WHITELIST_CHECK: Regex =
-        Regex::new(r"(?i)(?:whitelisted|approved|verified)\s*[\[\(]")
+    static ref TRANSFER_PATTERN: Regex =
+        Regex::new(r"(?i)(transfer|transferFrom|safeTransfer|safeTransferFrom|send|call)\s*\(")
             .unwrap();
+    static ref WHITELIST_CHECK: Regex =
+        Regex::new(r"(?i)(?:whitelisted|approved|verified)\s*[\[\(]").unwrap();
     static ref STATE_UPDATE_PATTERN: Regex = Regex::new(
         r"(?i)(balances|amount|supply|shares|value)\s*\[\s*\w+\s*\]\s*(-=|\+=|=\s*0|=\s*\w+\s*-)"
-    ).unwrap();
+    )
+    .unwrap();
     static ref TRANSFER_AFTER_BEFORE: Regex =
-        Regex::new(r"transfer.*?balances|transfer.*?amount.*?-=")
-            .unwrap();
-    static ref STATE_BEFORE_TRANSFER: Regex = Regex::new(r"balances.*?-=.*?transfer|amount.*?-=.*?transfer").unwrap();
-    static ref REENTRANCY_GUARD: Regex = Regex::new(r"(?i)nonReentrant|noReentrant|ReentrancyGuard").unwrap();
+        Regex::new(r"transfer.*?balances|transfer.*?amount.*?-=").unwrap();
+    static ref STATE_BEFORE_TRANSFER: Regex =
+        Regex::new(r"balances.*?-=.*?transfer|amount.*?-=.*?transfer").unwrap();
+    static ref REENTRANCY_GUARD: Regex =
+        Regex::new(r"(?i)nonReentrant|noReentrant|ReentrancyGuard").unwrap();
 }
 
 pub fn detect_reentrancy_via_whitelisted(source: &str, file_path: &str) -> Vec<Finding> {
@@ -63,7 +64,10 @@ pub fn detect_reentrancy_via_whitelisted(source: &str, file_path: &str) -> Vec<F
 
         // Look for transfer operations
         let line_lower = line.to_lowercase();
-        if !line_lower.contains("transfer") && !line_lower.contains("send") && !line_lower.contains("call") {
+        if !line_lower.contains("transfer")
+            && !line_lower.contains("send")
+            && !line_lower.contains("call")
+        {
             continue;
         }
 
@@ -88,10 +92,18 @@ pub fn detect_reentrancy_via_whitelisted(source: &str, file_path: &str) -> Vec<F
         }
 
         // Check CEI pattern: state update BEFORE transfer
-        let has_proper_order = (function_context_lower.contains("balances") && function_context_lower.contains("-=")
-            && function_context_lower.find("balances").unwrap_or(0) < function_context_lower.find("transfer").unwrap_or(usize::MAX))
-            || (function_context_lower.contains("amount") && function_context_lower.contains("-=")
-                && function_context_lower.find("amount").unwrap_or(0) < function_context_lower.find("transfer").unwrap_or(usize::MAX));
+        let has_proper_order = (function_context_lower.contains("balances")
+            && function_context_lower.contains("-=")
+            && function_context_lower.find("balances").unwrap_or(0)
+                < function_context_lower
+                    .find("transfer")
+                    .unwrap_or(usize::MAX))
+            || (function_context_lower.contains("amount")
+                && function_context_lower.contains("-=")
+                && function_context_lower.find("amount").unwrap_or(0)
+                    < function_context_lower
+                        .find("transfer")
+                        .unwrap_or(usize::MAX));
 
         // Check for reentrancy guard
         let has_guard = function_context_lower.contains("nonreentrant")

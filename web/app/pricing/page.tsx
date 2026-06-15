@@ -1,11 +1,16 @@
 'use client'
 
+import Link from 'next/link'
 import { Check } from 'lucide-react'
+import { useReveal } from '@/components/hooks/useReveal'
 import { MarketingNav } from '@/components/layout/MarketingNav'
 import { MarketingFooter } from '@/components/layout/MarketingFooter'
 import { Button } from '@/components/ui/Button'
 
 export default function PricingPage() {
+  const starterRef = useReveal<HTMLDivElement>()
+  const proRef = useReveal<HTMLDivElement>()
+  const enterpriseRef = useReveal<HTMLDivElement>()
   const plans = [
     {
       name: 'Starter',
@@ -72,9 +77,10 @@ export default function PricingPage() {
             {plans.map((plan, idx) => (
               <div
                 key={idx}
-                className={`relative rounded-lg overflow-hidden ${
+                ref={idx === 0 ? starterRef : idx === 1 ? proRef : enterpriseRef}
+                className={`relative rounded-lg overflow-hidden reveal lift-on-hover ${
                   plan.featured
-                    ? 'bg-indigo-container border-2 border-indigo'
+                    ? 'bg-gradient-to-br from-indigo-container via-secondary-container to-indigo-container animate-gradient border-2 border-indigo'
                     : 'bg-surface-container-low border border-outline-variant'
                 }`}
               >
@@ -150,12 +156,25 @@ export default function PricingPage() {
                   </div>
 
                   {/* CTA */}
-                  <Button
-                    variant={plan.featured ? 'primary' : 'secondary'}
-                    fullWidth
-                  >
-                    {plan.cta}
-                  </Button>
+                  {plan.name === 'Enterprise' ? (
+                    <Link href="mailto:sales@sentri.dev">
+                      <Button
+                        variant={plan.featured ? 'primary' : 'secondary'}
+                        fullWidth
+                      >
+                        {plan.cta}
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Link href="/dashboard">
+                      <Button
+                        variant={plan.featured ? 'primary' : 'secondary'}
+                        fullWidth
+                      >
+                        {plan.cta}
+                      </Button>
+                    </Link>
+                  )}
                 </div>
               </div>
             ))}

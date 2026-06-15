@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { ShieldCheck } from 'lucide-react'
+import { AsciiLogo } from '@/components/ui/AsciiLogo'
 
 export function MarketingFooter() {
   const currentYear = new Date().getFullYear()
@@ -7,6 +8,11 @@ export function MarketingFooter() {
   return (
     <footer className="border-t border-outline-variant bg-surface-container-lowest">
       <div className="max-w-7xl mx-auto px-6 py-12">
+        {/* Full-width ASCII logo header */}
+        <div className="overflow-hidden mb-8 -mt-4">
+          <AsciiLogo className="text-[6px] sm:text-[10px] md:text-sm opacity-[0.06] leading-none whitespace-pre text-center mx-auto w-full" />
+        </div>
+
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
           {/* Brand */}
           <div>
@@ -26,13 +32,13 @@ export function MarketingFooter() {
           <div>
             <h3 className="text-label-sm text-on-surface mb-4">Product</h3>
             <div className="space-y-3">
-              <Link href="#" className="block text-outline hover:text-on-surface text-body-md transition-colors">
+              <Link href="/#features" className="block text-outline hover:text-on-surface text-body-md transition-colors">
                 Features
               </Link>
-              <Link href="#" className="block text-outline hover:text-on-surface text-body-md transition-colors">
+              <Link href="/pricing" className="block text-outline hover:text-on-surface text-body-md transition-colors">
                 Pricing
               </Link>
-              <Link href="#" className="block text-outline hover:text-on-surface text-body-md transition-colors">
+              <Link href="/library" className="block text-outline hover:text-on-surface text-body-md transition-colors">
                 Security
               </Link>
             </div>
@@ -44,10 +50,10 @@ export function MarketingFooter() {
               <Link href="/docs" className="block text-outline hover:text-on-surface text-body-md transition-colors">
                 Documentation
               </Link>
-              <Link href="#" className="block text-outline hover:text-on-surface text-body-md transition-colors">
-                Blog
+              <Link href="https://github.com/geekstrancend/Sentri" target="_blank" rel="noopener" className="block text-outline hover:text-on-surface text-body-md transition-colors">
+                GitHub
               </Link>
-              <Link href="#" className="block text-outline hover:text-on-surface text-body-md transition-colors">
+              <Link href="https://github.com/geekstrancend/Sentri/discussions" target="_blank" rel="noopener" className="block text-outline hover:text-on-surface text-body-md transition-colors">
                 Community
               </Link>
             </div>
@@ -56,13 +62,13 @@ export function MarketingFooter() {
           <div>
             <h3 className="text-label-sm text-on-surface mb-4">Legal</h3>
             <div className="space-y-3">
-              <Link href="#" className="block text-outline hover:text-on-surface text-body-md transition-colors">
+              <Link href="/docs" className="block text-outline hover:text-on-surface text-body-md transition-colors">
                 Privacy Policy
               </Link>
-              <Link href="#" className="block text-outline hover:text-on-surface text-body-md transition-colors">
+              <Link href="/docs" className="block text-outline hover:text-on-surface text-body-md transition-colors">
                 Terms of Service
               </Link>
-              <Link href="#" className="block text-outline hover:text-on-surface text-body-md transition-colors">
+              <Link href="https://github.com/geekstrancend/Sentri/security/policy" target="_blank" rel="noopener" className="block text-outline hover:text-on-surface text-body-md transition-colors">
                 Security Disclosure
               </Link>
             </div>
@@ -73,9 +79,9 @@ export function MarketingFooter() {
         <div className="border-t border-outline-variant pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-outline-variant text-xs">
             <p>Made with ❤️ by Sentri Security</p>
-            <Link href="#" className="hover:text-outline transition-colors">
+            <a href="mailto:contact@sentri.dev" className="hover:text-outline transition-colors">
               Contact
-            </Link>
+            </a>
           </div>
         </div>
       </div>

@@ -28,7 +28,7 @@ pub fn detect_router_slippage_validation(source: &str, file_path: &str) -> Vec<F
     // Quick check: must have both router swap + amount patterns
     let has_swap = ROUTER_SWAP.is_match(source);
     let has_amount = AMOUNT_OUT_MIN.is_match(source);
-    
+
     if !has_swap || !has_amount {
         return findings;
     }
@@ -40,14 +40,17 @@ pub fn detect_router_slippage_validation(source: &str, file_path: &str) -> Vec<F
 
         // Check for amountOutMin/similar patterns (e.g., hardcoded values)
         let line_lower = line.to_lowercase();
-        if !line_lower.contains("amountoutmin") && !line_lower.contains("minout")
-            && !line_lower.contains("minimumamount") && !line_lower.contains("minamount") {
+        if !line_lower.contains("amountoutmin")
+            && !line_lower.contains("minout")
+            && !line_lower.contains("minimumamount")
+            && !line_lower.contains("minamount")
+        {
             continue;
         }
 
         // This line has a min amount definition or usage
         // Look backward and forward for the entire function
-        let func_start = if line_num > 50 { line_num - 50 } else { 0 };
+        let func_start = line_num.saturating_sub(50);
         let func_end = std::cmp::min(line_num + 100, source.lines().count());
         let function_body = source
             .lines()
@@ -83,7 +86,7 @@ pub fn detect_router_slippage_validation(source: &str, file_path: &str) -> Vec<F
                 .with_metadata("detector".to_string(), "pattern_analysis".to_string())
                 .with_metadata("remediation".to_string(), "Add slippage calculation: (amount * 99) / 100".to_string()),
             );
-            break;  // Only report once per function
+            break; // Only report once per function
         }
     }
 

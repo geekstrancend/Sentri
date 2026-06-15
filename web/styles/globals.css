@@ -210,3 +210,99 @@
 .animate-pulse-dot {
   animation: pulse-dot 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out both;
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 8s ease infinite;
+}
+
+@keyframes count-glow {
+  0%, 100% {
+    text-shadow: 0 0 0px transparent;
+  }
+  50% {
+    text-shadow: 0 0 16px var(--indigo);
+  }
+}
+
+.animate-count-glow {
+  animation: count-glow 3s ease-in-out infinite;
+}
+
+/* Scroll-reveal: starts hidden, JS adds .is-visible when in view */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Card hover lift, used on feature/pricing/library cards */
+.lift-on-hover {
+  transition: transform 0.25s ease-out, border-color 0.25s ease-out,
+              box-shadow 0.25s ease-out;
+}
+
+.lift-on-hover:hover {
+  transform: translateY(-4px);
+  border-color: var(--indigo);
+  box-shadow: 0 12px 32px -8px rgba(0, 0, 0, 0.4);
+}
+
+/* Grid pattern background utility */
+.bg-grid-pattern {
+  background-image:
+    linear-gradient(to right, var(--outline-variant) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--outline-variant) 1px, transparent 1px);
+  background-size: 48px 48px;
+  opacity: 0.15;
+}
+
+/* Glass panel: frosted glass effect */
+.glass-panel {
+  background: color-mix(in srgb, var(--surface-container-low) 70%, transparent);
+  backdrop-filter: blur(12px);
+  border: 1px solid var(--outline-variant);
+}
+
+/* Spotlight movement animation */
+@keyframes spotlight-move {
+  0%, 100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(40px, -30px);
+  }
+}
+
+.animate-spotlight {
+  animation: spotlight-move 12s ease-in-out infinite;
+}

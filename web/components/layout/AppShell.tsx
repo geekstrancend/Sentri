@@ -20,13 +20,15 @@ import clsx from 'clsx'
 interface AppShellProps {
   children: React.ReactNode
   rightPanel?: React.ReactNode
-  currentPage?: 'dashboard' | 'audits' | 'library' | 'settings'
+  currentPage?: 'dashboard' | 'audits' | 'library' | 'settings' | 'support'
+  onNewScan?: () => void
 }
 
 export function AppShell({
   children,
   rightPanel,
   currentPage = 'dashboard',
+  onNewScan,
 }: AppShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
@@ -34,8 +36,8 @@ export function AppShell({
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, href: '/dashboard' },
     { id: 'audits', label: 'Audits', icon: Shield, href: '/dashboard' },
     { id: 'library', label: 'Library', icon: BookOpen, href: '/library' },
-    { id: 'settings', label: 'Settings', icon: Settings, href: '#' },
-    { id: 'support', label: 'Support', icon: HelpCircle, href: '#' },
+    { id: 'settings', label: 'Settings', icon: Settings, href: '/dashboard/settings' },
+    { id: 'support', label: 'Support', icon: HelpCircle, href: '/dashboard/support' },
   ]
 
   return (
@@ -89,7 +91,10 @@ export function AppShell({
 
         {/* Bottom Section */}
         <div className="p-4 border-t border-outline-variant space-y-3">
-          <button className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-surface-container-low border border-outline-variant rounded text-body-md text-on-surface-variant hover:border-indigo transition-colors">
+          <button
+            onClick={onNewScan}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-surface-container-low border border-outline-variant rounded text-body-md text-on-surface-variant hover:border-indigo transition-colors"
+          >
             <Plus size={16} />
             New Scan
           </button>

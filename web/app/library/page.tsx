@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useMemo } from 'react'
 import { BookOpen, Clock, Plus } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { Button } from '@/components/ui/Button'
@@ -82,7 +83,7 @@ export default function LibraryPage() {
   ]
 
   const InvariantCard = ({ invariant }: { invariant: InvariantCard }) => (
-    <div className="bg-surface-container-low border border-outline-variant rounded-lg p-6 hover:border-indigo transition-colors flex flex-col gap-3">
+    <div className="bg-surface-container-low border border-outline-variant rounded-lg p-6 lift-on-hover flex flex-col gap-3">
       {/* Header */}
       <div className="flex justify-between items-start">
         <span className="text-label-sm bg-surface-container border border-outline-variant text-outline px-2 py-1 rounded">
@@ -126,6 +127,21 @@ export default function LibraryPage() {
     </div>
   )
 
+  const [searchQuery, setSearchQuery] = useState('')
+  const [severityFilter, setSeverityFilter] = useState<string>('All')
+
+  const filteredInvariants = useMemo(() => {
+    return invariants.filter((inv) => {
+      const matchesSearch =
+        inv.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        inv.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        inv.tags.some((tag) => tag.toLowerCase().includes(searchQuery.toLowerCase()))
+      const matchesSeverity =
+        severityFilter === 'All' || inv.severity === severityFilter.toLowerCase()
+      return matchesSearch && matchesSeverity
+    })
+  }, [searchQuery, severityFilter])
+
   return (
     <AppShell currentPage="library">
       <div className="p-8 max-w-7xl mx-auto">
@@ -135,6 +151,8 @@ export default function LibraryPage() {
           <div className="flex gap-3 flex-1 ml-8 mr-4">
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search invariants (e.g., reentrancy, oracle)..."
               className="flex-1 max-w-xs bg-surface-container-lowest border border-outline-variant rounded px-4 py-2 text-body-md text-on-surface placeholder-outline-variant focus:outline-none focus:border-indigo"
             />
@@ -163,29 +181,26 @@ export default function LibraryPage() {
 
           <div className="w-px h-6 bg-outline-variant" />
 
-          <select className="bg-transparent border-0 text-outline text-body-md focus:outline-none">
-            <option>Severity: All</option>
-            <option>Critical</option>
-            <option>High</option>
-            <option>Medium</option>
-            <option>Low</option>
-          </select>
-
-          <select className="bg-transparent border-0 text-outline text-body-md focus:outline-none">
-            <option>Category: All</option>
-            <option>Core</option>
-            <option>DeFi</option>
-            <option>Bridges</option>
+          <select
+            value={severityFilter}
+            onChange={(e) => setSeverityFilter(e.target.value)}
+            className="bg-transparent border-0 text-outline text-body-md focus:outline-none"
+          >
+            <option>All</option>
+            <option>critical</option>
+            <option>high</option>
+            <option>medium</option>
+            <option>low</option>
           </select>
 
           <div className="ml-auto text-label-sm text-outline">
-            SHOWING 128 VERIFIED INVARIANTS
+            SHOWING {filteredInvariants.length} OF {invariants.length} INVARIANTS
           </div>
         </div>
 
         {/* Invariant Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-24">
-          {invariants.map((invariant) => (
+          {filteredInvariants.map((invariant) => (
             <InvariantCard key={invariant.id} invariant={invariant} />
           ))}
         </div>

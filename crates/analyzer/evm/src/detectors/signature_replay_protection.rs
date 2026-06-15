@@ -18,8 +18,7 @@ lazy_static! {
         Regex::new(r"(?i)chainid|chain\.id|block\.chainid|CHAIN_ID").unwrap();
     static ref NONCE_CHECK: Regex =
         Regex::new(r"(?i)nonce\[.*?\]\+\+|require\s*\(.*?nonce.*?\)").unwrap();
-    static ref MESSAGE_HASH: Regex =
-        Regex::new(r"(?i)keccak256\s*\(\s*abi\.encode").unwrap();
+    static ref MESSAGE_HASH: Regex = Regex::new(r"(?i)keccak256\s*\(\s*abi\.encode").unwrap();
 }
 
 pub fn detect_signature_replay_protection(source: &str, file_path: &str) -> Vec<Finding> {
@@ -31,9 +30,9 @@ pub fn detect_signature_replay_protection(source: &str, file_path: &str) -> Vec<
         || source_lower.contains("_domaintypehash")
         || source_lower.contains("eip712domain")
         || source_lower.contains("_buildseparator");
-    
+
     if has_eip712_safe {
-        return findings;  // EIP712 is safe
+        return findings; // EIP712 is safe
     }
 
     for (line_num, line) in source.lines().enumerate() {
@@ -42,7 +41,7 @@ pub fn detect_signature_replay_protection(source: &str, file_path: &str) -> Vec<
         }
 
         // Look backward and forward for function context
-        let func_start = if line_num > 100 { line_num - 100 } else { 0 };
+        let func_start = line_num.saturating_sub(100);
         let context_end = std::cmp::min(line_num + 100, source.lines().count());
         let function_body = source
             .lines()

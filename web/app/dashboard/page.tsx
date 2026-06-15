@@ -144,7 +144,7 @@ export default function DashboardPage() {
   )
 
   return (
-    <AppShell currentPage="dashboard" rightPanel={<ActivityFeed />}>
+    <AppShell currentPage="dashboard" rightPanel={<ActivityFeed />} onNewScan={() => setShowNewScanModal(true)}>
       <div className="p-8">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
@@ -199,7 +199,7 @@ export default function DashboardPage() {
           {/* Rows */}
           <div className="bg-surface divide-y divide-outline-variant">
             {scans.map((scan) => (
-              <div key={scan.id} className="px-4 py-4 hover:bg-surface-container-low transition-colors flex gap-4 items-center">
+              <div key={scan.id} className="px-4 py-4 hover:bg-surface-container-low transition-colors flex gap-4 items-center lift-on-hover">
                 {/* Project */}
                 <div className="flex-1">
                   <p className="text-body-md font-[600] text-on-surface">{scan.project}</p>
@@ -231,8 +231,8 @@ export default function DashboardPage() {
                       Complete
                     </div>
                   ) : (
-                    <div className="flex items-center gap-2 text-medium text-body-md">
-                      <div className="w-4 h-4 border-2 border-medium border-t-transparent rounded-full animate-spin" />
+                    <div className="flex items-center gap-2 text-medium text-body-md animate-pulse-dot">
+                      <div className="w-4 h-4 border-2 border-medium border-t-transparent rounded-full" />
                       Scanning
                     </div>
                   )}
@@ -293,7 +293,7 @@ export default function DashboardPage() {
               </select>
             </div>
             <Button variant="primary" size="sm" disabled className="mt-8 opacity-50 cursor-not-allowed">
-              🚀 Launch Scan
+              Launch Scan
             </Button>
           </div>
         </div>

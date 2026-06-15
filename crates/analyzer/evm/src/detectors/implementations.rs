@@ -12,8 +12,10 @@ pub fn detect_reentrancy_classic(source: &str, file_path: &str) -> Vec<Finding> 
     // in the same function without nonReentrant guard
 
     // Simplified pattern matching: check for external calls (either .call{ or .transfer)
-    if (source.contains(".call{") || source.contains(".transfer(") || source.contains(".send(")) 
-        && !source.contains("nonReentrant") && !source.contains("nonreentrant") {
+    if (source.contains(".call{") || source.contains(".transfer(") || source.contains(".send("))
+        && !source.contains("nonReentrant")
+        && !source.contains("nonreentrant")
+    {
         // Find line number of the pattern
         for (line_num, line) in source.lines().enumerate() {
             if (line.contains(".call{") || line.contains(".transfer(") || line.contains(".send("))

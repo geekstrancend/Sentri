@@ -237,3 +237,36 @@ Error: ENOENT: no such file or directory, open '/home/geekstrancend/Sentri/web/.
 }
 <w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, stat '/home/geekstrancend/Sentri/web/.next/cache/webpack/client-development/1.pack.gz'
  ✓ Compiled in 13.6s (455 modules)
+ ✓ Compiled in 10.2s (489 modules)
+ ✓ Compiled in 4.2s (455 modules)
+ ✓ Compiled in 3.8s (455 modules)
+ ✓ Compiled in 2.6s (455 modules)
+ ✓ Compiled in 4s (503 modules)
+ ✓ Compiled in 2.4s (455 modules)
+ ✓ Compiled in 1259ms (455 modules)
+ ✓ Compiled in 1358ms (455 modules)
+ ✓ Compiled in 3.1s (503 modules)
+ ✓ Compiled in 2.9s (503 modules)
+ ✓ Compiled in 2.9s (503 modules)
+ ✓ Compiled in 2.6s (503 modules)
+ ✓ Compiled in 2.5s (503 modules)
+ ✓ Compiled in 4.1s (455 modules)
+ ✓ Compiled in 3s (455 modules)
+ ✓ Compiled in 9s (503 modules)
+ ✓ Compiled in 3.2s (503 modules)
+ ✓ Compiled in 3.6s (455 modules)
+ ✓ Compiled in 3.6s (455 modules)
+ ✓ Compiled in 2.3s (455 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/home/geekstrancend/Sentri/web/.next/cache/webpack/client-development/0.pack.gz_' -> '/home/geekstrancend/Sentri/web/.next/cache/webpack/client-development/0.pack.gz'
+ ✓ Compiled in 8.4s (489 modules)
+ ✓ Compiled in 3.6s (455 modules)
+ ✓ Compiled in 3.5s (503 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/home/geekstrancend/Sentri/web/.next/cache/webpack/client-development/1.pack.gz_' -> '/home/geekstrancend/Sentri/web/.next/cache/webpack/client-development/1.pack.gz'
+ ✓ Compiled in 1788ms (455 modules)
+ ✓ Compiled in 12.8s (455 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/home/geekstrancend/Sentri/web/.next/cache/webpack/client-development/1.pack.gz_' -> '/home/geekstrancend/Sentri/web/.next/cache/webpack/client-development/1.pack.gz'
+ ✓ Compiled in 4.4s (455 modules)
+ ✓ Compiled in 10.9s (455 modules)
+ ✓ Compiled in 4.4s (455 modules)
+<w> [webpack.cache.PackFileCacheStrategy] Caching failed for pack: Error: ENOENT: no such file or directory, rename '/home/geekstrancend/Sentri/web/.next/cache/webpack/client-development/0.pack.gz_' -> '/home/geekstrancend/Sentri/web/.next/cache/webpack/client-development/0.pack.gz'
+ ✓ Compiled in 2.2s (455 modules)
