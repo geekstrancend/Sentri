@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { ShieldCheck, BookOpen, Brain, RefreshCw, ArrowRight, Check, HelpCircle } from 'lucide-react'
 import { useReveal } from '@/components/hooks/useReveal'
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
@@ -9,8 +10,14 @@ import { MarketingFooter } from '@/components/layout/MarketingFooter'
 import { Button } from '@/components/ui/Button'
 import { Terminal } from '@/components/ui/Terminal'
 import { SeverityBadge } from '@/components/ui/SeverityBadge'
+import { AuthModal } from '@/components/ui/AuthModal'
+import { SampleReportModal } from '@/components/ui/SampleReportModal'
 
 export default function HomePage() {
+  const [authOpen, setAuthOpen] = useState(false)
+  const [authTab, setAuthTab] = useState<'signin' | 'signup'>('signin')
+  const [sampleReportOpen, setSampleReportOpen] = useState(false)
+
   const leftRef = useReveal<HTMLDivElement>()
   const rightRef = useReveal<HTMLDivElement>()
   const featuresRef = useReveal<HTMLDivElement>()
@@ -56,10 +63,10 @@ export default function HomePage() {
             </p>
 
             <div className="flex flex-col sm:flex-row gap-3 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-              <Button variant="primary" size="lg" icon={<ArrowRight size={18} />} iconPosition="right">
+              <Button variant="primary" size="lg" icon={<ArrowRight size={18} />} iconPosition="right" onClick={() => { setAuthTab('signup'); setAuthOpen(true) }}>
                 Start free trial
               </Button>
-              <Button variant="secondary" size="lg">
+              <Button variant="secondary" size="lg" onClick={() => setSampleReportOpen(true)}>
                 View a sample report
               </Button>
             </div>
@@ -173,8 +180,8 @@ export default function HomePage() {
       </div>
 
       {/* Reports Section */}
-      <div className="px-6 py-24 max-w-7xl mx-auto w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-24 items-start">
+      <div className="px-6 py-12 max-w-7xl mx-auto w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-12 items-start">
           {/* Left Column */}
           <div ref={leftRef} className="text-left reveal">
             <h2 className="font-fraunces text-4xl font-[600] text-on-surface mb-6 leading-[48px]">
@@ -336,6 +343,9 @@ export default function HomePage() {
           </div>
         </div>
       </div>
+
+      <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} defaultTab={authTab} />
+      <SampleReportModal isOpen={sampleReportOpen} onClose={() => setSampleReportOpen(false)} />
 
       <MarketingFooter />
     </div>

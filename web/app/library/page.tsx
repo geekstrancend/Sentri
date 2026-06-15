@@ -2,10 +2,9 @@
 
 import { useState, useMemo } from 'react'
 import { BookOpen, Clock, Plus } from 'lucide-react'
-import { AppShell } from '@/components/layout/AppShell'
+import { DocsShell } from '@/components/layout/DocsShell'
 import { Button } from '@/components/ui/Button'
 import { SeverityBadge } from '@/components/ui/SeverityBadge'
-import { CodeBlock } from '@/components/ui/CodeBlock'
 
 interface InvariantCard {
   id: string
@@ -89,7 +88,7 @@ export default function LibraryPage() {
         <span className="text-label-sm bg-surface-container border border-outline-variant text-outline px-2 py-1 rounded">
           {invariant.id}
         </span>
-        <SeverityBadge level={invariant.severity} label={invariant.severity.toUpperCase()} />
+        <SeverityBadge level={invariant.severity} />
       </div>
 
       {/* Title */}
@@ -143,28 +142,32 @@ export default function LibraryPage() {
   }, [searchQuery, severityFilter])
 
   return (
-    <AppShell currentPage="library">
-      <div className="p-8 max-w-7xl mx-auto">
+    <DocsShell pageTitle="Security Invariant Library">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="font-fraunces text-3xl font-[600] text-on-surface">Invariant Library</h1>
-          <div className="flex gap-3 flex-1 ml-8 mr-4">
+        <div className="mb-8">
+          <h1 className="font-fraunces text-4xl font-[600] text-on-surface mb-4">Security Invariant Library</h1>
+          <p className="text-body-lg text-outline max-w-2xl mb-6">
+            Browse our comprehensive library of 1,400+ automated security checks designed for EVM, Solana, and Cosmos smart contracts. Every invariant is battle-tested through real-world audits.
+          </p>
+
+          <div className="flex gap-3 flex-wrap">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search invariants (e.g., reentrancy, oracle)..."
-              className="flex-1 max-w-xs bg-surface-container-lowest border border-outline-variant rounded px-4 py-2 text-body-md text-on-surface placeholder-outline-variant focus:outline-none focus:border-indigo"
+              className="flex-1 min-w-xs max-w-md bg-surface-container-lowest border border-outline-variant rounded px-4 py-2 text-body-md text-on-surface placeholder-outline-variant focus:outline-none focus:border-indigo"
             />
+            <Button variant="primary" size="sm" icon={<Plus size={16} />}>
+              Suggest invariant
+            </Button>
           </div>
-          <Button variant="primary" size="sm" icon={<Plus size={16} />}>
-            Suggest invariant
-          </Button>
         </div>
 
         {/* Filters */}
-        <div className="flex items-center gap-4 mb-8">
-          <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 mb-8 pb-6 border-b border-outline-variant">
+          <div className="flex gap-2 flex-wrap">
             {['All', 'EVM', 'Solana', 'Cosmos'].map((chain) => (
               <button
                 key={chain}
@@ -179,62 +182,63 @@ export default function LibraryPage() {
             ))}
           </div>
 
-          <div className="w-px h-6 bg-outline-variant" />
+          <div className="w-px h-6 bg-outline-variant hidden sm:block" />
 
           <select
             value={severityFilter}
             onChange={(e) => setSeverityFilter(e.target.value)}
-            className="bg-transparent border-0 text-outline text-body-md focus:outline-none"
+            className="bg-transparent border border-outline-variant rounded px-3 py-1.5 text-outline text-body-md focus:outline-none focus:border-indigo"
           >
-            <option>All</option>
-            <option>critical</option>
-            <option>high</option>
-            <option>medium</option>
-            <option>low</option>
+            <option>All Severity</option>
+            <option value="critical">Critical</option>
+            <option value="high">High</option>
+            <option value="medium">Medium</option>
+            <option value="low">Low</option>
           </select>
 
           <div className="ml-auto text-label-sm text-outline">
-            SHOWING {filteredInvariants.length} OF {invariants.length} INVARIANTS
+            {filteredInvariants.length} OF {invariants.length}
           </div>
         </div>
 
         {/* Invariant Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-24">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-16">
           {filteredInvariants.map((invariant) => (
             <InvariantCard key={invariant.id} invariant={invariant} />
           ))}
         </div>
 
-        {/* Grown From Real Audits Section */}
-        <div className="text-center mb-16">
-          <h2 className="font-fraunces text-4xl font-[600] text-on-surface mb-3">Grown from Real Audits</h2>
-          <p className="text-body-lg text-outline max-w-2xl mx-auto mb-12">
-            Our library is a living repository. Every high-severity finding from a Sentri audit is generalized and added to our automated detection suite.
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
-            {/* Left */}
-            <div className="text-left">
-              <h3 className="font-fraunces text-xl font-[600] text-on-surface mb-4">Audit Engine Detection</h3>
-              <p className="text-body-md text-outline leading-6">
-                A unique vulnerability is identified during a protocol-specific deep dive audit by our security engineers. The finding is then abstracted into a generalized invariant rule that can be applied across protocols with similar patterns.
-              </p>
-            </div>
-
-            {/* Right - Code Block */}
+        {/* Stats Section */}
+        <div className="bg-surface-container rounded-lg p-8 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
             <div>
-              <CodeBlock
-                language="solidity"
-                code={`// Found: Dynamic length bypass in ZK-circuit
-ASSERT(public_val < MAX_BITS);
-// MISSING VALIDATION on private_val
-// Results in circumvention of circuit constraints`}
-                highlightLines={[2]}
-              />
+              <div className="font-fraunces text-4xl font-[700] text-secondary mb-2">1,402</div>
+              <p className="text-on-surface-variant">Automated Checks</p>
+            </div>
+            <div>
+              <div className="font-fraunces text-4xl font-[700] text-secondary mb-2">5.3k</div>
+              <p className="text-on-surface-variant">Protocols Protected</p>
+            </div>
+            <div>
+              <div className="font-fraunces text-4xl font-[700] text-secondary mb-2">$2B+</div>
+              <p className="text-on-surface-variant">Secured Value</p>
             </div>
           </div>
         </div>
+
+        {/* Contribute Section */}
+        <div className="bg-indigo-container border border-indigo rounded-lg p-8 text-center">
+          <h3 className="font-fraunces text-2xl font-[600] text-on-surface mb-3">
+            Found a new vulnerability pattern?
+          </h3>
+          <p className="text-on-surface-variant mb-4 max-w-2xl mx-auto">
+            Help us strengthen the security of the entire Web3 ecosystem by suggesting new invariants based on your research and findings.
+          </p>
+          <Button variant="primary">
+            Submit New Invariant
+          </Button>
+        </div>
       </div>
-    </AppShell>
+    </DocsShell>
   )
 }

@@ -62,10 +62,10 @@ export function MarketingFooter() {
           <div>
             <h3 className="text-label-sm text-on-surface mb-4">Legal</h3>
             <div className="space-y-3">
-              <Link href="/docs" className="block text-outline hover:text-on-surface text-body-md transition-colors">
+              <Link href="/privacy" className="block text-outline hover:text-on-surface text-body-md transition-colors">
                 Privacy Policy
               </Link>
-              <Link href="/docs" className="block text-outline hover:text-on-surface text-body-md transition-colors">
+              <Link href="/terms" className="block text-outline hover:text-on-surface text-body-md transition-colors">
                 Terms of Service
               </Link>
               <Link href="https://github.com/geekstrancend/Sentri/security/policy" target="_blank" rel="noopener" className="block text-outline hover:text-on-surface text-body-md transition-colors">
