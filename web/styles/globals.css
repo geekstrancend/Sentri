@@ -4,6 +4,9 @@
 
 @layer base {
   :root {
+    --font-fraunces: Georgia, 'Times New Roman', serif;
+    --font-jetbrains: 'SF Mono', 'Menlo', 'Consolas', 'Liberation Mono', monospace;
+
     /* Material Design 3 Base Colors */
     --surface: #131314;
     --surface-dim: #131314;
@@ -44,10 +47,6 @@
     --low-border: rgba(74, 222, 128, 0.4);
     --indigo: #818CF8;
     --indigo-container: #2f3aa3;
-  }
-
-  html {
-    @apply dark;
   }
 
   body {

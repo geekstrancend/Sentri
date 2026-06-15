@@ -1,0 +1,27 @@
+
+> sentri-web@0.1.0 dev
+> next dev
+
+ ⚠ Port 3000 is in use, trying 3001 instead.
+  ▲ Next.js 14.2.3
+  - Local:        http://localhost:3001
+
+ ✓ Starting...
+ ✓ Ready in 6.9s
+ ○ Compiling / ...
+ ✓ Compiled / in 22.3s (532 modules)
+ GET / 200 in 20534ms
+ GET / 200 in 24211ms
+ ○ Compiling /docs ...
+ ✓ Compiled /docs in 2.4s (565 modules)
+ ✓ Compiled /_not-found in 463ms (554 modules)
+ GET /docs/getting-started 404 in 293ms
+ GET /docs 200 in 178ms
+ GET /docs/getting-started 404 in 109ms
+ GET /docs 200 in 109ms
+ GET /docs/cli 404 in 94ms
+ GET /docs 200 in 113ms
+ GET / 200 in 237ms
+ ○ Compiling /library ...
+ ✓ Compiled /pricing in 4.2s (596 modules)
+ ✓ Compiled in 9.1s (589 modules)

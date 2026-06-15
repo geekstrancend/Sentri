@@ -1,19 +1,5 @@
 import type { Metadata } from 'next'
-import { Fraunces, JetBrains_Mono } from 'next/font/google'
 import '../styles/globals.css'
-
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  variable: '--font-fraunces',
-  weight: ['300', '500', '600', '700', '900'],
-  style: ['normal', 'italic'],
-})
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  variable: '--font-jetbrains',
-  weight: ['400', '500', '600', '700'],
-})
 
 export const metadata: Metadata = {
   title: 'Sentri | Smart Contract Security Intelligence',
@@ -36,10 +22,10 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${fraunces.variable} ${jetbrainsMono.variable}`}
+      className="dark"
       suppressHydrationWarning
     >
-      <body className="dark">
+      <body>
         {children}
       </body>
     </html>
