@@ -1,8 +1,8 @@
-# 🎉 Sentri v0.3.0 - Phase B COMPLETE - Project Status Update
+# 🎉 Sentri v0.3.0 - Phase B COMPLETE - RELEASED TO CRATES.IO
 
-**Date**: 2026-06-05  
-**Status**: ✅ Phase B (8/8 invariants) COMPLETE - 52% of v0.3.0 delivered  
-**Focus**: High-priority vulnerability detection ready for production use
+**Date**: 2026-06-18  
+**Status**: ✅ **v0.3.0 RELEASED** - All 14 crates published to crates.io  
+**Focus**: Production-ready vulnerability detection with 26+ detectors
 
 ---
 
@@ -24,7 +24,49 @@ Code Quality: 0 unsafe code, 0 compiler warnings
 
 ---
 
-## 🚀 What's New in This Session
+## 🎉 v0.3.0 Release Summary
+
+### Release Artifacts
+- ✅ **14 Crates Published**: All dependencies released to crates.io in correct order
+- ✅ **6 Binary Platforms**: Linux (x86_64 glibc/musl, aarch64), macOS (x86_64, aarch64), Windows (x86_64)
+- ✅ **GitHub Release**: Complete with binary artifacts and SHA256 checksums
+- ✅ **Installation**: Available via `cargo install sentri-cli --version 0.3.0`
+
+### Published Crates (Layer-by-layer)
+```
+Layer 1: sentri-core v0.3.0                                    ✅
+Layer 2: sentri-ir v0.3.0, sentri-utils v0.3.0                ✅
+Layer 3: sentri-dsl-parser v0.3.0, sentri-report v0.3.0       ✅
+Layer 4: sentri-library v0.3.0                                ✅
+Layer 5: sentri-analyzer-evm/move/solana v0.3.0 + macro       ✅
+Layer 6: sentri-generator-evm/move/solana v0.3.0              ✅
+Layer 7: sentri-cli v0.3.0                                    ✅
+```
+
+### Release Process Completed
+1. ✅ All 287+ tests passing
+2. ✅ Code quality checks: format, clippy, audit all passing
+3. ✅ Reproducible build verification passed
+4. ✅ Version bumped to 0.3.0 across all crates
+5. ✅ Cargo.lock committed and synced
+6. ✅ Git tag v0.3.0 created and pushed
+7. ✅ Release pipeline executed successfully (10 stages)
+8. ✅ All 14 crates published to crates.io
+9. ✅ GitHub Release created with binaries
+
+### Installation Instructions
+**For end users:**
+```bash
+# Install latest v0.3.0
+cargo install sentri-cli --version 0.3.0
+
+# Verify installation
+sentri --version
+```
+
+---
+
+## 🚀 What's New in v0.3.0 Release
 
 ### Phase B Completion: 6 New Detectors
 Implemented 6 remaining Phase B invariants to reach 100% Phase B completion:

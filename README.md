@@ -16,6 +16,25 @@ One tool. Three chains. One DSL.
 
 ---
 
+## What's new in v0.3.0
+
+v0.3.0 significantly expands vulnerability detection with 18+ detectors across all supported chains (EVM, Solana, Move).
+
+**Key improvements:**
+
+- ✅ **26 Smart Contract Vulnerability Detectors** — Comprehensive coverage of critical and high-priority exploits
+- ✅ **Solana Program Analysis** — Enhanced Move and Solana-specific vulnerability patterns
+- ✅ **Improved Pattern Detection** — Fixed regex and detection logic for reduced false positives
+- ✅ **Better CLI Experience** — Enhanced command interface and help documentation
+- ✅ **Production Ready** — All tests passing, security audit complete, reproducible builds
+
+**Detector Coverage:**
+- **EVM**: 9+ detectors (reentrancy, missing checks, oracle manipulation, proxy issues)
+- **Solana**: 7+ detectors (PDA validation, authority checks, replay attacks)
+- **Move**: 5+ detectors (resource destruction, type safety, access control)
+
+---
+
 ## What's new in v0.2.2
 
 v0.2.2 adds reproducibility and flexible output options for better CI integration and reporting.

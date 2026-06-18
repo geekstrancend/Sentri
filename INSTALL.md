@@ -18,15 +18,15 @@ Download the latest release from [GitHub Releases](https://github.com/geekstranc
 
 ```bash
 # Download and verify
-curl -L -O https://github.com/geekstrancend/Sentri/releases/download/v0.1.0/sentri-linux-x86_64-0.1.0
-curl -L -O https://github.com/geekstrancend/Sentri/releases/download/v0.1.0/sentri-linux-x86_64-0.1.0.sha256
+curl -L -O https://github.com/geekstrancend/Sentri/releases/download/v0.3.0/sentri-linux-x86_64-0.3.0
+curl -L -O https://github.com/geekstrancend/Sentri/releases/download/v0.3.0/sentri-linux-x86_64-0.3.0.sha256
 
 # Verify checksum (critical for security)
-sha256sum -c sentri-linux-x86_64-0.1.0.sha256
+sha256sum -c sentri-linux-x86_64-0.3.0.sha256
 
 # Install
-chmod +x sentri-linux-x86_64-0.1.0
-sudo mv sentri-linux-x86_64-0.1.0 /usr/local/bin/sentri
+chmod +x sentri-linux-x86_64-0.3.0
+sudo mv sentri-linux-x86_64-0.3.0 /usr/local/bin/sentri
 
 # Verify installation
 sentri --version
@@ -35,16 +35,16 @@ sentri --version
 #### macOS (ARM64 / Apple Silicon)
 
 ```bash
-curl -L -O https://github.com/geekstrancend/Sentri/releases/download/v0.1.0/sentri-darwin-aarch64-0.1.0
-sha256sum -c sentri-darwin-aarch64-0.1.0.sha256
-chmod +x sentri-darwin-aarch64-0.1.0
-sudo mv sentri-darwin-aarch64-0.1.0 /usr/local/bin/sentri
+curl -L -O https://github.com/geekstrancend/Sentri/releases/download/v0.3.0/sentri-darwin-aarch64-0.3.0
+sha256sum -c sentri-darwin-aarch64-0.3.0.sha256
+chmod +x sentri-darwin-aarch64-0.3.0
+sudo mv sentri-darwin-aarch64-0.3.0 /usr/local/bin/sentri
 sentri --version
 ```
 
 #### Windows
 
-Download `sentri-windows-x86_64-0.1.0.exe` from the releases page and add it to your PATH.
+Download `sentri-windows-x86_64-0.3.0.exe` from the releases page and add it to your PATH.
 
 ### 2. Install from Source
 
@@ -59,7 +59,11 @@ cargo install --path crates/cli
 ### 3. Cargo Install
 
 ```bash
-cargo install sentri
+# Install latest version
+cargo install sentri-cli
+
+# Install specific version
+cargo install sentri-cli --version 0.3.0
 ```
 
 ## Verification

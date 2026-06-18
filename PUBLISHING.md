@@ -8,13 +8,13 @@ This guide explains how to publish Sentri to **crates.io** (Rust packages) and *
 
 ```bash
 # Update version in all Cargo.toml files and package.json
-# Currently at 0.1.7, update to 0.1.8 for example
+# Currently at 0.3.0, update to 0.3.1 for example
 
 # Create annotated tag
-git tag -a v0.1.8 -m "Release v0.1.8: Enhanced vulnerability detection"
+git tag -a v0.3.1 -m "Release v0.3.1: Bug fixes and improvements"
 
 # Push tag to trigger CI/CD
-git push origin v0.1.8
+git push origin v0.3.1
 ```
 
 That's it! GitHub Actions will automatically:
@@ -31,12 +31,13 @@ That's it! GitHub Actions will automatically:
 
 You need to configure two GitHub secrets in your repository:
 
-#### 1. **CRATES_IO_TOKEN** (for Rust publishing)
+#### 1. **CRATES_IO_TOKEN** (for Rust publishing) ✅ CONFIGURED
 
 ```bash
 # Generate at https://crates.io/me
 # Click "API Tokens" → "New Token"
 # Scopes: select "Only allow API calls scoped to crates.io"
+# Status: Currently active and working (v0.3.0 published successfully)
 ```
 
 Navigate to:
