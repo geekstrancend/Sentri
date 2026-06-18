@@ -8,7 +8,7 @@ Provides helpers for logging, configuration loading, and common operations acros
 
 ```toml
 [dependencies]
-sentri-utils = "0.1.3"
+sentri-utils = "0.3.0"
 ```
 
 ## Key Functions

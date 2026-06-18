@@ -8,9 +8,9 @@ Performs static analysis on Move modules and transactions to detect security inv
 
 ```toml
 [dependencies]
-sentri-analyzer-move = "0.1.3"
-sentri-core = "0.1.3"
-sentri-ir = "0.1.3"
+sentri-analyzer-move = "0.3.0"
+sentri-core = "0.3.0"
+sentri-ir = "0.3.0"
 ```
 
 ## Key Components

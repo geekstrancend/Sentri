@@ -10,7 +10,7 @@ As a library dependency:
 
 ```toml
 [dependencies]
-sentri-core = "0.1.3"
+sentri-core = "0.3.0"
 ```
 
 ## Key Types

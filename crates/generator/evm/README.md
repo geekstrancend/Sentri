@@ -8,9 +8,9 @@ Generates Solidity code and EVM bytecode instrumentation to enforce Sentri invar
 
 ```toml
 [dependencies]
-sentri-generator-evm = "0.1.3"
-sentri-core = "0.1.3"
-sentri-ir = "0.1.3"
+sentri-generator-evm = "0.3.0"
+sentri-core = "0.3.0"
+sentri-ir = "0.3.0"
 ```
 
 ## Key Components

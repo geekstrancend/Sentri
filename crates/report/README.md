@@ -8,8 +8,8 @@ Generates formatted violation reports (text, JSON, HTML) with detailed context a
 
 ```toml
 [dependencies]
-sentri-report = "0.1.3"
-sentri-core = "0.1.3"
+sentri-report = "0.3.0"
+sentri-core = "0.3.0"
 ```
 
 ## Generating Reports

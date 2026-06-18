@@ -8,9 +8,9 @@ Generates Move module code and runtime checks to enforce Sentri invariants in Mo
 
 ```toml
 [dependencies]
-sentri-generator-move = "0.1.3"
-sentri-core = "0.1.3"
-sentri-ir = "0.1.3"
+sentri-generator-move = "0.3.0"
+sentri-core = "0.3.0"
+sentri-ir = "0.3.0"
 ```
 
 ## Key Components

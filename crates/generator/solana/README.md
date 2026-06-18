@@ -8,9 +8,9 @@ Generates Rust/Anchor code and runtime instrumentation to enforce Sentri invaria
 
 ```toml
 [dependencies]
-sentri-generator-solana = "0.1.3"
-sentri-core = "0.1.3"
-sentri-ir = "0.1.3"
+sentri-generator-solana = "0.3.0"
+sentri-core = "0.3.0"
+sentri-ir = "0.3.0"
 ```
 
 ## Key Components

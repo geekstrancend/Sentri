@@ -8,8 +8,8 @@ Defines the AST and IR structures used to represent and analyze invariant specif
 
 ```toml
 [dependencies]
-sentri-ir = "0.1.3"
-sentri-core = "0.1.3"
+sentri-ir = "0.3.0"
+sentri-core = "0.3.0"
 ```
 
 ## Key Types

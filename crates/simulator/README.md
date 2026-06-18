@@ -8,9 +8,9 @@ Simulates blockchain transactions against invariant specifications to detect vio
 
 ```toml
 [dependencies]
-sentri-simulator = "0.1.3"
-sentri-core = "0.1.3"
-sentri-ir = "0.1.3"
+sentri-simulator = "0.3.0"
+sentri-core = "0.3.0"
+sentri-ir = "0.3.0"
 ```
 
 ## Key Components

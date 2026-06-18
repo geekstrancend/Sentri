@@ -8,8 +8,8 @@ Parses `.invar` files into the Sentri intermediate representation (IR) using the
 
 ```toml
 [dependencies]
-sentri-dsl-parser = "0.1.3"
-sentri-ir = "0.1.3"
+sentri-dsl-parser = "0.3.0"
+sentri-ir = "0.3.0"
 ```
 
 ## Parsing Invariant Files

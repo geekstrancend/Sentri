@@ -2,14 +2,14 @@
 
 Standard library of built-in invariants for the Sentri framework.
 
-Provides 22 pre-configured security checks for EVM (10), Solana (7), and Move (5).
+Provides 26+ pre-configured security checks for EVM (12+), Solana (7+), and Move (5+).
 
 ## Usage
 
 ```toml
 [dependencies]
-sentri-library = "0.1.3"
-sentri-core = "0.1.3"
+sentri-library = "0.3.0"
+sentri-core = "0.3.0"
 ```
 
 ## Built-in Invariants

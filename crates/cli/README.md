@@ -44,18 +44,19 @@ sentri check ./contracts --format json --output report.json
 
 | Chain | Language | Checks | Status |
 |-------|----------|--------|--------|
-| **EVM** | Solidity, Vyper | 10 built-in invariants | ✅ Stable |
-| **Solana** | Rust (Anchor, native) | 7 built-in invariants | ✅ Stable |
-| **Move** | Move (Aptos, Sui) | 5 built-in invariants | ✅ Stable |
+| **EVM** | Solidity, Vyper | 12+ built-in detectors | ✅ Stable |
+| **Solana** | Rust (Anchor, native) | 7+ built-in detectors | ✅ Stable |
+| **Move** | Move (Aptos, Sui) | 5+ built-in detectors | ✅ Stable |
 
 ## Features
 
-- 22 built-in security invariants
+- 26+ smart contract vulnerability detectors
 - Custom invariant DSL
 - JSON/HTML/text reports
 - CI/CD integration
 - Violation suppression
 - Cross-platform binaries
+- Production-ready security analysis
 
 ## Documentation
 

@@ -8,9 +8,9 @@ Performs static analysis on Solidity smart contracts and EVM bytecode to detect 
 
 ```toml
 [dependencies]
-sentri-analyzer-evm = "0.1.3"
-sentri-core = "0.1.3"
-sentri-ir = "0.1.3"
+sentri-analyzer-evm = "0.3.0"
+sentri-core = "0.3.0"
+sentri-ir = "0.3.0"
 ```
 
 ## Key Components

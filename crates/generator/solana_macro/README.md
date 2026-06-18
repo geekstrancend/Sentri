@@ -8,8 +8,8 @@ Provides derive and attribute macros for automating invariant enforcement in Sol
 
 ```toml
 [dependencies]
-sentri-solana-macro = "0.1.3"
-sentri-core = "0.1.3"
+sentri-solana-macro = "0.3.0"
+sentri-core = "0.3.0"
 ```
 
 ## Available Macros
