@@ -78,7 +78,7 @@ export function MarketingFooter() {
         {/* Bottom divider */}
         <div className="border-t border-outline-variant pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4 text-outline-variant text-xs">
-            <p>Made with ❤️ by Sentri Security</p>
+            <p>made by sentry team</p>
             <a href="mailto:contact@sentri.dev" className="hover:text-outline transition-colors">
               Contact
             </a>

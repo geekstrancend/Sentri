@@ -15,8 +15,15 @@ use sentri_core::Finding;
 lazy_static! {
     static ref RESOURCE_STRUCT: Regex =
         Regex::new(r"(?i)struct.*has\s+key|struct.*has\s+store|#\[resource\]").unwrap();
-    static ref MOVE_STATEMENT: Regex = Regex::new(r"(?i)move\s+\w+").unwrap();
-    static ref DROP_CALL: Regex = Regex::new(r"(?i)drop<|unpack.*!|destroy.*!").unwrap();
+    /// Matches move_from function calls that extract resources
+    static ref MOVE_FROM: Regex = Regex::new(r"(?i)move_from\s*<").unwrap();
+    /// Matches drop/destroy functions - use word boundaries to avoid matching "destroyed"
+    static ref DROP_CALL: Regex = Regex::new(r"(?i)drop\s*\(|drop\s*<|destroy\s*\(").unwrap();
+    /// Matches move_to transfers (moving resource to new location)
+    static ref MOVE_TO: Regex = Regex::new(r"(?i)move_to\s*<").unwrap();
+    /// Matches unpacking/destructuring patterns like: let Token { ... } or let Coin { x: _ }
+    static ref UNPACK_PATTERN: Regex = Regex::new(r"(?i)let\s+\w+\s*\{").unwrap();
+    /// Matches explicit discard: _ = variable or let _
     static ref DISCARD_PATTERN: Regex = Regex::new(r"_\s*=\s*\w+|let\s+_").unwrap();
 }
 
@@ -24,7 +31,12 @@ pub fn detect_move_resource_destruction(source: &str, file_path: &str) -> Vec<Fi
     let mut findings = Vec::new();
 
     for (line_num, line) in source.lines().enumerate() {
-        if line.trim().starts_with("//") || !RESOURCE_STRUCT.is_match(line) {
+        // Skip comment lines
+        if line.trim().starts_with("//") {
+            continue;
+        }
+        // Skip lines that don't have resource definitions
+        if !RESOURCE_STRUCT.is_match(line) {
             continue;
         }
 
@@ -36,12 +48,15 @@ pub fn detect_move_resource_destruction(source: &str, file_path: &str) -> Vec<Fi
             .collect::<Vec<_>>()
             .join("\n");
 
-        let has_move_statement = MOVE_STATEMENT.is_match(&function_body);
+        let has_move_from = MOVE_FROM.is_match(&function_body);
         let has_drop = DROP_CALL.is_match(&function_body);
+        let has_move_to = MOVE_TO.is_match(&function_body);
+        let has_unpack = UNPACK_PATTERN.is_match(&function_body);
         let has_discard = DISCARD_PATTERN.is_match(&function_body);
 
-        // Check if resource is moved but not properly destroyed
-        if has_move_statement && !has_drop && !has_discard {
+        // Check if resource is extracted but not properly handled
+        // It must be either: destroyed (drop), transferred (move_to), unpacked, or discarded
+        if has_move_from && !has_drop && !has_move_to && !has_unpack && !has_discard {
             findings.push(
                 Finding::new(
                     "move_resource_destruction".to_string(),

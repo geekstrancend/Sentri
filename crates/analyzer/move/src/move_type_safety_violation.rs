@@ -13,32 +13,32 @@ use regex::Regex;
 use sentri_core::Finding;
 
 lazy_static! {
-    static ref GENERIC_TYPE: Regex = Regex::new(r"(?i)<T\s*:|<Token\s*:|generic\s*type").unwrap();
+    /// Matches generic type parameters: <T>, <Token>, <T:, <Token:, or generic type keyword
+    static ref GENERIC_TYPE: Regex = Regex::new(r"(?i)<T|<Token|generic\s+type").unwrap();
     static ref UNSAFE_AS: Regex = Regex::new(r"(?i)as\s*(&?[A-Z]\w*<|T|Coin)").unwrap();
     static ref RESOURCE_CAST: Regex = Regex::new(r"(?i)(Coin|Asset|Token)<.*>\s*as\s*").unwrap();
-    static ref TYPE_ANNOTATION: Regex = Regex::new(r"(?i)let.*:\s*&?\w+<.*>").unwrap();
+    /// Matches explicit type annotations like: let x: Type<T> or let x: &Type<T>
+    static ref TYPE_ANNOTATION: Regex = Regex::new(r"(?i)let\s+\w+\s*:\s*&?\w+<").unwrap();
 }
 
 pub fn detect_move_type_safety_violation(source: &str, file_path: &str) -> Vec<Finding> {
     let mut findings = Vec::new();
 
-    for (line_num, line) in source.lines().enumerate() {
-        if line.trim().starts_with("//") || !UNSAFE_AS.is_match(line) {
-            continue;
-        }
+    // Check for generic types and unsafe casts across entire source
+    let has_generic = GENERIC_TYPE.is_match(source);
+    let has_type_annotation = TYPE_ANNOTATION.is_match(source);
 
-        let context_end = std::cmp::min(line_num + 50, source.lines().count());
-        let function_body = source
-            .lines()
-            .skip(line_num)
-            .take(context_end - line_num)
-            .collect::<Vec<_>>()
-            .join("\n");
-
-        let has_generic = GENERIC_TYPE.is_match(&function_body);
-        let has_type_annotation = TYPE_ANNOTATION.is_match(&function_body);
-
-        if has_generic && !has_type_annotation {
+    // If generics are used without type annotations and unsafe casts exist
+    if has_generic && !has_type_annotation {
+        for (line_num, line) in source.lines().enumerate() {
+            // Skip comment lines
+            if line.trim().starts_with("//") {
+                continue;
+            }
+            // Report on lines with unsafe type casting
+            if !UNSAFE_AS.is_match(line) {
+                continue;
+            }
             findings.push(
                 Finding::new(
                     "move_type_safety_violation".to_string(),

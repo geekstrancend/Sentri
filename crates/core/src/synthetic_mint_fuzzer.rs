@@ -83,7 +83,7 @@ impl SyntheticMintFuzzer {
 
             let has_mint = pattern.contains("function mint");
             let has_collateral_check =
-                pattern.contains("require") && pattern.contains("collateral");
+                pattern.contains("require(") && pattern.contains("collateral");
             let detected = has_mint && !has_collateral_check;
 
             if vulnerable && detected {

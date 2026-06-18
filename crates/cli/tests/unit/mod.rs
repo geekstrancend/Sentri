@@ -8,8 +8,9 @@ mod parser_tests {
 
     #[test]
     fn test_parse_simple_invariant() {
-        let input = r#"invariant: balance_conservation
-        true"#;
+        let input = r#"invariant BalanceConservation {
+            true
+        }"#;
 
         let result = InvariantParser::parse_invariant(input);
         assert!(result.is_ok(), "Parser should succeed on valid DSL");
@@ -17,8 +18,9 @@ mod parser_tests {
 
     #[test]
     fn test_parse_with_context() {
-        let input = r#"invariant: vault_conservation
-        true"#;
+        let input = r#"invariant VaultConservation {
+            true
+        }"#;
 
         let result = InvariantParser::parse_invariant(input);
         assert!(result.is_ok(), "Parser should handle basics");
@@ -26,8 +28,9 @@ mod parser_tests {
 
     #[test]
     fn test_parse_type_annotations() {
-        let input = r#"invariant: typed_balance
-        true"#;
+        let input = r#"invariant TypedBalance {
+            true
+        }"#;
 
         let result = InvariantParser::parse_invariant(input);
         assert!(result.is_ok(), "Parser should handle invariant definitions");
@@ -35,8 +38,9 @@ mod parser_tests {
 
     #[test]
     fn test_parse_complex_expression() {
-        let input = r#"invariant: complex_condition
-        true"#;
+        let input = r#"invariant ComplexCondition {
+            (balance > 0) && (balance <= max_balance)
+        }"#;
 
         let result = InvariantParser::parse_invariant(input);
         assert!(result.is_ok(), "Parser should handle boolean expressions");
@@ -44,8 +48,9 @@ mod parser_tests {
 
     #[test]
     fn test_parse_with_aggregations() {
-        let input = r#"invariant: sum_conservation
-        true"#;
+        let input = r#"invariant SumConservation {
+            total_in == total_out
+        }"#;
 
         let result = InvariantParser::parse_invariant(input);
         assert!(result.is_ok(), "Parser should handle invariants");

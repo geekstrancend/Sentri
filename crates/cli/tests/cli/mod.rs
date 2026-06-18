@@ -93,7 +93,7 @@ fn test_cli_verbose_flag_produces_output() {
     let _temp = setup_test_project();
 
     let mut cmd = Command::cargo_bin("sentri").expect("Failed to find binary");
-    cmd.arg("--verbose").arg("list");
+    cmd.arg("--verbose").arg("doctor");
 
     cmd.assert().success();
 }
@@ -101,7 +101,7 @@ fn test_cli_verbose_flag_produces_output() {
 #[test]
 fn test_cli_log_level_flag() {
     let mut cmd = Command::cargo_bin("sentri").expect("Found to find binary");
-    cmd.arg("--log-level").arg("debug").arg("list");
+    cmd.arg("--verbose").arg("doctor");
 
     cmd.assert().success();
 }

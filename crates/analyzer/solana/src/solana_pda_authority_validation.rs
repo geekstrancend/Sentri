@@ -20,8 +20,10 @@ lazy_static! {
         Regex::new(r"(?i)authority|admin|owner|signer|authorized").unwrap();
     static ref SIGNER_CHECK: Regex =
         Regex::new(r"(?i)require.*is_signer|require.*is_executable|account_info.*signer").unwrap();
-    static ref AUTHORITY_VALIDATION: Regex =
-        Regex::new(r"(?i)require.*authority.*==|require.*auth.*==|require.*signer.*==").unwrap();
+    static ref AUTHORITY_VALIDATION: Regex = Regex::new(
+        r"(?i)require.*authority.*==|require.*auth.*==|require.*signer.*==|require.*\.key\(\).*=="
+    )
+    .unwrap();
 }
 
 pub fn detect_solana_pda_authority_validation(source: &str, file_path: &str) -> Vec<Finding> {

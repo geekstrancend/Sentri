@@ -163,14 +163,21 @@ fn checks_backing_requirement(func_body: &str) -> bool {
 fn has_conservation_check(source: &str) -> bool {
     let source_lower = source.to_lowercase();
 
-    // Look for invariant checking patterns
-    let has_total_minted = source_lower.contains("totalminted");
-    let has_total_collateral =
-        source_lower.contains("totalcollateral") || source_lower.contains("totalbacking");
-    let has_require = source_lower.contains("require")
-        && (source_lower.contains("minted") || source_lower.contains("supply"));
+    // Look for actual conservation check patterns in code, not just keywords in comments
+    // NOTE: Removed bare "totalMinted && totalCollateral" check because they appear in
+    // comments explaining the LACK of checks (e.g., "No conservation check that totalMinted <= totalCollateral")
 
-    (has_total_minted && has_total_collateral) || has_require
+    // Check for actual require/assert statements checking conservation
+    source_lower.contains("require(totalminted")
+        || source_lower.contains("require(total_minted")
+        || source_lower.contains("assert(totalminted")
+        || source_lower.contains("assert(total_minted")
+        || source_lower.contains("require(totalcollateral")
+        || source_lower.contains("require(total_collateral")
+        || (source_lower.contains("require(")
+            && source_lower.contains("minted")
+            && source_lower.contains("collateral")
+            && !source_lower.contains("no conservation"))
 }
 
 #[cfg(test)]

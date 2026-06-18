@@ -239,6 +239,9 @@ impl Vault {
     fs::write(base.join("programs/vault/lib.rs"), solana_program)
         .expect("Failed to write Solana program");
 
+    // Create invariants directory
+    fs::create_dir_all(base.join("invariants")).expect("Failed to create invariants directory");
+
     // Create invariants for the Solana program
     fs::write(
         base.join("invariants/vault.invar"),
@@ -281,6 +284,9 @@ contract Token {
 
     fs::write(base.join("contracts/Token.sol"), evm_contract)
         .expect("Failed to write EVM contract");
+
+    // Create invariants directory
+    fs::create_dir_all(base.join("invariants")).expect("Failed to create invariants directory");
 
     // Create invariants for the EVM contract
     fs::write(

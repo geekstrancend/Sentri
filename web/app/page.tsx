@@ -31,18 +31,13 @@ export default function HomePage() {
       <MarketingNav />
 
       {/* Hero Section - Two Column Layout */}
-      <section id="product" className="relative px-6 py-24 lg:py-32 max-w-7xl mx-auto overflow-hidden">
+      <section id="product" className="relative px-6 py-6 lg:py-8 max-w-7xl mx-auto overflow-hidden">
         {/* Background layers */}
         <div className="absolute inset-0 bg-grid-pattern pointer-events-none" />
         <div className="absolute -top-20 -right-20 w-[600px] h-[600px] bg-indigo/8 rounded-full blur-3xl animate-spotlight pointer-events-none" />
 
-        {/* Faint ASCII watermark */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-[10px] sm:text-base lg:text-2xl opacity-[0.04] pointer-events-none scale-150 lg:scale-[2]">
-          <AsciiLogo />
-        </div>
-
         {/* Two-column grid */}
-        <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+        <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
           {/* Left: Copy */}
           <div className="text-left">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo/8 border border-indigo/20 mb-6 animate-fade-in-up">
@@ -91,7 +86,7 @@ export default function HomePage() {
       </section>
 
       {/* Stats Section */}
-      <div className="px-6 py-24 max-w-7xl mx-auto w-full">
+      <div className="px-6 py-6 lg:py-8 max-w-7xl mx-auto w-full">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="text-center">
             <div className="text-display-md text-secondary font-[600] mb-2 count-glow">
@@ -121,7 +116,7 @@ export default function HomePage() {
       </div>
 
       {/* Features Section - Bento Layout */}
-      <div ref={featuresRef} className="px-6 py-24 max-w-7xl mx-auto w-full">
+      <div ref={featuresRef} className="px-6 py-6 lg:py-8 max-w-7xl mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 reveal">
           {/* Large card (left, spans 2 columns) */}
           <div className="lg:col-span-2 bg-surface-container-low p-8 rounded-lg border border-outline-variant lift-on-hover relative overflow-hidden">
@@ -170,18 +165,9 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* Section Divider */}
-      <div className="px-6 max-w-7xl mx-auto w-full mb-24">
-        <div className="flex items-center gap-4 opacity-20">
-          <div className="flex-1 h-px bg-outline-variant" />
-          <AsciiLogo className="text-[8px] leading-none flex-shrink-0" />
-          <div className="flex-1 h-px bg-outline-variant" />
-        </div>
-      </div>
-
       {/* Reports Section */}
-      <div className="px-6 py-12 max-w-7xl mx-auto w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 mb-12 items-start">
+      <div className="px-6 py-6 lg:py-8 max-w-7xl mx-auto w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 items-start">
           {/* Left Column */}
           <div ref={leftRef} className="text-left reveal">
             <h2 className="font-fraunces text-4xl font-[600] text-on-surface mb-6 leading-[48px]">
@@ -250,7 +236,7 @@ export default function HomePage() {
       </div>
 
       {/* Pricing Section */}
-      <div className="px-6 py-24 max-w-7xl mx-auto w-full text-center">
+      <div className="px-6 py-6 lg:py-8 max-w-7xl mx-auto w-full text-center">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo/8 border border-indigo/20 mb-6">
           <span className="text-label-sm text-outline">SECURE YOUR FUTURE</span>
         </div>

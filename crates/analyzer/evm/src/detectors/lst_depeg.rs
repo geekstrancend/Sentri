@@ -116,8 +116,9 @@ fn extract_function_name(line: &str) -> String {
 /// Check if function has depeg protection
 fn has_depeg_protection(source_lower: &str) -> bool {
     // Patterns indicating depeg checks
-    source_lower.contains("depeg")
-        || source_lower.contains("peg_band")
+    // NOTE: Removed bare "depeg" check because it matches comments like "No depeg check!"
+    // Rely on specific protection patterns instead
+    source_lower.contains("peg_band")
         || source_lower.contains("max_deviation")
         || source_lower.contains("deviation_tolerance")
         || source_lower.contains("peg_threshold")

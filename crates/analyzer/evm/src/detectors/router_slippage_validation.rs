@@ -17,8 +17,10 @@ lazy_static! {
         r"(?i)(swapExactTokensForTokens|swapTokensForExactTokens|swapExactETHForTokens|swapTokensForExactETH)"
     ).unwrap();
     static ref AMOUNT_OUT_MIN: Regex = Regex::new(r"(?i)amountOutMin|minAmountOut|minOut|minimumAmount").unwrap();
+    /// Matches actual slippage calculations: (amount * 99) / 100 or similar
+    /// Removed bare "slippage" check to avoid matching comments like "no slippage calc"
     static ref SLIPPAGE_CALC: Regex =
-        Regex::new(r"(?i)(amountOutMin|minOut|minimumAmount|minAmount).*?(\*\s*9[0-9]|/\s*100|slippage)").unwrap();
+        Regex::new(r"(?i)(amountOutMin|minOut|minimumAmount|minAmount).*?(\*\s*9[0-9]|/\s*100)").unwrap();
     static ref REQUIRE_CHECK: Regex = Regex::new(r"(?i)require\s*\(.*?amount.*?>=.*?amountOutMin").unwrap();
 }
 

@@ -306,3 +306,40 @@
 .animate-spotlight {
   animation: spotlight-move 12s ease-in-out infinite;
 }
+
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 0.2;
+    filter: drop-shadow(0 0 8px transparent);
+  }
+  50% {
+    opacity: 0.6;
+    filter: drop-shadow(0 0 24px var(--secondary));
+  }
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+@keyframes type-reveal {
+  0% {
+    width: 0;
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 1;
+  }
+  100% {
+    width: 100%;
+    opacity: 1;
+  }
+}
+
+.animate-type-reveal {
+  animation: type-reveal 6s steps(60, end) forwards;
+  overflow: hidden;
+}
