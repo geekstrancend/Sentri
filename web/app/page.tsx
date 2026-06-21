@@ -18,12 +18,12 @@ export default function HomePage() {
   const [authTab, setAuthTab] = useState<'signin' | 'signup'>('signin')
   const [sampleReportOpen, setSampleReportOpen] = useState(false)
 
-  const leftRef = useReveal<HTMLDivElement>()
-  const rightRef = useReveal<HTMLDivElement>()
-  const featuresRef = useReveal<HTMLDivElement>()
-  const starterRef = useReveal<HTMLDivElement>()
-  const proRef = useReveal<HTMLDivElement>()
-  const enterpriseRef = useReveal<HTMLDivElement>()
+  const leftRef = useReveal()
+  const rightRef = useReveal()
+  const featuresRef = useReveal()
+  const starterRef = useReveal()
+  const proRef = useReveal()
+  const enterpriseRef = useReveal()
 
   return (
     <div className="min-h-screen bg-surface flex flex-col">
@@ -31,7 +31,7 @@ export default function HomePage() {
       <MarketingNav />
 
       {/* Hero Section - Two Column Layout */}
-      <section id="product" className="relative px-6 py-6 lg:py-8 max-w-7xl mx-auto overflow-hidden">
+      <section id="product" className="relative px-6 py-3 lg:py-4 max-w-7xl mx-auto overflow-hidden">
         {/* Background layers */}
         <div className="absolute inset-0 bg-grid-pattern pointer-events-none" />
         <div className="absolute -top-20 -right-20 w-[600px] h-[600px] bg-indigo/8 rounded-full blur-3xl animate-spotlight pointer-events-none" />
@@ -86,7 +86,7 @@ export default function HomePage() {
       </section>
 
       {/* Stats Section */}
-      <div className="px-6 py-6 lg:py-8 max-w-7xl mx-auto w-full">
+      <div className="px-6 py-3 lg:py-4 pb-0 max-w-7xl mx-auto w-full">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="text-center">
             <div className="text-display-md text-secondary font-[600] mb-2 count-glow">
@@ -116,17 +116,17 @@ export default function HomePage() {
       </div>
 
       {/* Features Section - Bento Layout */}
-      <div ref={featuresRef} className="px-6 py-6 lg:py-8 max-w-7xl mx-auto w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 reveal">
+      <div ref={featuresRef} className="px-6 pt-0 pb-0 max-w-7xl mx-auto w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 reveal">
           {/* Large card (left, spans 2 columns) */}
-          <div className="lg:col-span-2 bg-surface-container-low p-8 rounded-lg border border-outline-variant lift-on-hover relative overflow-hidden">
+          <div className="lg:col-span-2 bg-surface-container-low p-0 rounded-lg border border-outline-variant lift-on-hover relative overflow-hidden">
             <div className="absolute -right-8 -bottom-8 opacity-[0.04]">
               <AsciiLogo />
             </div>
-            <div className="w-12 h-12 rounded bg-surface-container-lowest border border-outline-variant flex items-center justify-center mb-4 relative z-10">
+            <div className="w-12 h-12 rounded bg-surface-container-lowest border border-outline-variant flex items-center justify-center mb-0 relative z-10">
               <BookOpen size={24} className="text-secondary" />
             </div>
-            <h3 className="font-fraunces text-xl font-[600] text-on-surface mb-3 relative z-10">
+            <h3 className="font-fraunces text-xl font-[600] text-on-surface mb-0 relative z-10">
               Invariant Library
             </h3>
             <p className="text-body-md text-outline relative z-10">
@@ -135,13 +135,13 @@ export default function HomePage() {
           </div>
 
           {/* Right column: 2 stacked cards */}
-          <div className="flex flex-col gap-4">
+          <div className="flex flex-col gap-0">
             {/* Top card */}
-            <div className="bg-surface-container-low p-8 rounded-lg border border-outline-variant lift-on-hover">
-              <div className="w-12 h-12 rounded bg-surface-container-lowest border border-outline-variant flex items-center justify-center mb-4">
+            <div className="bg-surface-container-low p-0 rounded-lg border border-outline-variant lift-on-hover">
+              <div className="w-12 h-12 rounded bg-surface-container-lowest border border-outline-variant flex items-center justify-center mb-0">
                 <Brain size={24} className="text-secondary" />
               </div>
-              <h3 className="font-fraunces text-xl font-[600] text-on-surface mb-3">
+              <h3 className="font-fraunces text-xl font-[600] text-on-surface mb-0">
                 AI Co-Auditor
               </h3>
               <p className="text-body-md text-outline">
@@ -150,11 +150,11 @@ export default function HomePage() {
             </div>
 
             {/* Bottom card */}
-            <div className="bg-surface-container-low p-8 rounded-lg border border-outline-variant lift-on-hover">
-              <div className="w-12 h-12 rounded bg-surface-container-lowest border border-outline-variant flex items-center justify-center mb-4">
+            <div className="bg-surface-container-low p-0 rounded-lg border border-outline-variant lift-on-hover">
+              <div className="w-12 h-12 rounded bg-surface-container-lowest border border-outline-variant flex items-center justify-center mb-0">
                 <RefreshCw size={24} className="text-secondary" />
               </div>
-              <h3 className="font-fraunces text-xl font-[600] text-on-surface mb-3">
+              <h3 className="font-fraunces text-xl font-[600] text-on-surface mb-0">
                 Self-Improving Engine
               </h3>
               <p className="text-body-md text-outline">
@@ -166,11 +166,11 @@ export default function HomePage() {
       </div>
 
       {/* Reports Section */}
-      <div className="px-6 py-6 lg:py-8 max-w-7xl mx-auto w-full">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 items-start">
+      <div className="px-6 pt-0 pb-0 max-w-7xl mx-auto w-full">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-0 items-start">
           {/* Left Column */}
           <div ref={leftRef} className="text-left reveal">
-            <h2 className="font-fraunces text-4xl font-[600] text-on-surface mb-6 leading-[48px]">
+            <h2 className="font-fraunces text-4xl font-[600] text-on-surface mb-1 leading-[48px]">
               Professional Grade Reports
             </h2>
             <p className="text-body-lg text-outline mb-6">
@@ -236,7 +236,7 @@ export default function HomePage() {
       </div>
 
       {/* Pricing Section */}
-      <div className="px-6 py-6 lg:py-8 max-w-7xl mx-auto w-full text-center">
+      <div className="px-6 py-3 lg:py-4 max-w-7xl mx-auto w-full text-center">
         <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo/8 border border-indigo/20 mb-6">
           <span className="text-label-sm text-outline">SECURE YOUR FUTURE</span>
         </div>

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import '../styles/globals.css'
+import { AuthProvider } from './providers'
 
 export const metadata: Metadata = {
   title: 'Sentri | Smart Contract Security Intelligence',
@@ -26,7 +27,9 @@ export default function RootLayout({
       suppressHydrationWarning
     >
       <body>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
       </body>
     </html>
   )

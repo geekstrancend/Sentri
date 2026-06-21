@@ -1,7 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { X, Eye, EyeOff, Mail, Lock, User } from 'lucide-react'
+import { signIn } from 'next-auth/react'
+import { X, Eye, EyeOff, Mail, Lock, User, Wallet } from 'lucide-react'
 import { Button } from './Button'
 
 interface AuthModalProps {
@@ -16,15 +17,125 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'signin' }: AuthModalP
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [fullName, setFullName] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   if (!isOpen) return null
 
-  const handleSignIn = () => {
-    console.log('Sign in with:', { email, password })
+  const handleSignIn = async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const result = await signIn('credentials', {
+        email,
+        password,
+        redirect: true,
+        callbackUrl: '/dashboard',
+      })
+      
+      if (!result?.ok) {
+        setError('Invalid email or password')
+      }
+    } catch (err) {
+      setError('An error occurred. Please try again.')
+      console.error('Sign in error:', err)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
-  const handleSignUp = () => {
-    console.log('Sign up with:', { fullName, email, password })
+  const handleSignUp = async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: fullName,
+          email,
+          password,
+        }),
+      })
+
+      if (!response.ok) {
+        const data = await response.json()
+        setError(data.error || 'Sign up failed')
+        return
+      }
+
+      // Sign in after successful signup
+      const signInResult = await signIn('credentials', {
+        email,
+        password,
+        redirect: true,
+        callbackUrl: '/dashboard',
+      })
+
+      if (!signInResult?.ok) {
+        setError('Account created but sign in failed. Please try signing in.')
+      }
+    } catch (err) {
+      setError('An error occurred. Please try again.')
+      console.error('Sign up error:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleOAuthSignIn = (provider: 'github' | 'google') => {
+    signIn(provider, { callbackUrl: '/dashboard' })
+  }
+
+  const handleWalletConnect = async () => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      // Request wallet connection (MetaMask, WalletConnect, etc.)
+      if (!window.ethereum) {
+        setError('Web3 wallet not detected. Please install MetaMask or use WalletConnect.')
+        setIsLoading(false)
+        return
+      }
+
+      // Request account access
+      const accounts = await window.ethereum.request({
+        method: 'eth_requestAccounts',
+      })
+
+      if (!accounts || accounts.length === 0) {
+        setError('Wallet connection denied')
+        setIsLoading(false)
+        return
+      }
+
+      const address = accounts[0]
+      const message = `Sign this message to authenticate with Sentri. Timestamp: ${Date.now()}`
+
+      // Request signature
+      const signature = await window.ethereum.request({
+        method: 'personal_sign',
+        params: [message, address],
+      })
+
+      // Sign in with wallet
+      const result = await signIn('wallet', {
+        address,
+        message,
+        signature,
+        redirect: true,
+        callbackUrl: '/dashboard',
+      })
+
+      if (!result?.ok) {
+        setError('Wallet authentication failed')
+      }
+    } catch (err) {
+      setError('Wallet connection error. Please try again.')
+      console.error('Wallet error:', err)
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -73,12 +184,24 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'signin' }: AuthModalP
           {/* OAuth Buttons */}
           <div className="space-y-2">
             <p className="text-xs text-on-surface-variant text-center mb-3">
-              Note: OAuth requires backend configuration
+              Quick sign in
             </p>
             <Button
               variant="secondary"
               className="w-full justify-center gap-2"
-              onClick={() => console.log('OAuth: Google')}
+              onClick={() => handleOAuthSignIn('github')}
+              disabled={isLoading}
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v 3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+              </svg>
+              GitHub
+            </Button>
+            <Button
+              variant="secondary"
+              className="w-full justify-center gap-2"
+              onClick={() => handleOAuthSignIn('google')}
+              disabled={isLoading}
             >
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -91,36 +214,11 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'signin' }: AuthModalP
             <Button
               variant="secondary"
               className="w-full justify-center gap-2"
-              onClick={() => console.log('OAuth: Apple')}
+              onClick={handleWalletConnect}
+              disabled={isLoading}
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M17.05 13.5c-.91 2.04-.39 3.81 1.26 5.05.92.74 2.22.9 3.28.5.37-.15.7-.36.99-.63-.41-.62-.96-1.04-1.49-1.42-.3-.23-.59-.45-.78-.75-.52-.87.12-2.28 1.16-2.75-.38-1.63-1.74-2.73-3.42-2.73-1.18 0-2.3.5-3.24 1.4.6 1.08 1.23 2.13 1.91 3.13.24.38.37.8.37 1.27z" />
-                <path d="M5.17 7.28c.67-.84 1.62-1.39 2.68-1.39.9 0 1.73.38 2.31 1 .46-.55.73-1.27.73-2.06 0-1.69-1.37-3.06-3.06-3.06-1.37 0-2.56.88-3 2.1.48.35.92.76 1.34 1.21z" />
-              </svg>
-              Apple
-            </Button>
-            <Button
-              variant="secondary"
-              className="w-full justify-center gap-2"
-              onClick={() => console.log('OAuth: Microsoft')}
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                <rect x="2" y="2" width="9" height="9" />
-                <rect x="13" y="2" width="9" height="9" />
-                <rect x="2" y="13" width="9" height="9" />
-                <rect x="13" y="13" width="9" height="9" />
-              </svg>
-              Microsoft
-            </Button>
-            <Button
-              variant="secondary"
-              className="w-full justify-center gap-2"
-              onClick={() => console.log('OAuth: Yahoo')}
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M9 15l-3-3m0 0l3-3m-3 3h12M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z" stroke="currentColor" strokeWidth="2" fill="none" />
-              </svg>
-              Yahoo
+              <Wallet className="w-4 h-4" />
+              Web3 Wallet
             </Button>
           </div>
 
@@ -205,12 +303,23 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'signin' }: AuthModalP
             </div>
           )}
 
+          {/* Error Message */}
+          {error && (
+            <div className="bg-red-500/10 border border-red-500/30 text-red-400 text-sm px-3 py-2 rounded-lg">
+              {error}
+            </div>
+          )}
+
           {/* CTA Button */}
           <Button
             className="w-full"
             onClick={tab === 'signin' ? handleSignIn : handleSignUp}
+            disabled={isLoading}
           >
-            {tab === 'signin' ? 'Sign In' : 'Create Account'}
+            {isLoading 
+              ? (tab === 'signin' ? 'Signing in...' : 'Creating account...')
+              : (tab === 'signin' ? 'Sign In' : 'Create Account')
+            }
           </Button>
 
           {/* Trial Disclaimer */}

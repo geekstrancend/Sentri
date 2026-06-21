@@ -1,22 +1,88 @@
 import { NextRequest, NextResponse } from 'next/server'
 
-export async function POST(request: NextRequest) {
+interface Finding {
+  severity: 'critical' | 'high' | 'medium' | 'low'
+  title: string
+  description: string
+  location?: string
+  line?: number
+  recommendation: string
+}
+
+/**
+ * Pattern-based detection using invariant library
+ */
+function detectPatterns(code: string, language: string): Finding[] {
+  const findings: Finding[] = []
+  
+  // Solidity patterns
+  if (language === 'solidity') {
+    // Reentrancy pattern
+    if (/\.call\{value:.*?\}|\.call\(""\)|msg\.sender\.call/i.test(code)) {
+      // Check for state changes after external calls
+      if (/\.call[\s\S]*?[\w\[\]]+\s*=|\.call[\s\S]*?delete\s+/i.test(code)) {
+        findings.push({
+          severity: 'critical',
+          title: 'Reentrancy Vulnerability',
+          description: 'Potential reentrancy vulnerability detected. State changes occur after external calls.',
+          recommendation: 'Use checks-effects-interactions pattern or add mutex lock. Consider OpenZeppelin ReentrancyGuard.',
+          location: 'Smart Contract',
+        })
+      }
+    }
+
+    // Unchecked return values
+    if (/\.transfer\(|\.send\(|\.call\(\)/i.test(code) && !/require\(.*\.transfer|success/i.test(code)) {
+      findings.push({
+        severity: 'high',
+        title: 'Unchecked Transfer Return Value',
+        description: 'Transfer call return value is not checked.',
+        recommendation: 'Use safeTransfer from OpenZeppelin or check return value with require().',
+        location: 'Smart Contract',
+      })
+    }
+
+    // Integer overflow/underflow risks
+    if (/\+\+|--|[\+\-\*]\s*=|\+\s+|for\s*\(.*?;.*?\+\+/i.test(code)) {
+      findings.push({
+        severity: 'high',
+        title: 'Integer Arithmetic Risk',
+        description: 'Arithmetic operations without overflow/underflow protection.',
+        recommendation: 'Use SafeMath library or Solidity 0.8+ checked arithmetic.',
+        location: 'Smart Contract',
+      })
+    }
+
+    // Missing access control
+    if (/function\s+\w+\s*\([^)]*\)\s*(public|external)\s*[^{]*{[\s\S]*?(transfer|burn|mint|pause)/i.test(code)) {
+      if (!/onlyOwner|onlyAdmin|require.*msg\.sender/i.test(code)) {
+        findings.push({
+          severity: 'critical',
+          title: 'Missing Access Control',
+          description: 'Critical function lacks proper access control.',
+          recommendation: 'Add onlyOwner or appropriate role-based access control.',
+          location: 'Smart Contract',
+        })
+      }
+    }
+  }
+
+  return findings
+}
+
+/**
+ * AI-powered analysis using Claude
+ */
+async function analyzeWithAI(code: string, language: string): Promise<Finding[]> {
+  const findings: Finding[] = []
+
+  const apiKey = process.env.ANTHROPIC_API_KEY
+  if (!apiKey) {
+    console.warn('ANTHROPIC_API_KEY not set, skipping AI analysis')
+    return findings
+  }
+
   try {
-    const { code } = await request.json()
-
-    if (!code || typeof code !== 'string') {
-      return NextResponse.json({ error: 'Code is required' }, { status: 400 })
-    }
-
-    const apiKey = process.env.ANTHROPIC_API_KEY
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: 'ANTHROPIC_API_KEY environment variable is not set' },
-        { status: 500 },
-      )
-    }
-
-    // Call Anthropic API
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -26,77 +92,124 @@ export async function POST(request: NextRequest) {
       },
       body: JSON.stringify({
         model: 'claude-haiku-4-5-20251001',
-        max_tokens: 1024,
+        max_tokens: 2048,
+        system: `You are an expert smart contract security auditor. Analyze the provided code and identify vulnerabilities.
+        
+Return ONLY a valid JSON array of findings with this exact structure:
+[
+  {
+    "severity": "critical|high|medium|low",
+    "title": "Vulnerability title",
+    "description": "Detailed description",
+    "recommendation": "How to fix"
+  }
+]
+
+Focus on:
+- Reentrancy vulnerabilities
+- Integer overflows/underflows
+- Unchecked external calls
+- Access control issues
+- Dangerous patterns
+- Missing input validation`,
         messages: [
           {
             role: 'user',
-            content: `You are a smart contract security expert. Analyze the following code for vulnerabilities and security issues.
-
-Code to analyze:
-\`\`\`
-${code}
-\`\`\`
-
-Provide your response in JSON format with the following structure:
-{
-  "riskLevel": "low|medium|high|critical",
-  "summary": "Brief overview of the code and main findings",
-  "vulnerabilities": ["vulnerability 1", "vulnerability 2", ...],
-  "recommendations": ["recommendation 1", "recommendation 2", ...]
-}
-
-Be concise but thorough. Focus on high-impact security issues.`,
+            content: `Analyze this ${language} code for security vulnerabilities:\n\n${code.substring(0, 8000)}`,
           },
         ],
       }),
     })
 
     if (!response.ok) {
-      const error = await response.text()
-      console.error('Anthropic API error:', error)
-      return NextResponse.json(
-        { error: 'Failed to analyze code with Claude Haiku' },
-        { status: 500 },
-      )
+      console.error('Claude API error:', response.status)
+      return findings
     }
 
     const data = await response.json()
+    const content = data.content[0]?.text || ''
 
-    // Extract the text response
-    const textContent = data.content.find((block: any) => block.type === 'text')
-    if (!textContent) {
+    // Extract JSON array from response
+    const jsonMatch = content.match(/\[[\s\S]*\]/)
+    if (jsonMatch) {
+      const parsed = JSON.parse(jsonMatch[0])
+      if (Array.isArray(parsed)) {
+        findings.push(...parsed)
+      }
+    }
+  } catch (error) {
+    console.error('AI analysis error:', error)
+  }
+
+  return findings
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const { code, language = 'solidity', githubUrl } = await request.json()
+
+    if (!code && !githubUrl) {
       return NextResponse.json(
-        { error: 'No text response from Claude Haiku' },
-        { status: 500 },
+        { error: 'Code or GitHub URL required' },
+        { status: 400 }
       )
     }
 
-    // Parse the JSON response
-    try {
-      const analysisText = textContent.text
-      // Extract JSON from the response (it might be wrapped in markdown code blocks)
-      const jsonMatch = analysisText.match(/\{[\s\S]*\}/)
-      if (!jsonMatch) {
-        throw new Error('No JSON found in response')
-      }
-      const analysis = JSON.parse(jsonMatch[0])
-
-      return NextResponse.json(analysis)
-    } catch (parseError) {
-      console.error('Error parsing Claude response:', parseError)
-      // Return a default analysis if parsing fails
-      return NextResponse.json({
-        riskLevel: 'medium',
-        summary: 'Analysis complete. Please review the code for potential security issues.',
-        vulnerabilities: ['Unable to parse detailed analysis'],
-        recommendations: ['Enable verbose logging for detailed results'],
-      })
+    // Size limit check
+    if (code && code.length > 100000) {
+      return NextResponse.json(
+        { error: 'Code exceeds maximum size (100KB)' },
+        { status: 400 }
+      )
     }
-  } catch (error) {
-    console.error('API error:', error)
+
+    let codeToAnalyze = code || ''
+
+    // Combine pattern-based and AI analysis
+    const [patternFindings, aiFindings] = await Promise.all([
+      Promise.resolve(detectPatterns(codeToAnalyze, language)),
+      analyzeWithAI(codeToAnalyze, language),
+    ])
+
+    // Combine and deduplicate findings
+    const allFindings = [...patternFindings, ...aiFindings]
+    const uniqueFindings = allFindings.filter(
+      (finding, index, self) =>
+        index ===
+        self.findIndex(
+          (f) =>
+            f.title === finding.title &&
+            f.severity === finding.severity
+        )
+    )
+
+    // Sort by severity
+    const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 }
+    uniqueFindings.sort(
+      (a, b) =>
+        severityOrder[a.severity as keyof typeof severityOrder] -
+        severityOrder[b.severity as keyof typeof severityOrder]
+    )
+
     return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 },
+      {
+        success: true,
+        vulnerabilities: uniqueFindings,
+        summary: {
+          total: uniqueFindings.length,
+          critical: uniqueFindings.filter((f) => f.severity === 'critical').length,
+          high: uniqueFindings.filter((f) => f.severity === 'high').length,
+          medium: uniqueFindings.filter((f) => f.severity === 'medium').length,
+          low: uniqueFindings.filter((f) => f.severity === 'low').length,
+        },
+      },
+      { status: 200 }
+    )
+  } catch (error) {
+    console.error('Analysis error:', error)
+    return NextResponse.json(
+      { error: 'Analysis failed' },
+      { status: 500 }
     )
   }
 }

@@ -10,9 +10,9 @@ import { MarketingFooter } from '@/components/layout/MarketingFooter'
 import { Button } from '@/components/ui/Button'
 
 export default function PricingPage() {
-  const starterRef = useReveal<HTMLDivElement>()
-  const proRef = useReveal<HTMLDivElement>()
-  const enterpriseRef = useReveal<HTMLDivElement>()
+  const starterRef = useReveal()
+  const proRef = useReveal()
+  const enterpriseRef = useReveal()
   const [currency, setCurrency] = useState<'USD' | 'EUR' | 'GBP'>('USD')
 
   const getCryptoPrice = (usdPrice: number) => {
