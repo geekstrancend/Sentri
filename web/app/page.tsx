@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { ShieldCheck, BookOpen, Brain, RefreshCw, ArrowRight, Check, HelpCircle } from 'lucide-react'
 import { useReveal } from '@/components/hooks/useReveal'
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
@@ -116,7 +117,7 @@ export default function HomePage() {
       </div>
 
       {/* Features Section - Bento Layout */}
-      <div ref={featuresRef} className="px-6 pt-0 pb-0 max-w-7xl mx-auto w-full">
+      <div id="features" ref={featuresRef} className="px-6 pt-0 pb-0 max-w-7xl mx-auto w-full">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-0 reveal">
           {/* Large card (left, spans 2 columns) */}
           <div className="lg:col-span-2 bg-surface-container-low p-0 rounded-lg border border-outline-variant lift-on-hover relative overflow-hidden">
@@ -275,7 +276,7 @@ export default function HomePage() {
                 <span className="text-body-md text-on-surface-variant line-through">AI Co-Auditor</span>
               </div>
             </div>
-            <Button variant="secondary" fullWidth>
+            <Button variant="secondary" fullWidth onClick={() => { setAuthTab('signup'); setAuthOpen(true) }}>
               Choose Free
             </Button>
           </div>
@@ -301,7 +302,7 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
-            <Button variant="primary" fullWidth>
+            <Button variant="primary" fullWidth onClick={() => { setAuthTab('signup'); setAuthOpen(true) }}>
               Get Started
             </Button>
           </div>
@@ -323,9 +324,11 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
-            <Button variant="secondary" fullWidth>
-              Contact Sales
-            </Button>
+            <Link href="/contact" className="block">
+              <Button variant="secondary" fullWidth>
+                Contact Sales
+              </Button>
+            </Link>
           </div>
         </div>
       </div>
