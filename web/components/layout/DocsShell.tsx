@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Search, X, Menu } from 'lucide-react'
+import { Search, X, Menu, ShieldCheck, ArrowLeft, Github } from 'lucide-react'
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
 import clsx from 'clsx'
@@ -9,6 +9,7 @@ import clsx from 'clsx'
 interface DocsSidebarItem {
   label: string
   href: string
+  badge?: string
 }
 
 interface DocsSidebarSection {
@@ -35,6 +36,7 @@ export function DocsShell({
   editPath,
 }: DocsShellProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
   const pathname = usePathname()
 
   const sections: DocsSidebarSection[] = [
@@ -50,6 +52,7 @@ export function DocsShell({
       title: 'SECURITY',
       items: [
         { label: 'Invariant Library', href: '/library' },
+        { label: 'AI Co-Auditor', href: '/docs/ai', badge: 'Pro' },
         { label: 'Audit Report Guide', href: '/docs/reports' },
       ],
     },
@@ -57,41 +60,79 @@ export function DocsShell({
       title: 'INTEGRATIONS',
       items: [
         { label: 'CI/CD Integration', href: '/docs/ci-cd' },
+        { label: 'REST API', href: '/docs/api' },
       ],
     },
   ]
 
   const isActive = (href: string) => pathname === href
 
+  const filteredSections = searchQuery
+    ? sections.map((s) => ({
+        ...s,
+        items: s.items.filter((i) => i.label.toLowerCase().includes(searchQuery.toLowerCase())),
+      })).filter((s) => s.items.length > 0)
+    : sections
+
   return (
-    <div className="flex h-screen bg-surface">
+    <div className="flex h-screen bg-surface overflow-hidden">
       {/* Left Sidebar */}
-      <div
+      <aside
         className={clsx(
-          'fixed inset-y-0 left-0 z-30 w-60 bg-surface-container-lowest border-r border-outline-variant overflow-y-auto',
-          'transform transition-transform duration-300 md:relative md:translate-x-0',
-          sidebarOpen ? 'translate-x-0' : '-translate-x-full',
+          'fixed inset-y-0 left-0 z-40 w-64 bg-surface-container-lowest border-r border-outline-variant flex flex-col',
+          'transform transition-transform duration-300',
+          sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
         )}
       >
-        <nav className="p-6 space-y-8">
-          {sections.map((section, idx) => (
+        {/* Sidebar header */}
+        <div className="flex-shrink-0 p-4 border-b border-outline-variant">
+          <Link href="/" className="flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity">
+            <ShieldCheck size={18} className="text-secondary" />
+            <span className="font-mono font-[600] text-on-surface text-sm">Sentri</span>
+            <span className="text-label-sm text-outline-variant ml-1">Docs</span>
+          </Link>
+          {/* Sidebar search */}
+          <div className="relative">
+            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-outline" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search docs…"
+              className="w-full bg-surface-container border border-outline-variant rounded-md px-3 pl-8 py-1.5 text-xs text-on-surface placeholder-outline-variant focus:outline-none focus:border-indigo transition-colors"
+            />
+            {searchQuery && (
+              <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface">
+                <X size={12} />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Nav sections */}
+        <nav className="flex-1 overflow-y-auto p-4 space-y-6">
+          {filteredSections.map((section, idx) => (
             <div key={idx}>
-              <h3 className="text-xs uppercase tracking-wide font-medium text-outline-variant mb-3">
-                {section.title}
-              </h3>
-              <ul className="space-y-2">
-                {section.items.map((item, itemIdx) => (
-                  <li key={itemIdx}>
+              <p className="text-label-sm text-outline-variant mb-2 px-2">{section.title}</p>
+              <ul className="space-y-0.5">
+                {section.items.map((item) => (
+                  <li key={item.href}>
                     <Link
                       href={item.href}
+                      onClick={() => setSidebarOpen(false)}
                       className={clsx(
-                        'block px-3 py-2 rounded text-body-md transition-colors',
+                        'flex items-center justify-between px-3 py-2 rounded-lg text-body-md transition-colors',
                         isActive(item.href)
-                          ? 'bg-indigo/10 text-on-surface font-[500]'
-                          : 'text-outline hover:bg-surface-container/50 hover:text-on-surface',
+                          ? 'bg-indigo/10 text-on-surface font-[500] border-l-2 border-indigo pl-[10px]'
+                          : 'text-outline hover:bg-surface-container hover:text-on-surface',
                       )}
                     >
-                      {item.label}
+                      <span>{item.label}</span>
+                      {item.badge && (
+                        <span className="text-xs text-on-secondary-container bg-indigo/15 border border-indigo/20 px-1.5 py-0.5 rounded font-[600]">
+                          {item.badge}
+                        </span>
+                      )}
                     </Link>
                   </li>
                 ))}
@@ -100,95 +141,90 @@ export function DocsShell({
           ))}
         </nav>
 
-        <div className="border-t border-outline-variant p-6 mt-8">
-          <Link
-            href="https://github.com/geekstrancend/Sentri"
-            target="_blank"
-            rel="noopener"
-            className="text-outline hover:text-on-surface text-body-md transition-colors"
-          >
-            GitHub Repository
+        {/* Sidebar footer */}
+        <div className="flex-shrink-0 p-4 border-t border-outline-variant space-y-2">
+          <Link href="https://github.com/geekstrancend/Sentri" target="_blank" rel="noopener"
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container transition-colors text-body-md">
+            <Github size={14} />
+            <span>GitHub</span>
+          </Link>
+          <Link href="/" className="flex items-center gap-2 px-3 py-2 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container transition-colors text-body-md">
+            <ArrowLeft size={14} />
+            <span>Back to home</span>
           </Link>
         </div>
-      </div>
+      </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col">
-        {/* Top Bar */}
-        <div className="border-b border-outline-variant bg-surface-container-lowest sticky top-0 z-20">
-          <div className="max-w-7xl mx-auto px-6 py-3 flex items-center gap-4 justify-between">
-            {/* Left */}
-            <div className="flex items-center gap-4">
+      {/* Main content */}
+      <div className="flex-1 flex flex-col md:ml-64 overflow-hidden">
+        {/* Top bar */}
+        <header className="flex-shrink-0 border-b border-outline-variant bg-surface-container-lowest/95 backdrop-blur-sm sticky top-0 z-20">
+          <div className="px-6 py-3 flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
-                className="md:hidden p-2 hover:bg-surface-container rounded text-outline"
+                className="md:hidden p-1.5 hover:bg-surface-container rounded-lg text-outline transition-colors"
               >
-                {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
+                {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
               </button>
-              <h1 className="font-fraunces text-lg font-[500] text-on-surface">
-                {pageTitle}
-              </h1>
-            </div>
-
-            {/* Center - Search */}
-            <div className="hidden md:flex flex-1 max-w-xs">
-              <div className="relative w-full">
-                <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-outline" />
-                <input
-                  type="text"
-                  placeholder="Search..."
-                  className="w-full bg-surface-container-low border border-outline-variant rounded px-3 pl-9 py-2 text-body-md text-on-surface placeholder-outline-variant focus:outline-none focus:border-indigo"
-                />
+              <div className="hidden md:flex items-center gap-2 text-outline text-body-md">
+                <Link href="/docs" className="hover:text-on-surface transition-colors">Docs</Link>
+                {pathname !== '/docs' && (
+                  <>
+                    <span>/</span>
+                    <span className="text-on-surface">{pageTitle}</span>
+                  </>
+                )}
               </div>
             </div>
 
-            {/* Right - Edit Link */}
-            {editPath && (
-              <Link
-                href={editPath}
-                target="_blank"
-                rel="noopener"
-                className="hidden md:inline-flex items-center gap-2 px-3 py-1.5 bg-surface-container-low border border-outline-variant rounded text-body-md text-outline hover:text-on-surface transition-colors text-xs"
-              >
-                Edit this page
+            <div className="flex items-center gap-3">
+              {editPath && (
+                <Link href={editPath} target="_blank" rel="noopener"
+                  className="hidden md:inline-flex items-center gap-1.5 text-xs text-outline hover:text-on-surface transition-colors border border-outline-variant rounded-md px-2.5 py-1">
+                  Edit on GitHub
+                </Link>
+              )}
+              <Link href="/dashboard"
+                className="text-xs font-[600] bg-secondary-container border border-indigo text-on-secondary-container px-3 py-1.5 rounded-lg hover:bg-indigo/90 transition-colors">
+                Dashboard →
               </Link>
-            )}
-          </div>
-        </div>
-
-        {/* Content Wrapper */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="flex max-w-7xl mx-auto">
-            {/* Main Content */}
-            <div className="flex-1 px-6 py-12 max-w-4xl">
-              {children}
             </div>
+          </div>
+        </header>
 
-            {/* Right Sidebar - Table of Contents */}
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="flex max-w-5xl mx-auto">
+            <main className="flex-1 px-6 lg:px-12 py-12 min-w-0">
+              {children}
+            </main>
+
+            {/* Table of contents */}
             {tableOfContents && tableOfContents.length > 0 && (
-              <div className="hidden lg:block w-48 px-6 py-12 border-l border-outline-variant">
-                <nav className="sticky top-20">
-                  <h3 className="text-xs uppercase tracking-wide font-medium text-outline-variant mb-4">
-                    On this page
-                  </h3>
-                  <ul className="space-y-2">
+              <aside className="hidden xl:block w-52 flex-shrink-0 py-12 pr-6">
+                <nav className="sticky top-8">
+                  <p className="text-label-sm text-outline-variant mb-4">ON THIS PAGE</p>
+                  <ul className="space-y-2.5">
                     {tableOfContents.map((item, idx) => (
                       <li key={idx}>
-                        <Link
-                          href={item.href}
-                          className="text-body-sm text-outline hover:text-on-surface transition-colors"
-                        >
+                        <Link href={item.href} className="text-body-sm text-outline hover:text-on-surface transition-colors block">
                           {item.label}
                         </Link>
                       </li>
                     ))}
                   </ul>
                 </nav>
-              </div>
+              </aside>
             )}
           </div>
         </div>
       </div>
+
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black/50 z-30 md:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
     </div>
   )
 }

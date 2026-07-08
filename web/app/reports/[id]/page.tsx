@@ -1,202 +1,304 @@
 'use client'
 
 import { useState } from 'react'
-import { Download, Share2, AlertCircle, CheckCircle } from 'lucide-react'
+import Link from 'next/link'
+import { Download, Share2, ChevronDown, ChevronUp, ArrowLeft, CheckCircle2, Circle, AlertTriangle } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { Button } from '@/components/ui/Button'
 import { SeverityBadge } from '@/components/ui/SeverityBadge'
+import clsx from 'clsx'
+
+type Severity = 'critical' | 'high' | 'medium' | 'low'
+type FindingStatus = 'open' | 'acknowledged' | 'resolved'
 
 interface Finding {
   id: string
-  severity: 'critical' | 'high' | 'medium' | 'low'
+  severity: Severity
   title: string
   description: string
   location: string
+  impact: string
   recommendation: string
+  status: FindingStatus
   codeSnippet?: string
+}
+
+const FINDINGS: Finding[] = [
+  {
+    id: 'SENT-001',
+    severity: 'critical',
+    title: 'Reentrancy vulnerability in withdrawAll()',
+    description: 'The withdrawAll() function transfers Ether to msg.sender before updating the internal balance mapping. An attacker can deploy a contract that calls back into withdrawAll() on receipt, draining the vault before the balance is zeroed.',
+    location: 'contracts/Vault.sol · Line 42',
+    impact: 'Complete drain of the Vault contract ETH balance in a single transaction.',
+    recommendation: 'Apply the Checks-Effects-Interactions pattern: update balances[msg.sender] = 0 before the external call. Alternatively, add OpenZeppelin\'s ReentrancyGuard nonReentrant modifier.',
+    status: 'open',
+    codeSnippet: `// ❌ Vulnerable
+function withdrawAll() external {
+    uint256 amount = balances[msg.sender];
+    require(amount > 0, "Nothing to withdraw");
+    (bool ok, ) = msg.sender.call{value: amount}("");  // external call first
+    require(ok, "Transfer failed");
+    balances[msg.sender] = 0;  // state updated after
+}
+
+// ✅ Fixed
+function withdrawAll() external nonReentrant {
+    uint256 amount = balances[msg.sender];
+    require(amount > 0, "Nothing to withdraw");
+    balances[msg.sender] = 0;  // state updated first
+    (bool ok, ) = msg.sender.call{value: amount}("");
+    require(ok, "Transfer failed");
+}`,
+  },
+  {
+    id: 'SENT-002',
+    severity: 'high',
+    title: 'Unchecked return value on ERC-20 transfer()',
+    description: 'The transferFunds() function calls token.transfer() without checking the boolean return value. Some tokens (USDT, BNB) return false on failure instead of reverting, meaning silent failures can leave the contract in an inconsistent state.',
+    location: 'contracts/Token.sol · Line 108',
+    impact: 'Silent transfer failures can be exploited to manipulate accounting without actual token movement.',
+    recommendation: 'Replace token.transfer() with SafeERC20.safeTransfer() from OpenZeppelin, which reverts on false returns and handles non-standard tokens.',
+    status: 'acknowledged',
+    codeSnippet: `// ❌ Vulnerable
+token.transfer(recipient, amount);
+
+// ✅ Fixed
+using SafeERC20 for IERC20;
+token.safeTransfer(recipient, amount);`,
+  },
+  {
+    id: 'SENT-003',
+    severity: 'high',
+    title: 'Missing oracle price staleness check',
+    description: 'The price feed from Chainlink is fetched without validating the updatedAt timestamp. If the oracle heartbeat fails or the feed becomes stale, the protocol will continue operating on outdated prices.',
+    location: 'contracts/PriceOracle.sol · Line 67',
+    impact: 'Stale prices could allow undercollateralised borrows or unfair liquidations.',
+    recommendation: 'After calling latestRoundData(), verify that block.timestamp - updatedAt <= HEARTBEAT_INTERVAL where HEARTBEAT_INTERVAL is the documented feed heartbeat (e.g. 3600 for 1h feeds).',
+    status: 'open',
+    codeSnippet: `// ❌ Vulnerable
+(, int256 price,,,) = priceFeed.latestRoundData();
+return uint256(price);
+
+// ✅ Fixed
+(, int256 price,, uint256 updatedAt,) = priceFeed.latestRoundData();
+require(block.timestamp - updatedAt <= HEARTBEAT, "Stale price");
+require(price > 0, "Invalid price");
+return uint256(price);`,
+  },
+  {
+    id: 'SENT-004',
+    severity: 'medium',
+    title: 'setFee() accepts unbounded values',
+    description: 'The setFee() function allows the owner to set the protocol fee to any value including 100% or more. There is no upper bound check.',
+    location: 'contracts/Pool.sol · Line 55',
+    impact: 'A compromised or malicious owner can extract all user funds via 100% fees.',
+    recommendation: 'Add require(newFee <= MAX_FEE, "Fee too high") where MAX_FEE is a reasonable constant like 1000 (10% in basis points).',
+    status: 'resolved',
+    codeSnippet: `// ❌ Vulnerable
+function setFee(uint256 newFee) external onlyOwner {
+    fee = newFee;
+}
+
+// ✅ Fixed
+uint256 public constant MAX_FEE = 1000; // 10%
+function setFee(uint256 newFee) external onlyOwner {
+    require(newFee <= MAX_FEE, "Fee exceeds maximum");
+    emit FeeUpdated(fee, newFee);
+    fee = newFee;
+}`,
+  },
+  {
+    id: 'SENT-005',
+    severity: 'low',
+    title: 'Missing event emission in setFee()',
+    description: 'State-changing governance functions should emit events so that off-chain monitors and users can track changes.',
+    location: 'contracts/Pool.sol · Line 55',
+    impact: 'Silent fee changes reduce protocol transparency and auditability.',
+    recommendation: 'Add event FeeUpdated(uint256 oldFee, uint256 newFee) and emit it in setFee().',
+    status: 'open',
+  },
+]
+
+const STATUS_CONFIG: Record<FindingStatus, { label: string; cls: string; icon: React.ReactNode }> = {
+  open:         { label: 'Open',         cls: 'text-critical bg-critical/10 border-critical/20', icon: <Circle size={12} /> },
+  acknowledged: { label: 'Acknowledged', cls: 'text-high bg-high/10 border-high/20',             icon: <AlertTriangle size={12} /> },
+  resolved:     { label: 'Resolved',     cls: 'text-low bg-low/10 border-low/20',               icon: <CheckCircle2 size={12} /> },
+}
+
+function FindingCard({ finding }: { finding: Finding }) {
+  const [expanded, setExpanded] = useState(finding.severity === 'critical' || finding.severity === 'high')
+  const status = STATUS_CONFIG[finding.status]
+
+  return (
+    <div className={clsx(
+      'bg-surface-container-low border rounded-xl overflow-hidden transition-all',
+      finding.status === 'resolved' ? 'border-outline-variant opacity-70' : 'border-outline-variant',
+    )}>
+      {/* Severity bar */}
+      <div className={clsx('h-0.5', {
+        'bg-critical': finding.severity === 'critical',
+        'bg-high': finding.severity === 'high',
+        'bg-medium': finding.severity === 'medium',
+        'bg-low': finding.severity === 'low',
+      })} />
+
+      {/* Header */}
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-surface-container/40 transition-colors"
+      >
+        <div className="flex items-center gap-4 flex-1 min-w-0">
+          <SeverityBadge level={finding.severity} />
+          <div className="flex-1 min-w-0">
+            <p className="text-body-md font-[600] text-on-surface">{finding.title}</p>
+            <p className="text-xs text-outline mt-0.5 font-mono">{finding.location}</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 flex-shrink-0 ml-4">
+          <span className={clsx('inline-flex items-center gap-1 text-xs font-[600] px-2 py-0.5 rounded border', status.cls)}>
+            {status.icon} {status.label}
+          </span>
+          <code className="text-xs text-outline-variant font-mono">{finding.id}</code>
+          {expanded ? <ChevronUp size={16} className="text-outline" /> : <ChevronDown size={16} className="text-outline" />}
+        </div>
+      </button>
+
+      {/* Expanded content */}
+      {expanded && (
+        <div className="px-6 pb-6 border-t border-outline-variant/50 pt-5 space-y-5">
+          <div>
+            <p className="text-label-sm text-outline mb-2">DESCRIPTION</p>
+            <p className="text-body-md text-on-surface-variant leading-6">{finding.description}</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div>
+              <p className="text-label-sm text-outline mb-2">IMPACT</p>
+              <p className="text-body-md text-on-surface-variant leading-6">{finding.impact}</p>
+            </div>
+            <div>
+              <p className="text-label-sm text-outline mb-2">RECOMMENDATION</p>
+              <p className="text-body-md text-on-surface-variant leading-6">{finding.recommendation}</p>
+            </div>
+          </div>
+          {finding.codeSnippet && (
+            <div>
+              <p className="text-label-sm text-outline mb-2">CODE</p>
+              <pre className="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 text-xs font-mono text-on-surface-variant overflow-x-auto leading-5 whitespace-pre">
+                {finding.codeSnippet}
+              </pre>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
 }
 
 export default function ReportDetailPage({ params }: { params: { id: string } }) {
   const reportId = params.id
-  const [findings] = useState<Finding[]>([
-    {
-      id: '1',
-      severity: 'critical',
-      title: 'Reentrancy Vulnerability',
-      description: 'The contract is vulnerable to reentrancy attacks in the withdraw function.',
-      location: 'Vault.sol:42',
-      recommendation: 'Use checks-effects-interactions pattern or add mutex lock.',
-      codeSnippet: `function withdraw(uint256 amount) external {
-  uint256 balance = balances[msg.sender];
-  require(amount <= balance);
-  (bool success, ) = msg.sender.call{value: amount}("");
-  require(success);
-  balances[msg.sender] -= amount;
-}`,
-    },
-    {
-      id: '2',
-      severity: 'high',
-      title: 'Unchecked Return Value',
-      description: 'Return value of transfer call is not checked.',
-      location: 'Token.sol:108',
-      recommendation: 'Check the return value or use safeTransfer from OpenZeppelin.',
-      codeSnippet: `token.transfer(recipient, amount);`,
-    },
-    {
-      id: '3',
-      severity: 'medium',
-      title: 'Missing Input Validation',
-      description: 'Function does not validate user input parameters.',
-      location: 'Pool.sol:55',
-      recommendation: 'Add require statements to validate all input parameters.',
-      codeSnippet: `function setFee(uint256 newFee) external onlyOwner {
-  fee = newFee;
-}`,
-    },
-  ])
+  const [filter, setFilter] = useState<'all' | Severity>('all')
 
   const stats = {
-    critical: 1,
-    high: 1,
-    medium: 1,
-    low: 0,
+    critical: FINDINGS.filter(f => f.severity === 'critical').length,
+    high:     FINDINGS.filter(f => f.severity === 'high').length,
+    medium:   FINDINGS.filter(f => f.severity === 'medium').length,
+    low:      FINDINGS.filter(f => f.severity === 'low').length,
   }
+
+  const open      = FINDINGS.filter(f => f.status === 'open').length
+  const resolved  = FINDINGS.filter(f => f.status === 'resolved').length
+
+  const visible = filter === 'all' ? FINDINGS : FINDINGS.filter(f => f.severity === filter)
 
   return (
     <AppShell currentPage="audits" onNewScan={() => {}}>
-      <div className="max-w-5xl mx-auto p-6 space-y-8">
+      <div className="max-w-4xl mx-auto p-6 lg:p-8 space-y-8">
+
+        {/* Back link */}
+        <Link href="/dashboard" className="inline-flex items-center gap-2 text-outline hover:text-on-surface text-body-md transition-colors">
+          <ArrowLeft size={16} /> Back to Dashboard
+        </Link>
+
         {/* Header */}
-        <div className="flex items-start justify-between">
+        <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
           <div>
-            <h1 className="text-4xl font-[700] text-on-surface font-fraunces mb-2">
-              Security Audit Report
-            </h1>
-            <p className="text-outline">
-              Report ID: <span className="font-mono text-on-surface-variant">{reportId}</span>
-            </p>
-            <p className="text-outline mt-1">
-              Generated: {new Date().toLocaleString()}
-            </p>
+            <div className="flex items-center gap-3 mb-2">
+              <span className="text-label-sm text-outline bg-surface-container border border-outline-variant px-2 py-0.5 rounded font-mono">{reportId}</span>
+              <span className="text-xs text-low bg-low/10 border border-low/20 px-2 py-0.5 rounded font-mono">COMPLETE</span>
+            </div>
+            <h1 className="font-fraunces text-3xl font-[600] text-on-surface mb-2">Security Audit Report</h1>
+            <p className="text-body-md text-outline">Generated {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
           </div>
-          <div className="flex gap-2">
-            <Button variant="secondary" icon={<Share2 size={16} />}>
-              Share
-            </Button>
-            <Button variant="secondary" icon={<Download size={16} />}>
-              Download PDF
-            </Button>
+          <div className="flex gap-2 flex-shrink-0">
+            <Button variant="secondary" size="sm" icon={<Share2 size={14} />}>Share</Button>
+            <Button variant="primary" size="sm" icon={<Download size={14} />}>Export PDF</Button>
           </div>
         </div>
 
-        {/* Summary Stats */}
-        <div className="grid grid-cols-4 gap-4">
+        {/* Summary stats */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-outline-variant rounded-xl overflow-hidden">
           {[
-            { label: 'CRITICAL', count: stats.critical, color: 'bg-critical' },
-            { label: 'HIGH', count: stats.high, color: 'bg-high' },
-            { label: 'MEDIUM', count: stats.medium, color: 'bg-medium' },
-            { label: 'LOW', count: stats.low, color: 'bg-low' },
+            { label: 'CRITICAL', count: stats.critical, color: 'text-critical', bg: 'bg-critical/5' },
+            { label: 'HIGH',     count: stats.high,     color: 'text-high',     bg: 'bg-high/5' },
+            { label: 'MEDIUM',   count: stats.medium,   color: 'text-medium',   bg: 'bg-medium/5' },
+            { label: 'LOW',      count: stats.low,      color: 'text-low',      bg: 'bg-low/5' },
           ].map((item) => (
-            <div
+            <button
               key={item.label}
-              className="bg-surface-container border border-outline-variant rounded-lg p-4 text-center"
+              onClick={() => setFilter(filter === item.label.toLowerCase() as Severity ? 'all' : item.label.toLowerCase() as Severity)}
+              className={clsx(
+                'p-5 text-center transition-colors',
+                item.bg,
+                filter === item.label.toLowerCase() ? 'ring-1 ring-inset ring-outline' : 'hover:bg-surface-container',
+              )}
             >
-              <div className="text-4xl font-[700] text-on-surface mb-2">
-                {item.count}
-              </div>
-              <div className="text-sm text-outline">{item.label}</div>
-            </div>
+              <div className={clsx('font-fraunces text-4xl font-[700] mb-1', item.color)}>{item.count}</div>
+              <div className="text-label-sm text-outline">{item.label}</div>
+            </button>
           ))}
         </div>
 
-        {/* Executive Summary */}
-        <div className="bg-surface-container-low border border-outline-variant rounded-lg p-6">
-          <h2 className="text-2xl font-[700] text-on-surface font-fraunces mb-4">
-            Executive Summary
-          </h2>
-          <p className="text-on-surface-variant leading-relaxed mb-4">
-            This security audit identified 3 vulnerabilities in the smart contract, including 1 critical issue
-            that requires immediate attention before deployment to mainnet. The critical vulnerability poses a
-            significant risk of fund loss through reentrancy attacks.
-          </p>
-          <div className="bg-critical/10 border border-critical/30 rounded-lg p-4 flex gap-3 items-start">
-            <AlertCircle size={20} className="text-critical flex-shrink-0 mt-0.5" />
-            <div>
-              <h3 className="font-[600] text-critical">Recommendation</h3>
-              <p className="text-sm text-on-surface-variant mt-1">
-                Do not deploy to mainnet until all critical and high-severity vulnerabilities are resolved.
-              </p>
-            </div>
+        {/* Status bar */}
+        <div className="bg-surface-container-low border border-outline-variant rounded-xl p-5">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-body-md text-outline">Remediation Progress</span>
+            <span className="text-body-md text-on-surface font-[600]">{resolved}/{FINDINGS.length} resolved</span>
+          </div>
+          <div className="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+            <div
+              className="h-full bg-gradient-to-r from-medium to-low rounded-full transition-all duration-700"
+              style={{ width: `${(resolved / FINDINGS.length) * 100}%` }}
+            />
+          </div>
+          <div className="flex items-center gap-4 mt-3 text-xs">
+            <span className="text-critical font-[600]">{open} open</span>
+            <span className="text-low font-[600]">{resolved} resolved</span>
+            <span className="text-high font-[600]">{FINDINGS.filter(f => f.status === 'acknowledged').length} acknowledged</span>
           </div>
         </div>
 
-        {/* Detailed Findings */}
-        <div className="space-y-6">
-          <h2 className="text-2xl font-[700] text-on-surface font-fraunces">
-            Detailed Findings
-          </h2>
-
-          {findings.map((finding) => (
-            <div
-              key={finding.id}
-              className="bg-surface-container-low border border-outline-variant rounded-lg p-6 space-y-4"
-            >
-              <div className="flex items-start gap-4">
-                <SeverityBadge level={finding.severity} />
-                <div className="flex-1">
-                  <h3 className="text-lg font-[700] text-on-surface">{finding.title}</h3>
-                  <p className="text-sm text-outline-variant mt-1">{finding.location}</p>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <h4 className="font-[600] text-on-surface mb-2">Description</h4>
-                  <p className="text-on-surface-variant">{finding.description}</p>
-                </div>
-                <div>
-                  <h4 className="font-[600] text-on-surface mb-2">Recommendation</h4>
-                  <p className="text-on-surface-variant">{finding.recommendation}</p>
-                </div>
-              </div>
-
-              {finding.codeSnippet && (
-                <div>
-                  <h4 className="font-[600] text-on-surface mb-2">Affected Code</h4>
-                  <pre className="bg-surface p-4 rounded-lg border border-outline-variant overflow-x-auto text-xs">
-                    <code className="text-on-surface-variant">{finding.codeSnippet}</code>
-                  </pre>
-                </div>
+        {/* Filter tabs */}
+        <div className="flex gap-1">
+          {(['all', 'critical', 'high', 'medium', 'low'] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setFilter(f)}
+              className={clsx(
+                'px-4 py-1.5 rounded-lg text-sm font-[600] transition-colors capitalize',
+                filter === f ? 'bg-surface-container text-on-surface' : 'text-outline hover:text-on-surface',
               )}
-            </div>
+            >
+              {f === 'all' ? `All (${FINDINGS.length})` : `${f.charAt(0).toUpperCase() + f.slice(1)} (${stats[f]})`}
+            </button>
           ))}
         </div>
 
-        {/* Best Practices */}
-        <div className="bg-surface-container-low border border-outline-variant rounded-lg p-6 space-y-4">
-          <h2 className="text-2xl font-[700] text-on-surface font-fraunces">
-            Best Practices & Recommendations
-          </h2>
-          <ul className="space-y-3">
-            {[
-              'Implement comprehensive unit and integration tests',
-              'Use established patterns from OpenZeppelin contracts',
-              'Consider formal verification for critical functions',
-              'Implement event logging for all state changes',
-              'Add pause mechanisms for emergency situations',
-            ].map((rec, idx) => (
-              <li key={idx} className="flex gap-3 items-start">
-                <CheckCircle size={20} className="text-low flex-shrink-0 mt-0.5" />
-                <span className="text-on-surface-variant">{rec}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        {/* Footer */}
-        <div className="border-t border-outline-variant pt-6 text-center text-outline-variant text-sm">
-          <p>This audit was performed using Sentri's AI-powered analysis with 1500+ security invariants.</p>
-          <p className="mt-2">For questions or clarifications, contact our security team at security@sentri.dev</p>
+        {/* Findings list */}
+        <div className="space-y-3">
+          {visible.map((finding) => (
+            <FindingCard key={finding.id} finding={finding} />
+          ))}
         </div>
       </div>
     </AppShell>

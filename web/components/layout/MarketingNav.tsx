@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { ShieldCheck } from 'lucide-react'
+import { usePathname } from 'next/navigation'
+import { ShieldCheck, Menu, X } from 'lucide-react'
 import { Button } from '../ui/Button'
 import { AuthModal } from '../ui/AuthModal'
 import clsx from 'clsx'
@@ -11,61 +12,93 @@ interface MarketingNavProps {
   className?: string
 }
 
+const navLinks = [
+  { label: 'Product', href: '/#product' },
+  { label: 'Features', href: '/#features' },
+  { label: 'Library', href: '/library' },
+  { label: 'Pricing', href: '/pricing' },
+  { label: 'Docs', href: '/docs' },
+]
+
 export function MarketingNav({ className }: MarketingNavProps) {
   const [authOpen, setAuthOpen] = useState(false)
   const [authTab, setAuthTab] = useState<'signin' | 'signup'>('signin')
+  const [mobileOpen, setMobileOpen] = useState(false)
+  const pathname = usePathname()
 
-  const handleLogIn = () => {
-    setAuthTab('signin')
-    setAuthOpen(true)
-  }
-
-  const handleStartTrial = () => {
-    setAuthTab('signup')
-    setAuthOpen(true)
-  }
+  const handleLogIn = () => { setAuthTab('signin'); setAuthOpen(true) }
+  const handleStartTrial = () => { setAuthTab('signup'); setAuthOpen(true) }
 
   return (
     <>
-      <nav
-        className={clsx(
-          'sticky top-0 z-40 bg-surface-container-lowest/95 backdrop-blur-sm border-b border-outline-variant',
-          className,
-        )}
-      >
+      <nav className={clsx(
+        'sticky top-0 z-40 bg-surface-container-lowest/95 backdrop-blur-sm border-b border-outline-variant',
+        className,
+      )}>
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
             <ShieldCheck size={20} className="text-secondary" />
-            <span className="font-mono font-[600] text-on-surface text-base">Sentri</span>
+            <span className="font-mono font-[600] text-on-surface text-base tracking-tight">Sentri</span>
           </Link>
 
-          {/* Center Links */}
+          {/* Desktop nav links */}
           <div className="hidden md:flex items-center gap-8">
-            <Link href="#product" className="text-outline hover:text-on-surface text-body-md transition-colors">
-              Product
-            </Link>
-            <Link href="#features" className="text-outline hover:text-on-surface text-body-md transition-colors">
-              Features
-            </Link>
-            <Link href="/library" className="text-outline hover:text-on-surface text-body-md transition-colors">
-              Library
-            </Link>
-            <Link href="/pricing" className="text-outline hover:text-on-surface text-body-md transition-colors">
-              Pricing
-            </Link>
+            {navLinks.map((link) => (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={clsx(
+                  'text-body-md transition-colors',
+                  pathname === link.href.replace('/#', '/') || (link.href !== '/' && pathname?.startsWith(link.href.split('#')[0]))
+                    ? 'text-on-surface font-[500]'
+                    : 'text-outline hover:text-on-surface',
+                )}
+              >
+                {link.label}
+              </Link>
+            ))}
           </div>
 
-          {/* Right Buttons */}
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="sm" onClick={handleLogIn}>
-              Log In
-            </Button>
-            <Button variant="primary" size="sm" onClick={handleStartTrial}>
-              Start Free Trial
-            </Button>
+          {/* Desktop buttons */}
+          <div className="hidden md:flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={handleLogIn}>Log In</Button>
+            <Button variant="primary" size="sm" onClick={handleStartTrial}>Start Free Trial</Button>
           </div>
+
+          {/* Mobile hamburger */}
+          <button
+            className="md:hidden p-2 -mr-2 hover:bg-surface-container rounded-lg transition-colors"
+            onClick={() => setMobileOpen(!mobileOpen)}
+            aria-label="Toggle navigation"
+          >
+            {mobileOpen
+              ? <X size={20} className="text-on-surface" />
+              : <Menu size={20} className="text-on-surface" />}
+          </button>
         </div>
+
+        {/* Mobile dropdown */}
+        {mobileOpen && (
+          <div className="md:hidden border-t border-outline-variant bg-surface-container-lowest">
+            <div className="px-6 py-4 space-y-1">
+              {navLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="flex items-center px-3 py-2.5 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container transition-colors text-body-md"
+                  onClick={() => setMobileOpen(false)}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+            <div className="px-6 pb-4 border-t border-outline-variant pt-4 flex flex-col gap-3">
+              <Button variant="secondary" fullWidth onClick={() => { handleLogIn(); setMobileOpen(false) }}>Log In</Button>
+              <Button variant="primary" fullWidth onClick={() => { handleStartTrial(); setMobileOpen(false) }}>Start Free Trial</Button>
+            </div>
+          </div>
+        )}
       </nav>
 
       <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} defaultTab={authTab} />

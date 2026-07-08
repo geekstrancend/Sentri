@@ -2,325 +2,348 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Check, Globe, Zap } from 'lucide-react'
+import { Check, X, ArrowRight, ChevronDown, ShieldCheck, Zap, Brain, GitBranch } from 'lucide-react'
 import { useReveal } from '@/components/hooks/useReveal'
-import { AsciiLogo } from '@/components/ui/AsciiLogo'
 import { MarketingNav } from '@/components/layout/MarketingNav'
 import { MarketingFooter } from '@/components/layout/MarketingFooter'
 import { Button } from '@/components/ui/Button'
+import { AuthModal } from '@/components/ui/AuthModal'
+import clsx from 'clsx'
+
+type BillingCycle = 'monthly' | 'annual'
+
+const PLANS = [
+  {
+    id: 'starter',
+    name: 'Starter',
+    description: 'For indie auditors & early-stage projects',
+    monthlyPrice: 0,
+    cta: 'Get Started Free',
+    ctaVariant: 'secondary' as const,
+    featured: false,
+    badge: null,
+  },
+  {
+    id: 'pro',
+    name: 'Professional',
+    description: 'For teams shipping to production',
+    monthlyPrice: 499,
+    cta: 'Start Free Trial',
+    ctaVariant: 'primary' as const,
+    featured: true,
+    badge: 'MOST POPULAR',
+  },
+  {
+    id: 'enterprise',
+    name: 'Enterprise',
+    description: 'For organisations securing billions',
+    monthlyPrice: null,
+    cta: 'Contact Sales',
+    ctaVariant: 'secondary' as const,
+    featured: false,
+    badge: null,
+  },
+]
+
+const COMPARISON_ROWS = [
+  {
+    category: 'Scans',
+    rows: [
+      { feature: 'Scans per month', starter: '5', pro: 'Unlimited', enterprise: 'Unlimited' },
+      { feature: 'Scan depth', starter: 'Standard', pro: 'Deep', enterprise: 'Deep + Custom' },
+      { feature: 'Parallel scan jobs', starter: '1', pro: '10', enterprise: 'Unlimited' },
+    ],
+  },
+  {
+    category: 'Security Engine',
+    rows: [
+      { feature: 'Invariant library access', starter: 'Public only', pro: 'Full', enterprise: 'Full + Custom' },
+      { feature: 'Symbolic execution', starter: false, pro: true, enterprise: true },
+      { feature: 'AI Co-Auditor', starter: false, pro: true, enterprise: true },
+      { feature: 'Self-improving engine', starter: false, pro: true, enterprise: true },
+    ],
+  },
+  {
+    category: 'Integrations',
+    rows: [
+      { feature: 'GitHub / GitLab CI/CD', starter: false, pro: true, enterprise: true },
+      { feature: 'Slack / Discord alerts', starter: false, pro: true, enterprise: true },
+      { feature: 'REST API access', starter: false, pro: true, enterprise: true },
+      { feature: 'SSO / SAML', starter: false, pro: false, enterprise: true },
+    ],
+  },
+  {
+    category: 'Reports',
+    rows: [
+      { feature: 'PDF report export', starter: true, pro: true, enterprise: true },
+      { feature: 'Shareable report links', starter: true, pro: true, enterprise: true },
+      { feature: 'White-label reports', starter: false, pro: false, enterprise: true },
+      { feature: 'Formal verification proofs', starter: false, pro: true, enterprise: true },
+    ],
+  },
+  {
+    category: 'Support',
+    rows: [
+      { feature: 'Community support', starter: true, pro: true, enterprise: true },
+      { feature: 'Priority email support', starter: false, pro: true, enterprise: true },
+      { feature: '24/7 security advisor', starter: false, pro: false, enterprise: true },
+      { feature: 'Dedicated onboarding', starter: false, pro: false, enterprise: true },
+    ],
+  },
+  {
+    category: 'Deployment',
+    rows: [
+      { feature: 'Cloud hosted', starter: true, pro: true, enterprise: true },
+      { feature: 'On-premises deployment', starter: false, pro: false, enterprise: true },
+      { feature: 'Private invariant repository', starter: false, pro: false, enterprise: true },
+      { feature: 'SLA guarantee', starter: false, pro: false, enterprise: true },
+    ],
+  },
+]
+
+const FAQS = [
+  {
+    q: 'What counts as a "scan"?',
+    a: 'A scan is one analysis run on a set of contracts. You can include multiple Solidity, Rust, or Move files in a single scan. Sentri runs all 1,500+ invariant checks plus symbolic execution in one pass.',
+  },
+  {
+    q: 'Can I try Professional features before paying?',
+    a: 'Yes — the Professional plan includes a 14-day free trial with full access to the AI Co-Auditor, unlimited scans, and CI/CD integrations. No credit card required to start.',
+  },
+  {
+    q: 'Which chains are supported?',
+    a: 'Sentri currently supports EVM-compatible chains (Ethereum, Arbitrum, Base, Polygon, Optimism, Avalanche, BNB Chain), Solana (Anchor programs), and Move-based chains (Aptos, Sui). More chains are added regularly.',
+  },
+  {
+    q: 'How does annual billing work?',
+    a: 'Annual billing is charged once per year at a 20% discount off the monthly rate. You receive one invoice per year and can cancel before renewal for a prorated refund.',
+  },
+  {
+    q: 'What is the Enterprise SLA?',
+    a: 'Enterprise customers receive a 99.9% uptime SLA for the scanning API and a maximum 4-hour response time for P1 security incidents. Custom SLAs are available on request.',
+  },
+  {
+    q: 'Can I use Sentri for client audit work?',
+    a: 'Yes. The Professional plan allows you to generate reports for up to 10 separate client protocols per month. Enterprise customers have unlimited client workspaces and white-label reporting.',
+  },
+]
+
+function CellValue({ value }: { value: string | boolean }) {
+  if (value === true) return <Check size={16} className="text-low mx-auto" />
+  if (value === false) return <X size={14} className="text-outline-variant mx-auto" />
+  return <span className="text-body-md text-on-surface-variant">{value}</span>
+}
 
 export default function PricingPage() {
-  const starterRef = useReveal()
-  const proRef = useReveal()
-  const enterpriseRef = useReveal()
-  const [currency, setCurrency] = useState<'USD' | 'EUR' | 'GBP'>('USD')
+  const [billing, setBilling] = useState<BillingCycle>('monthly')
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const [authOpen, setAuthOpen] = useState(false)
+  const [authTab, setAuthTab] = useState<'signin' | 'signup'>('signin')
 
-  const getCryptoPrice = (usdPrice: number) => {
-    // Approximate conversion: 1 USD = 0.000025 BTC, 0.012 ETH
-    return {
-      btc: (usdPrice * 0.000025).toFixed(6),
-      eth: (usdPrice * 0.012).toFixed(4),
-    }
+  const cardsRef = useReveal()
+  const tableRef = useReveal()
+  const faqRef = useReveal()
+
+  const getPrice = (monthlyPrice: number | null) => {
+    if (monthlyPrice === null) return null
+    if (monthlyPrice === 0) return 0
+    return billing === 'annual' ? Math.round(monthlyPrice * 0.8) : monthlyPrice
   }
-
-  const getCurrencySymbol = () => {
-    switch (currency) {
-      case 'EUR':
-        return '€'
-      case 'GBP':
-        return '£'
-      default:
-        return '$'
-    }
-  }
-
-  const convertPrice = (usdPrice: number) => {
-    switch (currency) {
-      case 'EUR':
-        return Math.round(usdPrice * 0.92)
-      case 'GBP':
-        return Math.round(usdPrice * 0.79)
-      default:
-        return usdPrice
-    }
-  }
-
-  const plans = [
-    {
-      name: 'Starter',
-      price: 0,
-      description: 'For early-stage projects',
-      features: [
-        { text: '5 Scans / month', included: true },
-        { text: 'Public Library Access', included: true },
-        { text: 'AI Co-Auditor', included: false },
-        { text: 'Priority Support', included: false },
-      ],
-      featured: false,
-      cta: 'Choose Free',
-    },
-    {
-      name: 'Professional',
-      price: 499,
-      description: 'For production protocols',
-      features: [
-        { text: 'Unlimited Scans', included: true },
-        { text: 'Priority CI/CD Queues', included: true },
-        { text: 'Full AI Co-Auditor', included: true },
-        { text: 'Priority Support', included: true },
-      ],
-      featured: true,
-      cta: 'Get Started',
-    },
-    {
-      name: 'Enterprise',
-      price: null,
-      description: 'For large-scale deployments',
-      features: [
-        { text: 'Private Invariant Repo', included: true },
-        { text: '24/7 Security Advisor', included: true },
-        { text: 'On-prem deployment', included: true },
-        { text: 'SLA Guarantee', included: true },
-      ],
-      featured: false,
-      cta: 'Contact Sales',
-    },
-  ]
 
   return (
     <div className="min-h-screen bg-surface flex flex-col">
       <MarketingNav />
 
-      <main className="flex-1 px-6 py-20">
-        <div className="max-w-6xl mx-auto">
-          {/* Header with ASCII Logo */}
-          <div className="text-center mb-16">
-            <div className="flex justify-center mb-8 opacity-[0.08] scale-50">
-              <AsciiLogo />
-            </div>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo/8 border border-indigo/20 mb-6">
-              <span className="text-label-sm text-outline">SECURE YOUR FUTURE</span>
-            </div>
-            <h1 className="font-fraunces text-5xl font-[700] text-on-surface mb-4 leading-[64px]">
-              Simple, predictable pricing for every stage of your protocol.
-            </h1>
-            <p className="text-body-lg text-outline max-w-2xl mx-auto mb-8">
-              Choose the plan that fits your security needs. All plans include access to our growing invariant library and community support.
-            </p>
-
-            {/* Currency Selector */}
-            <div className="flex items-center justify-center gap-3">
-              <Globe size={16} className="text-on-surface-variant" />
-              <div className="flex gap-2">
-                {['USD', 'EUR', 'GBP'].map((curr) => (
-                  <button
-                    key={curr}
-                    onClick={() => setCurrency(curr as any)}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-[600] transition ${
-                      currency === curr
-                        ? 'bg-indigo text-on-secondary-container'
-                        : 'bg-surface-container text-outline hover:text-on-surface'
-                    }`}
-                  >
-                    {curr}
-                  </button>
-                ))}
-              </div>
-            </div>
+      <main className="flex-1">
+        {/* Hero */}
+        <section className="px-6 py-20 max-w-5xl mx-auto text-center">
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo/8 border border-indigo/20 mb-6">
+            <span className="text-label-sm text-on-secondary-container">SIMPLE, TRANSPARENT PRICING</span>
           </div>
+          <h1 className="font-fraunces text-5xl font-[700] text-on-surface mb-4 leading-[64px]">
+            Plans for every stage
+          </h1>
+          <p className="text-body-lg text-outline max-w-xl mx-auto mb-10">
+            Start free. Scale when you're ready. No hidden fees.
+          </p>
 
-          {/* Pricing Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
-            {plans.map((plan, idx) => {
-              const displayPrice = convertPrice(plan.price || 0)
-              const crypto = plan.price ? getCryptoPrice(plan.price) : null
+          {/* Billing toggle */}
+          <div className="inline-flex items-center gap-1 p-1 bg-surface-container-low border border-outline-variant rounded-lg">
+            <button
+              onClick={() => setBilling('monthly')}
+              className={clsx(
+                'px-4 py-1.5 rounded text-sm font-[600] transition-colors',
+                billing === 'monthly' ? 'bg-surface-container text-on-surface' : 'text-outline hover:text-on-surface',
+              )}
+            >
+              Monthly
+            </button>
+            <button
+              onClick={() => setBilling('annual')}
+              className={clsx(
+                'px-4 py-1.5 rounded text-sm font-[600] transition-colors flex items-center gap-2',
+                billing === 'annual' ? 'bg-surface-container text-on-surface' : 'text-outline hover:text-on-surface',
+              )}
+            >
+              Annual
+              <span className="text-xs text-low bg-low/10 border border-low/20 px-1.5 py-0.5 rounded font-mono">-20%</span>
+            </button>
+          </div>
+        </section>
 
+        {/* Pricing cards */}
+        <section className="px-6 pb-20 max-w-5xl mx-auto">
+          <div ref={cardsRef} className="grid grid-cols-1 md:grid-cols-3 gap-6 reveal">
+            {PLANS.map((plan) => {
+              const price = getPrice(plan.monthlyPrice)
               return (
                 <div
-                  key={idx}
-                  ref={idx === 0 ? starterRef : idx === 1 ? proRef : enterpriseRef}
-                  className={`relative rounded-lg overflow-hidden reveal lift-on-hover transition ${
+                  key={plan.id}
+                  className={clsx(
+                    'relative rounded-xl p-8 flex flex-col',
                     plan.featured
-                      ? 'bg-gradient-to-br from-indigo-container via-secondary-container to-indigo-container border-2 border-indigo scale-105'
-                      : 'bg-surface-container-low border border-outline-variant'
-                  }`}
+                      ? 'bg-indigo/5 border-2 border-indigo animate-border-glow'
+                      : 'bg-surface-container-low border border-outline-variant lift-on-hover',
+                  )}
                 >
-                  {plan.featured && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-secondary-container border border-indigo text-on-secondary-container px-4 py-1.5 rounded-full text-label-sm font-[600]">
-                      MOST POPULAR
+                  {plan.badge && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-secondary-container border border-indigo text-on-secondary-container px-3 py-1 rounded-full text-label-sm whitespace-nowrap">
+                      {plan.badge}
                     </div>
                   )}
-
-                  <div className="p-8">
-                    {/* Plan Name */}
-                    <span
-                      className={`text-label-sm font-[600] ${
-                        plan.featured ? 'text-on-secondary-container' : 'text-outline'
-                      }`}
-                    >
-                      {plan.name}
-                    </span>
-
-                    {/* Price */}
-                    <div className="mt-4 mb-2">
-                      {plan.price !== null ? (
-                        <>
-                          <div
-                            className={`font-fraunces text-5xl font-[700] ${
-                              plan.featured ? 'text-on-surface' : 'text-on-surface'
-                            }`}
-                          >
-                            {getCurrencySymbol()}{displayPrice}
-                          </div>
-                          <div
-                            className={`text-body-md ${
-                              plan.featured ? 'text-outline' : 'text-outline'
-                            }`}
-                          >
-                            /mo
-                          </div>
-                          {/* Crypto Option */}
-                          {crypto && (
-                            <div className="mt-2 p-2 bg-black/20 rounded text-xs text-on-surface-variant">
-                              <p>or {crypto.btc} BTC / {crypto.eth} ETH</p>
-                            </div>
-                          )}
-                        </>
+                  <div className="mb-6">
+                    <span className={clsx('text-label-sm block mb-2', plan.featured ? 'text-on-secondary-container' : 'text-outline')}>{plan.name}</span>
+                    <div className="flex items-end gap-1 mb-2">
+                      {price === null ? (
+                        <span className="font-fraunces text-4xl font-[700] text-on-surface">Custom</span>
                       ) : (
-                        <div className="font-fraunces text-4xl font-[700] text-on-surface">
-                          Custom
-                        </div>
+                        <>
+                          <span className="font-fraunces text-5xl font-[700] text-on-surface">${price}</span>
+                          <span className="text-outline text-body-md mb-1.5">/mo</span>
+                        </>
                       )}
                     </div>
-
-                    {/* Description */}
-                    <p
-                      className={`text-body-md mb-8 ${
-                        plan.featured ? 'text-outline' : 'text-outline'
-                      }`}
-                    >
-                      {plan.description}
-                    </p>
-
-                    {/* Divider */}
-                    <div
-                      className={`border-t ${
-                        plan.featured ? 'border-indigo/30' : 'border-outline-variant'
-                      } my-8`}
-                    />
-
-                    {/* Features */}
-                    <div className="space-y-4 mb-8">
-                      {plan.features.map((feature, fidx) => (
-                        <div key={fidx} className="flex items-start gap-3">
-                          {feature.included ? (
-                            <Check size={18} className="text-low flex-shrink-0 mt-1" />
-                          ) : (
-                            <span className="text-critical flex-shrink-0 mt-1">✗</span>
-                          )}
-                          <span
-                            className={`text-body-md ${
-                              feature.included
-                                ? 'text-on-surface-variant'
-                                : 'text-on-surface-variant line-through opacity-50'
-                            }`}
-                          >
-                            {feature.text}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    {/* CTA */}
-                    {plan.name === 'Enterprise' ? (
-                      <a href="mailto:sales@sentri.dev">
-                        <Button
-                          variant={plan.featured ? 'primary' : 'secondary'}
-                          fullWidth
-                        >
-                          {plan.cta}
-                        </Button>
-                      </a>
-                    ) : (
-                      <Link href="/dashboard">
-                        <Button
-                          variant={plan.featured ? 'primary' : 'secondary'}
-                          fullWidth
-                        >
-                          {plan.cta}
-                        </Button>
-                      </Link>
+                    {billing === 'annual' && price !== null && price > 0 && (
+                      <p className="text-xs text-low">Billed ${price * 12}/year</p>
                     )}
+                    <p className="text-body-md text-outline mt-2">{plan.description}</p>
                   </div>
+                  <div className={clsx('border-t mb-6', plan.featured ? 'border-indigo/30' : 'border-outline-variant')} />
+                  <div className="flex-1" />
+                  {plan.id === 'starter' ? (
+                    <Button variant={plan.ctaVariant} fullWidth onClick={() => { setAuthTab('signup'); setAuthOpen(true) }}>
+                      {plan.cta}
+                    </Button>
+                  ) : plan.id === 'pro' ? (
+                    <Button variant={plan.ctaVariant} fullWidth onClick={() => { setAuthTab('signup'); setAuthOpen(true) }}>
+                      {plan.cta}
+                    </Button>
+                  ) : (
+                    <Link href="/contact"><Button variant={plan.ctaVariant} fullWidth>{plan.cta}</Button></Link>
+                  )}
+                  <p className="text-center text-xs text-outline-variant mt-3">
+                    {plan.id === 'starter' ? 'No credit card required' : plan.id === 'pro' ? '14-day free trial included' : 'Custom contract & SLA'}
+                  </p>
                 </div>
               )
             })}
           </div>
+        </section>
 
-          {/* FAQ-style section */}
-          <div className="max-w-3xl mx-auto">
-            <h2 className="font-fraunces text-3xl font-[600] text-on-surface mb-8 text-center">
-              Frequently Asked Questions
-            </h2>
+        {/* Feature comparison table */}
+        <section className="px-6 py-24 bg-surface-container-lowest border-y border-outline-variant">
+          <div className="max-w-5xl mx-auto">
+            <div className="text-center mb-12">
+              <h2 className="font-fraunces text-3xl font-[600] text-on-surface mb-3">Full Feature Comparison</h2>
+              <p className="text-body-md text-outline">See exactly what's included at each tier</p>
+            </div>
+            <div ref={tableRef} className="reveal">
+              {/* Header */}
+              <div className="grid grid-cols-4 gap-4 mb-4 sticky top-[73px] bg-surface-container-lowest py-4 z-10">
+                <div />
+                {PLANS.map((plan) => (
+                  <div key={plan.id} className={clsx('text-center py-2 rounded-lg', plan.featured && 'bg-indigo/5 border border-indigo/20')}>
+                    <span className={clsx('text-label-sm block', plan.featured ? 'text-on-secondary-container' : 'text-on-surface')}>{plan.name}</span>
+                  </div>
+                ))}
+              </div>
 
-            <div className="space-y-6">
-              {[
-                {
-                  q: 'Can I switch plans anytime?',
-                  a: 'Yes. Upgrade or downgrade your plan at any time. Changes take effect at the start of your next billing cycle.',
-                },
-                {
-                  q: 'What is included in unlimited scans?',
-                  a: 'Unlimited scans includes all basic security checks, access to the 1,400+ invariant library, and full reports. Enterprise-grade features like AI Co-Auditor and private invariant repos require specific plans.',
-                },
-                {
-                  q: 'Do you offer volume discounts?',
-                  a: 'Yes! Contact our sales team for custom pricing on Enterprise plans, including volume discounts for large portfolios.',
-                },
-                {
-                  q: 'Is there a free trial?',
-                  a: 'The Starter plan is free forever. For Professional and Enterprise features, we offer a 14-day free trial with full functionality.',
-                },
-              ].map((item, idx) => (
-                <div
-                  key={idx}
-                  className="bg-surface-container-low border border-outline-variant rounded-lg p-6"
-                >
-                  <h3 className="text-body-lg font-[600] text-on-surface mb-3">
-                    {item.q}
-                  </h3>
-                  <p className="text-body-md text-outline">{item.a}</p>
+              {COMPARISON_ROWS.map((group) => (
+                <div key={group.category} className="mb-6">
+                  <div className="text-label-sm text-outline bg-surface-container-low border border-outline-variant rounded-t-lg px-4 py-2.5">
+                    {group.category}
+                  </div>
+                  {group.rows.map((row, i) => (
+                    <div
+                      key={row.feature}
+                      className={clsx(
+                        'grid grid-cols-4 gap-4 px-4 py-3 border-x border-b border-outline-variant',
+                        i === group.rows.length - 1 && 'rounded-b-lg',
+                        i % 2 === 0 ? 'bg-surface-container-lowest' : 'bg-surface-container-low/40',
+                      )}
+                    >
+                      <span className="text-body-md text-on-surface-variant">{row.feature}</span>
+                      <div className="text-center"><CellValue value={row.starter} /></div>
+                      <div className="text-center"><CellValue value={row.pro} /></div>
+                      <div className="text-center"><CellValue value={row.enterprise} /></div>
+                    </div>
+                  ))}
                 </div>
               ))}
             </div>
           </div>
+        </section>
 
-          {/* Payment Methods */}
-          <div className="mt-16 p-8 bg-surface-container rounded-lg border border-outline-variant text-center">
-            <h3 className="font-fraunces text-2xl font-[600] text-on-surface mb-4">
-              Flexible Payment Methods
-            </h3>
-            <p className="text-on-surface-variant mb-6">
-              We accept credit cards, cryptocurrency (BTC, ETH), and bank transfers for Enterprise customers.
+        {/* FAQ */}
+        <section className="px-6 py-24 max-w-3xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="font-fraunces text-3xl font-[600] text-on-surface mb-3">Frequently Asked Questions</h2>
+            <p className="text-body-md text-outline">Everything you need to know about Sentri's plans</p>
+          </div>
+          <div ref={faqRef} className="space-y-3 reveal">
+            {FAQS.map((faq, i) => (
+              <div key={i} className="bg-surface-container-low border border-outline-variant rounded-xl overflow-hidden">
+                <button
+                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                  className="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-surface-container transition-colors"
+                >
+                  <span className="font-fraunces text-base font-[600] text-on-surface pr-4">{faq.q}</span>
+                  <ChevronDown
+                    size={18}
+                    className={clsx('text-outline flex-shrink-0 transition-transform duration-200', openFaq === i && 'rotate-180')}
+                  />
+                </button>
+                {openFaq === i && (
+                  <div className="px-6 pb-5">
+                    <p className="text-body-md text-outline leading-6">{faq.a}</p>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Bottom CTA */}
+        <section className="px-6 pb-24">
+          <div className="max-w-3xl mx-auto text-center bg-indigo/5 border border-indigo/20 rounded-2xl p-12">
+            <ShieldCheck size={32} className="text-secondary mx-auto mb-4" />
+            <h2 className="font-fraunces text-3xl font-[600] text-on-surface mb-4">Still have questions?</h2>
+            <p className="text-body-lg text-outline mb-8">
+              Talk to our security team and we'll help you find the right plan for your protocol.
             </p>
-            <div className="flex flex-wrap justify-center gap-4 text-sm text-on-surface-variant">
-              <span className="flex items-center gap-2">
-                <span className="text-xl">💳</span> Credit Card
-              </span>
-              <span className="flex items-center gap-2">
-                <span className="text-xl">₿</span> Bitcoin
-              </span>
-              <span className="flex items-center gap-2">
-                <span className="text-xl">Ξ</span> Ethereum
-              </span>
-              <span className="flex items-center gap-2">
-                <span className="text-xl">🏦</span> Bank Transfer
-              </span>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+              <Button variant="primary" size="lg" icon={<ArrowRight size={16} />} iconPosition="right" onClick={() => { setAuthTab('signup'); setAuthOpen(true) }}>
+                Start for Free
+              </Button>
+              <Link href="/contact">
+                <Button variant="secondary" size="lg">Contact Sales</Button>
+              </Link>
             </div>
           </div>
-        </div>
+        </section>
       </main>
 
+      <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} defaultTab={authTab} />
       <MarketingFooter />
     </div>
   )

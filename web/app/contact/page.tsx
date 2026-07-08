@@ -4,164 +4,220 @@ import { useState } from 'react'
 import { MarketingNav } from '@/components/layout/MarketingNav'
 import { MarketingFooter } from '@/components/layout/MarketingFooter'
 import { Button } from '@/components/ui/Button'
-import { Mail, Phone, MapPin } from 'lucide-react'
+import { Mail, MessageSquare, Building2, CheckCircle2, ArrowRight, ShieldCheck } from 'lucide-react'
+
+const CONTACT_REASONS = [
+  'Enterprise plan inquiry',
+  'On-premises deployment',
+  'Custom invariant library',
+  'Integration partnership',
+  'Security research collaboration',
+  'Other',
+]
 
 export default function ContactPage() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    company: '',
-    message: '',
-  })
+  const [form, setForm] = useState({ name: '', email: '', company: '', reason: '', message: '' })
   const [submitted, setSubmitted] = useState(false)
+  const [loading, setLoading] = useState(false)
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
   }
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Implement form submission
-    console.log('Form submitted:', formData)
+    setLoading(true)
+    // Simulate API call
+    await new Promise((r) => setTimeout(r, 1200))
+    setLoading(false)
     setSubmitted(true)
-    setTimeout(() => {
-      setFormData({ name: '', email: '', company: '', message: '' })
-      setSubmitted(false)
-    }, 3000)
   }
 
   return (
     <div className="min-h-screen bg-surface flex flex-col">
       <MarketingNav />
 
-      <main className="flex-1 max-w-4xl mx-auto px-6 py-12 w-full">
-        <h1 className="font-fraunces text-5xl font-[600] text-on-surface mb-2">Contact Sales</h1>
-        <p className="text-body-lg text-outline mb-12">
-          Have questions about enterprise plans? We'd love to hear from you. Get in touch with our team.
-        </p>
+      <main className="flex-1">
+        {/* Hero */}
+        <section className="px-6 py-20 border-b border-outline-variant bg-surface-container-lowest">
+          <div className="max-w-5xl mx-auto">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo/8 border border-indigo/20 mb-6">
+              <MessageSquare size={14} className="text-on-secondary-container" />
+              <span className="text-label-sm text-on-secondary-container">CONTACT SALES</span>
+            </div>
+            <h1 className="font-fraunces text-5xl font-[700] text-on-surface mb-4 leading-[64px]">
+              Let's secure your protocol
+            </h1>
+            <p className="text-body-lg text-outline max-w-xl">
+              Reach out to discuss Enterprise plans, custom deployments, or research partnerships. Our team responds within 24 hours.
+            </p>
+          </div>
+        </section>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
-          {/* Contact Info */}
-          <div className="lg:col-span-1">
-            <div className="space-y-6">
-              {/* Email */}
-              <div className="flex gap-4">
-                <div className="flex-shrink-0">
-                  <Mail size={24} className="text-secondary" />
-                </div>
-                <div>
-                  <h3 className="text-body-lg font-[600] text-on-surface mb-1">Email</h3>
-                  <a href="mailto:sales@sentri.dev" className="text-outline hover:text-on-surface transition-colors">
-                    sales@sentri.dev
-                  </a>
-                </div>
-              </div>
+        <section className="px-6 py-16 max-w-5xl mx-auto">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
 
-              {/* Phone */}
-              <div className="flex gap-4">
-                <div className="flex-shrink-0">
-                  <Phone size={24} className="text-secondary" />
+            {/* Left: info */}
+            <div className="space-y-8">
+              {[
+                {
+                  icon: <Mail size={20} className="text-secondary" />,
+                  title: 'Email',
+                  value: 'sales@sentri.dev',
+                  link: 'mailto:sales@sentri.dev',
+                },
+                {
+                  icon: <Building2 size={20} className="text-secondary" />,
+                  title: 'Enterprise',
+                  value: 'Custom contracts & SLAs available',
+                  link: null,
+                },
+                {
+                  icon: <ShieldCheck size={20} className="text-secondary" />,
+                  title: 'Security Disclosure',
+                  value: 'security@sentri.dev',
+                  link: 'mailto:security@sentri.dev',
+                },
+              ].map((item, i) => (
+                <div key={i} className="flex gap-4">
+                  <div className="w-10 h-10 rounded-lg bg-indigo/10 border border-indigo/20 flex items-center justify-center flex-shrink-0">
+                    {item.icon}
+                  </div>
+                  <div>
+                    <p className="text-label-sm text-outline mb-1">{item.title.toUpperCase()}</p>
+                    {item.link ? (
+                      <a href={item.link} className="text-body-md text-on-surface hover:text-secondary transition-colors">
+                        {item.value}
+                      </a>
+                    ) : (
+                      <p className="text-body-md text-on-surface-variant">{item.value}</p>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <h3 className="text-body-lg font-[600] text-on-surface mb-1">Phone</h3>
-                  <a href="tel:+1234567890" className="text-outline hover:text-on-surface transition-colors">
-                    +1 (234) 567-890
-                  </a>
-                </div>
-              </div>
+              ))}
 
-              {/* Address */}
-              <div className="flex gap-4">
-                <div className="flex-shrink-0">
-                  <MapPin size={24} className="text-secondary" />
-                </div>
-                <div>
-                  <h3 className="text-body-lg font-[600] text-on-surface mb-1">Office</h3>
-                  <p className="text-outline">
-                    123 Security Lane
-                    <br />
-                    Austin, TX 78701
-                    <br />
-                    United States
-                  </p>
-                </div>
+              {/* Expectation list */}
+              <div className="bg-surface-container-low border border-outline-variant rounded-xl p-6 space-y-3">
+                <p className="text-label-sm text-outline mb-4">WHAT HAPPENS NEXT</p>
+                {[
+                  'We\'ll reply within 1 business day',
+                  'A security engineer will join the call',
+                  'We\'ll provide a custom proof-of-concept scan',
+                ].map((item, i) => (
+                  <div key={i} className="flex items-start gap-2">
+                    <span className="text-secondary font-[700] flex-shrink-0 text-sm mt-0.5">{String(i + 1).padStart(2, '0')}</span>
+                    <p className="text-body-md text-on-surface-variant">{item}</p>
+                  </div>
+                ))}
               </div>
             </div>
+
+            {/* Right: form */}
+            <div className="lg:col-span-2">
+              {submitted ? (
+                <div className="flex flex-col items-center justify-center text-center py-16 bg-surface-container-low border border-outline-variant rounded-xl">
+                  <div className="w-16 h-16 rounded-full bg-low/10 border border-low/20 flex items-center justify-center mb-5">
+                    <CheckCircle2 size={32} className="text-low" />
+                  </div>
+                  <h2 className="font-fraunces text-2xl font-[600] text-on-surface mb-3">Message sent!</h2>
+                  <p className="text-body-lg text-outline max-w-sm">
+                    Thanks for reaching out. A member of our team will get back to you within 24 hours.
+                  </p>
+                  <button
+                    onClick={() => { setSubmitted(false); setForm({ name: '', email: '', company: '', reason: '', message: '' }) }}
+                    className="mt-6 text-secondary text-sm font-[600] hover:text-secondary/80 transition-colors"
+                  >
+                    Send another message
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit} className="space-y-5">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-body-md text-on-surface font-[500] mb-2">Full Name *</label>
+                      <input
+                        type="text"
+                        name="name"
+                        required
+                        value={form.name}
+                        onChange={handleChange}
+                        placeholder="Jane Smith"
+                        className="w-full px-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md text-on-surface placeholder-outline-variant focus:outline-none focus:border-indigo transition-colors"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-body-md text-on-surface font-[500] mb-2">Work Email *</label>
+                      <input
+                        type="email"
+                        name="email"
+                        required
+                        value={form.email}
+                        onChange={handleChange}
+                        placeholder="jane@protocol.io"
+                        className="w-full px-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md text-on-surface placeholder-outline-variant focus:outline-none focus:border-indigo transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-body-md text-on-surface font-[500] mb-2">Company / Protocol</label>
+                    <input
+                      type="text"
+                      name="company"
+                      value={form.company}
+                      onChange={handleChange}
+                      placeholder="Acme Protocol"
+                      className="w-full px-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md text-on-surface placeholder-outline-variant focus:outline-none focus:border-indigo transition-colors"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-body-md text-on-surface font-[500] mb-2">Reason for Inquiry</label>
+                    <select
+                      name="reason"
+                      value={form.reason}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md text-on-surface focus:outline-none focus:border-indigo transition-colors appearance-none"
+                    >
+                      <option value="">Select a reason…</option>
+                      {CONTACT_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-body-md text-on-surface font-[500] mb-2">Message *</label>
+                    <textarea
+                      name="message"
+                      required
+                      rows={5}
+                      value={form.message}
+                      onChange={handleChange}
+                      placeholder="Tell us about your protocol, team size, and what you'd like to achieve with Sentri…"
+                      className="w-full px-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md text-on-surface placeholder-outline-variant focus:outline-none focus:border-indigo transition-colors resize-none"
+                    />
+                  </div>
+
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    size="lg"
+                    fullWidth
+                    icon={loading ? undefined : <ArrowRight size={16} />}
+                    iconPosition="right"
+                    disabled={loading}
+                  >
+                    {loading ? 'Sending…' : 'Send Message'}
+                  </Button>
+
+                  <p className="text-xs text-outline-variant text-center">
+                    By submitting, you agree to our{' '}
+                    <a href="/privacy" className="hover:text-outline transition-colors underline">Privacy Policy</a>.
+                  </p>
+                </form>
+              )}
+            </div>
           </div>
-
-          {/* Contact Form */}
-          <div className="lg:col-span-2">
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label htmlFor="name" className="block text-body-md text-on-surface mb-2">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 bg-surface-container border border-outline-variant rounded-lg text-on-surface placeholder-outline-variant focus:outline-none focus:ring-2 focus:ring-secondary transition-all"
-                  placeholder="Your name"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="email" className="block text-body-md text-on-surface mb-2">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  required
-                  className="w-full px-4 py-2 bg-surface-container border border-outline-variant rounded-lg text-on-surface placeholder-outline-variant focus:outline-none focus:ring-2 focus:ring-secondary transition-all"
-                  placeholder="your@email.com"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="company" className="block text-body-md text-on-surface mb-2">
-                  Company
-                </label>
-                <input
-                  type="text"
-                  id="company"
-                  name="company"
-                  value={formData.company}
-                  onChange={handleChange}
-                  className="w-full px-4 py-2 bg-surface-container border border-outline-variant rounded-lg text-on-surface placeholder-outline-variant focus:outline-none focus:ring-2 focus:ring-secondary transition-all"
-                  placeholder="Your company"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="message" className="block text-body-md text-on-surface mb-2">
-                  Message
-                </label>
-                <textarea
-                  id="message"
-                  name="message"
-                  value={formData.message}
-                  onChange={handleChange}
-                  required
-                  rows={5}
-                  className="w-full px-4 py-2 bg-surface-container border border-outline-variant rounded-lg text-on-surface placeholder-outline-variant focus:outline-none focus:ring-2 focus:ring-secondary transition-all"
-                  placeholder="Tell us about your needs..."
-                />
-              </div>
-
-              <Button type="submit" variant="primary" fullWidth>
-                {submitted ? 'Message Sent! ✓' : 'Send Message'}
-              </Button>
-            </form>
-          </div>
-        </div>
+        </section>
       </main>
 
       <MarketingFooter />

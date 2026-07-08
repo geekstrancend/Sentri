@@ -343,3 +343,119 @@
   animation: type-reveal 6s steps(60, end) forwards;
   overflow: hidden;
 }
+
+/* ─── Additional type utilities ─── */
+.text-display-md {
+  @apply text-4xl leading-[52px] font-[600] tracking-[-0.02em];
+  font-family: var(--font-fraunces), serif;
+}
+
+.text-display-sm {
+  @apply text-3xl leading-10 font-[600] tracking-[-0.01em];
+  font-family: var(--font-fraunces), serif;
+}
+
+.text-body-sm {
+  @apply text-xs leading-4 font-[400];
+}
+
+/* ─── Marquee ticker ─── */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  animation: marquee 36s linear infinite;
+}
+
+/* ─── Stagger animation delays ─── */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+.stagger-5 { animation-delay: 0.5s; }
+.stagger-6 { animation-delay: 0.6s; }
+
+/* ─── Gradient text utility ─── */
+.gradient-text {
+  background: linear-gradient(135deg, var(--on-surface) 0%, var(--secondary) 60%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* ─── Border glow animation (featured pricing card, etc.) ─── */
+@keyframes border-glow {
+  0%, 100% { box-shadow: 0 0 0px transparent; }
+  50% { box-shadow: 0 0 20px rgba(129, 140, 248, 0.25), inset 0 0 20px rgba(129, 140, 248, 0.05); }
+}
+
+.animate-border-glow {
+  animation: border-glow 3s ease-in-out infinite;
+}
+
+/* ─── Float animation (subtle idle movement) ─── */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-6px); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* ─── Shimmer for skeleton states ─── */
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, var(--surface-container-low) 25%, var(--surface-container) 50%, var(--surface-container-low) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* ─── Gradient card top border ─── */
+.card-gradient-border {
+  position: relative;
+}
+.card-gradient-border::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--indigo), transparent);
+}
+
+/* ─── Enhanced reveal: add delay variants ─── */
+.reveal-delay-1 {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease-out 0.1s, transform 0.6s ease-out 0.1s;
+}
+.reveal-delay-2 {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease-out 0.2s, transform 0.6s ease-out 0.2s;
+}
+.reveal-delay-3 {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s ease-out 0.3s, transform 0.6s ease-out 0.3s;
+}
+.reveal-delay-1.is-visible,
+.reveal-delay-2.is-visible,
+.reveal-delay-3.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── Section divider gradient ─── */
+.section-divider {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--outline-variant), transparent);
+}
