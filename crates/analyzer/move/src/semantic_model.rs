@@ -1,0 +1,101 @@
+//! Chain-agnostic semantic-model extraction for Move modules.
+//!
+//! Move has no `syn`-equivalent structural parser wired in yet (bringing one
+//! online is follow-on work under Epic 6.1/6.2's pattern, tracked
+//! separately), so this extractor works over signature-line text like the
+//! rest of the Move analyzer does today. The point of this module isn't
+//! parser quality — it's proving that the same chain-agnostic rule in
+//! [`sentri_ir::rules`] fires correctly once Move populates the shared
+//! [`SemanticModel`], with zero rule-side code changed to support it.
+
+use regex::Regex;
+use sentri_ir::{
+    AuthCheckKind, AuthorizationCheck, MutationKind, PrivilegedMutation, SemanticModel,
+};
+
+/// Function name substrings that indicate a privileged mutation, paired
+/// with the mutation category they represent.
+const SENSITIVE_FUNCTIONS: &[(&str, MutationKind)] = &[
+    ("withdraw", MutationKind::FundTransfer),
+    ("transfer", MutationKind::FundTransfer),
+    ("mint", MutationKind::FundTransfer),
+    ("burn", MutationKind::FundTransfer),
+    ("upgrade", MutationKind::Upgrade),
+];
+
+/// Build a chain-agnostic semantic model from Move module source.
+///
+/// A capability-typed parameter (`&AdminCap`, `&Capability<...>`, ...) is
+/// treated as the guard: Move's capability pattern is its equivalent of an
+/// authorization check — possession of the typed value at the call site
+/// stands in for a signer/role check.
+pub fn build_semantic_model(source: &str, file_path: &str) -> SemanticModel {
+    let mut model = SemanticModel::new("move", file_path);
+
+    let sig_re = Regex::new(r"public\s+(?:entry\s+)?fun\s+(\w+)\s*(?:<[^>]*>)?\s*\(([^)]*)\)")
+        .expect("valid regex");
+    let cap_re = Regex::new(r"&(?:mut\s+)?(\w*Cap\w*)").expect("valid regex");
+
+    for (line_idx, line) in source.lines().enumerate() {
+        let Some(caps) = sig_re.captures(line) else {
+            continue;
+        };
+        let fn_name = &caps[1];
+        let params = &caps[2];
+
+        let lower = fn_name.to_lowercase();
+        let Some((_, kind)) = SENSITIVE_FUNCTIONS
+            .iter()
+            .find(|(needle, _)| lower.contains(needle))
+        else {
+            continue;
+        };
+
+        let guards: Vec<AuthorizationCheck> = cap_re
+            .captures_iter(params)
+            .map(|c| AuthorizationCheck {
+                kind: AuthCheckKind::RoleOrCapability,
+                source: c[1].to_string(),
+            })
+            .collect();
+
+        model.mutations.push(PrivilegedMutation {
+            entry_point: fn_name.to_string(),
+            kind: kind.clone(),
+            line: line_idx + 1,
+            guards,
+        });
+    }
+
+    model
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sentri_ir::rules::find_unauthorized_privileged_mutations;
+
+    const FIXTURE: &str = r#"
+module vault::vault {
+    public entry fun withdraw<T>(vault: &mut Vault<T>, amount: u64, ctx: &mut TxContext) {
+        // no capability check
+    }
+
+    public entry fun admin_withdraw<T>(admin: &AdminCap, vault: &mut Vault<T>, amount: u64) {
+        // guarded by capability
+    }
+}
+"#;
+
+    #[test]
+    fn flags_withdraw_with_no_guard_but_not_admin_withdraw() {
+        let model = build_semantic_model(FIXTURE, "vault.move");
+        assert_eq!(model.chain, "move");
+        assert_eq!(model.mutations.len(), 2);
+
+        let findings = find_unauthorized_privileged_mutations(&model);
+        assert_eq!(findings.len(), 1);
+        assert!(findings[0].message.contains("withdraw"));
+        assert!(!findings[0].message.contains("admin_withdraw"));
+    }
+}

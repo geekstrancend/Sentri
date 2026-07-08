@@ -20,6 +20,8 @@ pub mod cfg;
 pub mod dataflow;
 pub mod detectors;
 pub mod errors;
+/// Chain-agnostic semantic-model extraction (Epic 6.1 shared IR)
+pub mod semantic_model;
 pub mod symbolic;
 
 pub use analyzer::EvmAnalyzer;
@@ -30,4 +32,5 @@ pub use bytecode::{BytecodeAnalyzer, Instruction, Opcode};
 pub use cfg::ControlFlowGraph;
 pub use dataflow::DataFlow;
 pub use errors::{AnalysisError, AnalysisResult};
+pub use semantic_model::build_semantic_model;
 pub use symbolic::SymbolicExecutor;

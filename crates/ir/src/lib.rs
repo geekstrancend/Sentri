@@ -14,6 +14,11 @@ pub use sentri_core::{InvarError, Result};
 
 pub mod analyzer_result;
 pub mod ast;
+pub mod rules;
+pub mod semantic;
 
 pub use analyzer_result::AnalysisContext;
 pub use ast::DependencyGraph;
+pub use semantic::{
+    AuthCheckKind, AuthorizationCheck, MutationKind, PrivilegedMutation, SemanticModel,
+};
