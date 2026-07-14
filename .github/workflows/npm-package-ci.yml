@@ -12,10 +12,6 @@ on:
       - 'sentri-npm/**'
       - '.github/workflows/npm-package-ci.yml'
 
-defaults:
-  run:
-    working-directory: sentri-npm
-
 jobs:
   test:
     name: Test (Node ${{ matrix.node-version }})
@@ -24,6 +20,9 @@ jobs:
       fail-fast: false
       matrix:
         node-version: ["18", "20", "22"]
+    defaults:
+      run:
+        working-directory: sentri-npm
     steps:
       - uses: actions/checkout@v4
 
