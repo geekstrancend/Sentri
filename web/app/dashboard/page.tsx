@@ -3,12 +3,11 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import {
-  Plus, CheckCircle2, Clock, AlertTriangle, BarChart3,
-  TrendingUp, Shield, Zap, MoreHorizontal, ArrowUpRight, RefreshCw,
+  Plus, CheckCircle2, AlertTriangle, BarChart3,
+  Shield, Zap, ArrowUpRight, RefreshCw,
 } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { Button } from '@/components/ui/Button'
-import { SeverityBadge } from '@/components/ui/SeverityBadge'
 import { ScanModal } from '@/components/ui/ScanModal'
 import clsx from 'clsx'
 
@@ -113,8 +112,8 @@ export default function DashboardPage() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-outline-variant">
-                    {['Project', 'Chain', 'Findings', 'Date', 'Status', ''].map((h) => (
-                      <th key={h} className="text-left text-label-sm text-outline px-6 py-3 font-[600]">{h}</th>
+                    {['Project', 'Chain', 'Findings', 'Date', 'Status', 'Actions'].map((h) => (
+                      <th key={h} scope="col" className={clsx('text-left text-label-sm text-outline px-6 py-3 font-[600]', h === 'Actions' && 'sr-only')}>{h}</th>
                     ))}
                   </tr>
                 </thead>
@@ -165,7 +164,7 @@ export default function DashboardPage() {
                         {scan.status === 'complete' && (
                           <Link
                             href={`/reports/${scan.id}`}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity text-secondary text-xs font-[600] hover:text-secondary/80 flex items-center gap-1 whitespace-nowrap"
+                            className="text-secondary text-xs font-[600] hover:text-secondary/80 flex items-center gap-1 whitespace-nowrap"
                           >
                             View report <ArrowUpRight size={12} />
                           </Link>
@@ -190,7 +189,7 @@ export default function DashboardPage() {
                   <div className="flex-1 min-w-0">
                     <p className="text-body-md font-[600] text-on-surface">{item.title}</p>
                     <p className="text-xs text-outline mt-0.5 leading-4">{item.description}</p>
-                    <p className="text-xs text-outline-variant mt-1">{item.time}</p>
+                    <p className="text-xs text-outline mt-1">{item.time}</p>
                   </div>
                 </div>
               ))}

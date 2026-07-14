@@ -159,7 +159,7 @@ function FindingCard({ finding }: { finding: Finding }) {
           <span className={clsx('inline-flex items-center gap-1 text-xs font-[600] px-2 py-0.5 rounded border', status.cls)}>
             {status.icon} {status.label}
           </span>
-          <code className="text-xs text-outline-variant font-mono">{finding.id}</code>
+          <code className="text-xs text-outline font-mono">{finding.id}</code>
           {expanded ? <ChevronUp size={16} className="text-outline" /> : <ChevronDown size={16} className="text-outline" />}
         </div>
       </button>
@@ -212,7 +212,7 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
   const visible = filter === 'all' ? FINDINGS : FINDINGS.filter(f => f.severity === filter)
 
   return (
-    <AppShell currentPage="audits" onNewScan={() => {}}>
+    <AppShell currentPage="audits">
       <div className="max-w-4xl mx-auto p-6 lg:p-8 space-y-8">
 
         {/* Back link */}
@@ -231,8 +231,8 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
             <p className="text-body-md text-outline">Generated {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
           </div>
           <div className="flex gap-2 flex-shrink-0">
-            <Button variant="secondary" size="sm" icon={<Share2 size={14} />}>Share</Button>
-            <Button variant="primary" size="sm" icon={<Download size={14} />}>Export PDF</Button>
+            <Button variant="secondary" size="sm" icon={<Share2 size={14} />} disabled title="Coming soon">Share</Button>
+            <Button variant="primary" size="sm" icon={<Download size={14} />} disabled title="Coming soon">Export PDF</Button>
           </div>
         </div>
 

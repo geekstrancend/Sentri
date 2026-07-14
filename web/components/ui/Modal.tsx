@@ -2,6 +2,7 @@
 
 import { X } from 'lucide-react'
 import clsx from 'clsx'
+import { useEscapeKey } from '@/components/hooks/useEscapeKey'
 
 interface ModalProps {
   isOpen: boolean
@@ -24,6 +25,8 @@ export function Modal({
   children,
   size = 'md',
 }: ModalProps) {
+  useEscapeKey(isOpen, onClose)
+
   if (!isOpen) return null
 
   return (
@@ -32,6 +35,9 @@ export function Modal({
       onClick={onClose}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
         className={clsx(
           'bg-surface-container-low border border-outline-variant rounded-lg w-full',
           sizeStyles[size],
@@ -42,10 +48,11 @@ export function Modal({
       >
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-6 border-b border-outline-variant">
-          <h2 className="text-headline-md text-on-surface">{title}</h2>
+          <h2 id="modal-title" className="text-headline-md text-on-surface">{title}</h2>
           <button
             onClick={onClose}
-            className="text-outline hover:text-on-surface transition-colors p-1"
+            aria-label="Close dialog"
+            className="text-outline hover:text-on-surface transition-colors p-2 -m-1"
           >
             <X size={20} />
           </button>

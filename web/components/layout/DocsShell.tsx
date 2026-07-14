@@ -89,7 +89,7 @@ export function DocsShell({
           <Link href="/" className="flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity">
             <ShieldCheck size={18} className="text-secondary" />
             <span className="font-mono font-[600] text-on-surface text-sm">Sentri</span>
-            <span className="text-label-sm text-outline-variant ml-1">Docs</span>
+            <span className="text-label-sm text-outline ml-1">Docs</span>
           </Link>
           {/* Sidebar search */}
           <div className="relative">
@@ -102,7 +102,11 @@ export function DocsShell({
               className="w-full bg-surface-container border border-outline-variant rounded-md px-3 pl-8 py-1.5 text-xs text-on-surface placeholder-outline-variant focus:outline-none focus:border-indigo transition-colors"
             />
             {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface">
+              <button
+                onClick={() => setSearchQuery('')}
+                aria-label="Clear search"
+                className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-outline hover:text-on-surface"
+              >
                 <X size={12} />
               </button>
             )}
@@ -113,7 +117,7 @@ export function DocsShell({
         <nav className="flex-1 overflow-y-auto p-4 space-y-6">
           {filteredSections.map((section, idx) => (
             <div key={idx}>
-              <p className="text-label-sm text-outline-variant mb-2 px-2">{section.title}</p>
+              <p className="text-label-sm text-outline mb-2 px-2">{section.title}</p>
               <ul className="space-y-0.5">
                 {section.items.map((item) => (
                   <li key={item.href}>
@@ -163,6 +167,7 @@ export function DocsShell({
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
+                aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
                 className="md:hidden p-1.5 hover:bg-surface-container rounded-lg text-outline transition-colors"
               >
                 {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
@@ -204,7 +209,7 @@ export function DocsShell({
             {tableOfContents && tableOfContents.length > 0 && (
               <aside className="hidden xl:block w-52 flex-shrink-0 py-12 pr-6">
                 <nav className="sticky top-8">
-                  <p className="text-label-sm text-outline-variant mb-4">ON THIS PAGE</p>
+                  <p className="text-label-sm text-outline mb-4">ON THIS PAGE</p>
                   <ul className="space-y-2.5">
                     {tableOfContents.map((item, idx) => (
                       <li key={idx}>

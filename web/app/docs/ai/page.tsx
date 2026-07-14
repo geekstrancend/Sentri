@@ -35,7 +35,7 @@ export default function AICoAuditorPage() {
 
             {/* Arrow */}
             <div className="text-center">
-              <div className="text-headline-lg text-outline-variant">→</div>
+              <div className="text-headline-lg text-outline-variant" aria-hidden="true">→</div>
             </div>
 
             {/* Step 2 */}
@@ -51,7 +51,7 @@ export default function AICoAuditorPage() {
 
             {/* Arrow */}
             <div className="text-center">
-              <div className="text-headline-lg text-outline-variant">→</div>
+              <div className="text-headline-lg text-outline-variant" aria-hidden="true">→</div>
             </div>
 
             {/* Step 3 */}
@@ -81,7 +81,7 @@ export default function AICoAuditorPage() {
           <h2 className="font-fraunces text-2xl font-[600] text-on-surface mb-6">
             Comparison Table
           </h2>
-          <div className="border border-outline-variant rounded-lg overflow-hidden">
+          <div className="border border-outline-variant rounded-lg overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="bg-surface-container-low border-b border-outline-variant">

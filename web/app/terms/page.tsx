@@ -13,7 +13,7 @@ export default function TermsPage() {
           Terms of Service
         </h1>
         <p className="text-body-lg text-on-surface-variant mb-12">
-          Last updated: December 2024
+          Last updated: July 2026
         </p>
 
         <div className="space-y-8 prose prose-invert max-w-none">
@@ -34,11 +34,11 @@ export default function TermsPage() {
               Permission is granted to temporarily download one copy of the materials (information or software) on Sentri's website for personal, non-commercial transitory viewing only. This is the grant of a license, not a transfer of title, and under this license you may not:
             </p>
             <ul className="list-disc list-inside space-y-2 text-body-md text-on-surface-variant">
-              <li>Modifying or copying the materials</li>
-              <li>Using the materials for any commercial purpose or for any public display</li>
-              <li>Attempting to decompile or reverse engineer any software contained on the website</li>
-              <li>Removing any copyright or other proprietary notations from the materials</li>
-              <li>Transferring the materials to another person or "mirroring" the materials on any other server</li>
+              <li>Modify or copy the materials</li>
+              <li>Use the materials for any commercial purpose or for any public display</li>
+              <li>Attempt to decompile or reverse engineer any software contained on the website</li>
+              <li>Remove any copyright or other proprietary notations from the materials</li>
+              <li>Transfer the materials to another person or "mirror" the materials on any other server</li>
             </ul>
           </section>
 

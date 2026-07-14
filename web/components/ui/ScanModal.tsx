@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { X, Github, FolderOpen, Upload, ArrowRight, CheckCircle, AlertCircle, Loader } from 'lucide-react'
 import { Button } from './Button'
+import { useEscapeKey } from '@/components/hooks/useEscapeKey'
 
 type ScanStatus = 'idle' | 'uploading' | 'scanning' | 'complete' | 'error'
 
@@ -19,6 +20,17 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
   const [progress, setProgress] = useState(0)
   const [findings, setFindings] = useState<{ severity: string; count: number }[] | null>(null)
   const [error, setError] = useState('')
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([])
+
+  const clearAllTimers = () => {
+    timersRef.current.forEach((t) => {
+      clearInterval(t)
+      clearTimeout(t)
+    })
+    timersRef.current = []
+  }
+
+  useEffect(() => clearAllTimers, [])
 
   const handleGitHubSubmit = () => {
     if (!githubUrl.trim()) {
@@ -40,9 +52,10 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
         return prev + 5
       })
     }, 200)
+    timersRef.current.push(uploadInterval)
 
     // Simulate API call
-    setTimeout(() => {
+    const apiTimeout = setTimeout(() => {
       clearInterval(uploadInterval)
       setScanStatus('scanning')
       setProgress(30)
@@ -57,8 +70,9 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
           return prev + 15
         })
       }, 400)
+      timersRef.current.push(scanInterval)
 
-      setTimeout(() => {
+      const completeTimeout = setTimeout(() => {
         clearInterval(scanInterval)
         setScanStatus('complete')
         setProgress(100)
@@ -69,7 +83,9 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
           { severity: 'low', count: 12 },
         ])
       }, 3000)
+      timersRef.current.push(completeTimeout)
     }, 2000)
+    timersRef.current.push(apiTimeout)
   }
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -100,8 +116,9 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
         return prev + 8
       })
     }, 150)
+    timersRef.current.push(uploadInterval)
 
-    setTimeout(() => {
+    const apiTimeout = setTimeout(() => {
       clearInterval(uploadInterval)
       setScanStatus('scanning')
       setProgress(40)
@@ -116,8 +133,9 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
           return prev + 12
         })
       }, 300)
+      timersRef.current.push(scanInterval)
 
-      setTimeout(() => {
+      const completeTimeout = setTimeout(() => {
         clearInterval(scanInterval)
         setScanStatus('complete')
         setProgress(100)
@@ -128,10 +146,13 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
           { severity: 'low', count: 9 },
         ])
       }, 2500)
+      timersRef.current.push(completeTimeout)
     }, 2000)
+    timersRef.current.push(apiTimeout)
   }
 
   const handleReset = () => {
+    clearAllTimers()
     setScanStatus('idle')
     setProgress(0)
     setGithubUrl('')
@@ -145,17 +166,26 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
     onClose()
   }
 
+  useEscapeKey(isOpen, handleClose)
+
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-surface rounded-xl shadow-2xl w-full max-w-2xl">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={handleClose}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="scan-modal-title"
+        className="bg-surface rounded-xl shadow-2xl w-full max-w-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Header */}
         <div className="flex justify-between items-center px-6 py-4 border-b border-outline-variant">
-          <h2 className="text-xl font-bold text-on-surface">Start New Scan</h2>
+          <h2 id="scan-modal-title" className="text-xl font-bold text-on-surface">Start New Scan</h2>
           <button
             onClick={handleClose}
-            className="p-1 hover:bg-outline-variant rounded-lg transition"
+            aria-label="Close dialog"
+            className="p-2 hover:bg-outline-variant rounded-lg transition"
           >
             <X className="w-5 h-5 text-on-surface" />
           </button>
@@ -238,6 +268,7 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                       <input
                         type="file"
                         onChange={handleFileUpload}
+                        aria-label="Upload smart contract folder"
                         className="absolute inset-0 opacity-0 cursor-pointer"
                         {...({ webkitdirectory: '', directory: '' } as any)}
                       />
@@ -342,7 +373,7 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                 <Button variant="secondary" fullWidth onClick={handleReset}>
                   Scan Another
                 </Button>
-                <Button variant="primary" fullWidth>
+                <Button variant="primary" fullWidth onClick={handleClose}>
                   View Full Report
                 </Button>
               </div>

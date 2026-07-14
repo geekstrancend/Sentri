@@ -41,6 +41,7 @@ export function Button({
       className={clsx(
         'font-[600] rounded transition-colors duration-150 cursor-pointer',
         'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo',
+        'disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none',
         variantStyles[variant],
         sizeStyles[size],
         fullWidth && 'w-full',

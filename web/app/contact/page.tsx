@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { MarketingNav } from '@/components/layout/MarketingNav'
 import { MarketingFooter } from '@/components/layout/MarketingFooter'
 import { Button } from '@/components/ui/Button'
-import { Mail, MessageSquare, Building2, CheckCircle2, ArrowRight, ShieldCheck } from 'lucide-react'
+import { Mail, MessageSquare, Building2, CheckCircle2, ArrowRight, ShieldCheck, ChevronDown } from 'lucide-react'
 
 const CONTACT_REASONS = [
   'Enterprise plan inquiry',
@@ -84,7 +84,7 @@ export default function ContactPage() {
                     {item.icon}
                   </div>
                   <div>
-                    <p className="text-label-sm text-outline mb-1">{item.title.toUpperCase()}</p>
+                    <p className="text-label-sm text-outline mb-1">{item.title}</p>
                     {item.link ? (
                       <a href={item.link} className="text-body-md text-on-surface hover:text-secondary transition-colors">
                         {item.value}
@@ -134,8 +134,9 @@ export default function ContactPage() {
                 <form onSubmit={handleSubmit} className="space-y-5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
                     <div>
-                      <label className="block text-body-md text-on-surface font-[500] mb-2">Full Name *</label>
+                      <label htmlFor="contact-name" className="block text-body-md text-on-surface font-[500] mb-2">Full Name *</label>
                       <input
+                        id="contact-name"
                         type="text"
                         name="name"
                         required
@@ -146,8 +147,9 @@ export default function ContactPage() {
                       />
                     </div>
                     <div>
-                      <label className="block text-body-md text-on-surface font-[500] mb-2">Work Email *</label>
+                      <label htmlFor="contact-email" className="block text-body-md text-on-surface font-[500] mb-2">Work Email *</label>
                       <input
+                        id="contact-email"
                         type="email"
                         name="email"
                         required
@@ -160,8 +162,9 @@ export default function ContactPage() {
                   </div>
 
                   <div>
-                    <label className="block text-body-md text-on-surface font-[500] mb-2">Company / Protocol</label>
+                    <label htmlFor="contact-company" className="block text-body-md text-on-surface font-[500] mb-2">Company / Protocol</label>
                     <input
+                      id="contact-company"
                       type="text"
                       name="company"
                       value={form.company}
@@ -172,21 +175,26 @@ export default function ContactPage() {
                   </div>
 
                   <div>
-                    <label className="block text-body-md text-on-surface font-[500] mb-2">Reason for Inquiry</label>
-                    <select
-                      name="reason"
-                      value={form.reason}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md text-on-surface focus:outline-none focus:border-indigo transition-colors appearance-none"
-                    >
-                      <option value="">Select a reason…</option>
-                      {CONTACT_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
-                    </select>
+                    <label htmlFor="contact-reason" className="block text-body-md text-on-surface font-[500] mb-2">Reason for Inquiry</label>
+                    <div className="relative">
+                      <select
+                        id="contact-reason"
+                        name="reason"
+                        value={form.reason}
+                        onChange={handleChange}
+                        className="w-full px-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-body-md text-on-surface focus:outline-none focus:border-indigo transition-colors appearance-none"
+                      >
+                        <option value="">Select a reason…</option>
+                        {CONTACT_REASONS.map((r) => <option key={r} value={r}>{r}</option>)}
+                      </select>
+                      <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-outline pointer-events-none" />
+                    </div>
                   </div>
 
                   <div>
-                    <label className="block text-body-md text-on-surface font-[500] mb-2">Message *</label>
+                    <label htmlFor="contact-message" className="block text-body-md text-on-surface font-[500] mb-2">Message *</label>
                     <textarea
+                      id="contact-message"
                       name="message"
                       required
                       rows={5}
@@ -209,7 +217,7 @@ export default function ContactPage() {
                     {loading ? 'Sending…' : 'Send Message'}
                   </Button>
 
-                  <p className="text-xs text-outline-variant text-center">
+                  <p className="text-xs text-outline text-center">
                     By submitting, you agree to our{' '}
                     <a href="/privacy" className="hover:text-outline transition-colors underline">Privacy Policy</a>.
                   </p>

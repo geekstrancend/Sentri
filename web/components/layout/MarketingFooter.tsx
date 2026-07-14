@@ -117,13 +117,13 @@ export function MarketingFooter() {
 
         {/* Bottom bar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-outline-variant text-xs">
+          <p className="text-outline text-xs">
             © {currentYear} Sentri Security, Inc. All rights reserved.
           </p>
-          <div className="flex items-center gap-6 text-xs text-outline-variant">
-            <Link href="/privacy" className="hover:text-outline transition-colors">Privacy</Link>
-            <Link href="/terms" className="hover:text-outline transition-colors">Terms</Link>
-            <a href="mailto:contact@sentri.dev" className="hover:text-outline transition-colors">contact@sentri.dev</a>
+          <div className="flex items-center gap-6 text-xs text-outline">
+            <Link href="/privacy" className="hover:text-on-surface transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-on-surface transition-colors">Terms</Link>
+            <a href="mailto:contact@sentri.dev" className="hover:text-on-surface transition-colors">contact@sentri.dev</a>
           </div>
         </div>
       </div>

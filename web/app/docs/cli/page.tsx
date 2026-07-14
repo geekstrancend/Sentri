@@ -42,62 +42,66 @@ export default function CLIReferencePage() {
           <h3 className="font-fraunces text-lg font-[600] text-on-surface mt-6 mb-3">
             Arguments
           </h3>
-          <table className="w-full border border-outline-variant rounded text-body-md mt-4">
-            <thead>
-              <tr className="border-b border-outline-variant">
-                <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Argument</th>
-                <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Description</th>
-                <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Default</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3"><code className="font-mono text-xs">PATH</code></td>
-                <td className="p-3 text-on-surface-variant">Directory or file to scan</td>
-                <td className="p-3 text-on-surface-variant">.</td>
-              </tr>
-            </tbody>
-          </table>
+          <div className="overflow-x-auto mt-4">
+            <table className="w-full border border-outline-variant rounded text-body-md">
+              <thead>
+                <tr className="border-b border-outline-variant">
+                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Argument</th>
+                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Description</th>
+                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Default</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3"><code className="font-mono text-xs">PATH</code></td>
+                  <td className="p-3 text-on-surface-variant">Directory or file to scan</td>
+                  <td className="p-3 text-on-surface-variant">.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
           <h3 className="font-fraunces text-lg font-[600] text-on-surface mt-6 mb-3">
             Options
           </h3>
-          <table className="w-full border border-outline-variant rounded text-body-md mt-4">
-            <thead>
-              <tr className="border-b border-outline-variant">
-                <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Flag</th>
-                <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Description</th>
-                <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Default</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3"><code className="font-mono text-xs">--chain</code></td>
-                <td className="p-3 text-on-surface-variant">Blockchain target: evm, solana, move</td>
-                <td className="p-3 text-on-surface-variant">evm</td>
-              </tr>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3"><code className="font-mono text-xs">--format</code></td>
-                <td className="p-3 text-on-surface-variant">Output format: json, html, pdf</td>
-                <td className="p-3 text-on-surface-variant">pdf</td>
-              </tr>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3"><code className="font-mono text-xs">--output</code></td>
-                <td className="p-3 text-on-surface-variant">Output file path</td>
-                <td className="p-3 text-on-surface-variant">report.pdf</td>
-              </tr>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3"><code className="font-mono text-xs">--seed</code></td>
-                <td className="p-3 text-on-surface-variant">Reproducible randomness seed</td>
-                <td className="p-3 text-on-surface-variant">auto</td>
-              </tr>
-              <tr>
-                <td className="p-3"><code className="font-mono text-xs">--verbose</code></td>
-                <td className="p-3 text-on-surface-variant">Enable verbose logging</td>
-                <td className="p-3 text-on-surface-variant">false</td>
-              </tr>
-            </tbody>
-          </table>
+          <div className="overflow-x-auto mt-4">
+            <table className="w-full border border-outline-variant rounded text-body-md">
+              <thead>
+                <tr className="border-b border-outline-variant">
+                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Flag</th>
+                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Description</th>
+                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Default</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3"><code className="font-mono text-xs">--chain</code></td>
+                  <td className="p-3 text-on-surface-variant">Blockchain target: evm, solana, move</td>
+                  <td className="p-3 text-on-surface-variant">evm</td>
+                </tr>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3"><code className="font-mono text-xs">--format</code></td>
+                  <td className="p-3 text-on-surface-variant">Output format: json, html, pdf</td>
+                  <td className="p-3 text-on-surface-variant">pdf</td>
+                </tr>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3"><code className="font-mono text-xs">--output</code></td>
+                  <td className="p-3 text-on-surface-variant">Output file path</td>
+                  <td className="p-3 text-on-surface-variant">report.pdf</td>
+                </tr>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3"><code className="font-mono text-xs">--seed</code></td>
+                  <td className="p-3 text-on-surface-variant">Reproducible randomness seed</td>
+                  <td className="p-3 text-on-surface-variant">auto</td>
+                </tr>
+                <tr>
+                  <td className="p-3"><code className="font-mono text-xs">--verbose</code></td>
+                  <td className="p-3 text-on-surface-variant">Enable verbose logging</td>
+                  <td className="p-3 text-on-surface-variant">false</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
 
         {/* Exit Codes */}
@@ -109,32 +113,34 @@ export default function CLIReferencePage() {
             Sentri uses exit codes to indicate scan results. Use these in CI/CD pipelines to gate deployments.
           </p>
 
-          <table className="w-full border border-outline-variant rounded text-body-md mt-4">
-            <thead>
-              <tr className="border-b border-outline-variant">
-                <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Code</th>
-                <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Meaning</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3"><span className="text-low font-[600]">0</span></td>
-                <td className="p-3 text-on-surface-variant">Scan completed successfully, no critical/high findings</td>
-              </tr>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3"><span className="text-medium font-[600]">1</span></td>
-                <td className="p-3 text-on-surface-variant">Scan found medium or low severity findings</td>
-              </tr>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3"><span className="text-high font-[600]">2</span></td>
-                <td className="p-3 text-on-surface-variant">Scan found high severity findings</td>
-              </tr>
-              <tr>
-                <td className="p-3"><span className="text-critical font-[600]">3</span></td>
-                <td className="p-3 text-on-surface-variant">Scan found critical findings or scan failed</td>
-              </tr>
-            </tbody>
-          </table>
+          <div className="overflow-x-auto mt-4">
+            <table className="w-full border border-outline-variant rounded text-body-md">
+              <thead>
+                <tr className="border-b border-outline-variant">
+                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Code</th>
+                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Meaning</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3"><span className="text-low font-[600]">0</span></td>
+                  <td className="p-3 text-on-surface-variant">Scan completed successfully, no critical/high findings</td>
+                </tr>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3"><span className="text-medium font-[600]">1</span></td>
+                  <td className="p-3 text-on-surface-variant">Scan found medium or low severity findings</td>
+                </tr>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3"><span className="text-high font-[600]">2</span></td>
+                  <td className="p-3 text-on-surface-variant">Scan found high severity findings</td>
+                </tr>
+                <tr>
+                  <td className="p-3"><span className="text-critical font-[600]">3</span></td>
+                  <td className="p-3 text-on-surface-variant">Scan found critical findings or scan failed</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
 
         {/* Examples */}

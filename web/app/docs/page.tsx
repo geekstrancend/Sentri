@@ -87,7 +87,7 @@ export default function DocsPage() {
           <div className="flex items-center gap-0 overflow-x-auto">
             {FEATURED_SNIPPETS.map((s, i) => (
               <div key={i} className={`flex items-center gap-4 px-5 py-3 flex-1 min-w-0 ${i < FEATURED_SNIPPETS.length - 1 ? 'border-r border-outline-variant' : ''}`}>
-                <span className="text-label-sm text-outline-variant flex-shrink-0">{s.label}</span>
+                <span className="text-label-sm text-outline flex-shrink-0">{s.label}</span>
                 <code className="font-mono text-sm text-secondary truncate">{s.code}</code>
               </div>
             ))}

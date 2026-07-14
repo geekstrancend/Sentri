@@ -74,37 +74,39 @@ Content-Type: application/json
           <h3 className="font-fraunces text-lg font-[600] text-on-surface mt-6 mb-3">
             Request Fields
           </h3>
-          <table className="w-full border border-outline-variant rounded text-body-md mt-4">
-            <thead>
-              <tr className="border-b border-outline-variant">
-                <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Field</th>
-                <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Type</th>
-                <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Description</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3"><code className="font-mono text-xs">name</code></td>
-                <td className="p-3"><code className="font-mono text-xs">string</code></td>
-                <td className="p-3 text-on-surface-variant">Human-readable scan name</td>
-              </tr>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3"><code className="font-mono text-xs">chain</code></td>
-                <td className="p-3"><code className="font-mono text-xs">string</code></td>
-                <td className="p-3 text-on-surface-variant">evm, solana, or move</td>
-              </tr>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3"><code className="font-mono text-xs">contract_code</code></td>
-                <td className="p-3"><code className="font-mono text-xs">string</code></td>
-                <td className="p-3 text-on-surface-variant">Full source code of contract</td>
-              </tr>
-              <tr>
-                <td className="p-3"><code className="font-mono text-xs">format</code></td>
-                <td className="p-3"><code className="font-mono text-xs">string</code></td>
-                <td className="p-3 text-on-surface-variant">json, html, or pdf (default: json)</td>
-              </tr>
-            </tbody>
-          </table>
+          <div className="overflow-x-auto mt-4">
+            <table className="w-full border border-outline-variant rounded text-body-md">
+              <thead>
+                <tr className="border-b border-outline-variant">
+                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Field</th>
+                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Type</th>
+                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3"><code className="font-mono text-xs">name</code></td>
+                  <td className="p-3"><code className="font-mono text-xs">string</code></td>
+                  <td className="p-3 text-on-surface-variant">Human-readable scan name</td>
+                </tr>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3"><code className="font-mono text-xs">chain</code></td>
+                  <td className="p-3"><code className="font-mono text-xs">string</code></td>
+                  <td className="p-3 text-on-surface-variant">evm, solana, or move</td>
+                </tr>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3"><code className="font-mono text-xs">contract_code</code></td>
+                  <td className="p-3"><code className="font-mono text-xs">string</code></td>
+                  <td className="p-3 text-on-surface-variant">Full source code of contract</td>
+                </tr>
+                <tr>
+                  <td className="p-3"><code className="font-mono text-xs">format</code></td>
+                  <td className="p-3"><code className="font-mono text-xs">string</code></td>
+                  <td className="p-3 text-on-surface-variant">json, html, or pdf (default: json)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
           <h3 className="font-fraunces text-lg font-[600] text-on-surface mt-6 mb-3">
             Response (202 Accepted)
@@ -206,32 +208,34 @@ Authorization: Bearer YOUR_API_KEY`}
             API requests are rate limited per API key to ensure fair service availability:
           </p>
 
-          <table className="w-full border border-outline-variant rounded text-body-md mt-4">
-            <thead>
-              <tr className="border-b border-outline-variant">
-                <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Plan</th>
-                <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Requests/Hour</th>
-                <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Concurrent Scans</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3">Starter</td>
-                <td className="p-3 text-on-surface-variant">10</td>
-                <td className="p-3 text-on-surface-variant">1</td>
-              </tr>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3">Pro</td>
-                <td className="p-3 text-on-surface-variant">100</td>
-                <td className="p-3 text-on-surface-variant">5</td>
-              </tr>
-              <tr>
-                <td className="p-3">Enterprise</td>
-                <td className="p-3 text-on-surface-variant">Unlimited</td>
-                <td className="p-3 text-on-surface-variant">Unlimited</td>
-              </tr>
-            </tbody>
-          </table>
+          <div className="overflow-x-auto mt-4">
+            <table className="w-full border border-outline-variant rounded text-body-md">
+              <thead>
+                <tr className="border-b border-outline-variant">
+                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Plan</th>
+                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Requests/Hour</th>
+                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Concurrent Scans</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3">Starter</td>
+                  <td className="p-3 text-on-surface-variant">10</td>
+                  <td className="p-3 text-on-surface-variant">1</td>
+                </tr>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3">Pro</td>
+                  <td className="p-3 text-on-surface-variant">100</td>
+                  <td className="p-3 text-on-surface-variant">5</td>
+                </tr>
+                <tr>
+                  <td className="p-3">Enterprise</td>
+                  <td className="p-3 text-on-surface-variant">Unlimited</td>
+                  <td className="p-3 text-on-surface-variant">Unlimited</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
           <h3 className="font-fraunces text-lg font-[600] text-on-surface mt-6 mb-3">
             Rate Limit Headers

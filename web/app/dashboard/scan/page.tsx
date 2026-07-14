@@ -1,10 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Upload, Github, Code, Zap, Check } from 'lucide-react'
+import { Upload, Github, Code, Zap, Check, AlertCircle } from 'lucide-react'
 import { AppShell } from '@/components/layout/AppShell'
 import { Button } from '@/components/ui/Button'
-import { Terminal } from '@/components/ui/Terminal'
 import { SeverityBadge } from '@/components/ui/SeverityBadge'
 
 type SubmissionMethod = 'code' | 'file' | 'github'
@@ -33,6 +32,15 @@ export default function ScanPage() {
   const [language, setLanguage] = useState('solidity')
   const [isScanning, setIsScanning] = useState(false)
   const [scanResult, setScanResult] = useState<ScanResult | null>(null)
+  const [formError, setFormError] = useState('')
+
+  const resetForm = () => {
+    setCode('')
+    setGithubUrl('')
+    setFileName(null)
+    setScanResult(null)
+    setFormError('')
+  }
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -47,12 +55,13 @@ export default function ScanPage() {
   }
 
   const handleScan = async () => {
+    setFormError('')
     if (!code && method === 'code') {
-      alert('Please enter code to scan')
+      setFormError('Please enter code to scan')
       return
     }
     if (!githubUrl && method === 'github') {
-      alert('Please enter a GitHub URL')
+      setFormError('Please enter a GitHub URL')
       return
     }
 
@@ -84,7 +93,7 @@ export default function ScanPage() {
         isScanning: false,
       })
     } catch (error) {
-      alert('Error scanning code. Please try again.')
+      setFormError('Error scanning code. Please try again.')
       console.error('Scan error:', error)
     } finally {
       setIsScanning(false)
@@ -92,7 +101,7 @@ export default function ScanPage() {
   }
 
   return (
-    <AppShell currentPage="dashboard" onNewScan={() => {}}>
+    <AppShell currentPage="dashboard" onNewScan={resetForm}>
       <div className="max-w-6xl mx-auto p-6 space-y-8">
         {/* Header */}
         <div className="space-y-3">
@@ -113,8 +122,8 @@ export default function ScanPage() {
               onClick={() => setMethod('code')}
               className={`p-4 rounded-lg border-2 transition ${
                 method === 'code'
-                  ? 'border-primary bg-indigo/10'
-                  : 'border-outline-variant hover:border-primary'
+                  ? 'border-indigo bg-indigo/10'
+                  : 'border-outline-variant hover:border-indigo'
               }`}
             >
               <Code className="w-8 h-8 text-secondary mb-2" />
@@ -127,8 +136,8 @@ export default function ScanPage() {
               onClick={() => setMethod('file')}
               className={`p-4 rounded-lg border-2 transition ${
                 method === 'file'
-                  ? 'border-primary bg-indigo/10'
-                  : 'border-outline-variant hover:border-primary'
+                  ? 'border-indigo bg-indigo/10'
+                  : 'border-outline-variant hover:border-indigo'
               }`}
             >
               <Upload className="w-8 h-8 text-secondary mb-2" />
@@ -141,8 +150,8 @@ export default function ScanPage() {
               onClick={() => setMethod('github')}
               className={`p-4 rounded-lg border-2 transition ${
                 method === 'github'
-                  ? 'border-primary bg-indigo/10'
-                  : 'border-outline-variant hover:border-primary'
+                  ? 'border-indigo bg-indigo/10'
+                  : 'border-outline-variant hover:border-indigo'
               }`}
             >
               <Github className="w-8 h-8 text-secondary mb-2" />
@@ -154,16 +163,23 @@ export default function ScanPage() {
 
         {/* Input Area */}
         <div className="bg-surface-container-low border border-outline-variant rounded-lg p-6 space-y-4">
+          {formError && (
+            <div className="flex items-center gap-2 p-3 bg-critical-bg border border-critical-border rounded-lg">
+              <AlertCircle size={16} className="text-critical flex-shrink-0" />
+              <span className="text-sm text-critical">{formError}</span>
+            </div>
+          )}
           {method === 'code' && (
             <>
               <div>
-                <label className="block text-sm font-medium text-on-surface mb-2">
+                <label htmlFor="scan-language-code" className="block text-sm font-medium text-on-surface mb-2">
                   Language
                 </label>
                 <select
+                  id="scan-language-code"
                   value={language}
                   onChange={(e) => setLanguage(e.target.value)}
-                  className="w-full px-4 py-2 bg-surface-variant text-on-surface rounded-lg border border-outline-variant focus:outline-none focus:border-primary"
+                  className="w-full px-4 py-2 bg-surface-container-lowest text-on-surface rounded-lg border border-outline-variant focus:outline-none focus:border-indigo"
                 >
                   <option value="solidity">Solidity</option>
                   <option value="rust">Rust (Move, Anchor)</option>
@@ -171,14 +187,15 @@ export default function ScanPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-on-surface mb-2">
+                <label htmlFor="scan-code-input" className="block text-sm font-medium text-on-surface mb-2">
                   Smart Contract Code
                 </label>
                 <textarea
+                  id="scan-code-input"
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   placeholder="Paste your smart contract code here..."
-                  className="w-full h-96 px-4 py-3 bg-surface-variant text-on-surface placeholder-on-surface-variant rounded-lg border border-outline-variant focus:outline-none focus:border-primary font-mono text-sm resize-none"
+                  className="w-full h-96 px-4 py-3 bg-surface-container-lowest text-on-surface placeholder-on-surface-variant rounded-lg border border-outline-variant focus:outline-none focus:border-indigo font-mono text-sm resize-none"
                   maxLength={100000}
                 />
                 <p className="text-xs text-outline mt-1">
@@ -191,13 +208,14 @@ export default function ScanPage() {
           {method === 'file' && (
             <>
               <div>
-                <label className="block text-sm font-medium text-on-surface mb-2">
+                <label htmlFor="scan-language-file" className="block text-sm font-medium text-on-surface mb-2">
                   Language
                 </label>
                 <select
+                  id="scan-language-file"
                   value={language}
                   onChange={(e) => setLanguage(e.target.value)}
-                  className="w-full px-4 py-2 bg-surface-variant text-on-surface rounded-lg border border-outline-variant focus:outline-none focus:border-primary"
+                  className="w-full px-4 py-2 bg-surface-container-lowest text-on-surface rounded-lg border border-outline-variant focus:outline-none focus:border-indigo"
                 >
                   <option value="solidity">Solidity</option>
                   <option value="rust">Rust</option>
@@ -208,7 +226,7 @@ export default function ScanPage() {
                 <label className="block text-sm font-medium text-on-surface mb-2">
                   Upload File
                 </label>
-                <div className="border-2 border-dashed border-outline-variant rounded-lg p-8 text-center hover:border-primary transition">
+                <div className="border-2 border-dashed border-outline-variant rounded-lg p-8 text-center hover:border-indigo transition">
                   <input
                     type="file"
                     onChange={handleFileUpload}
@@ -233,25 +251,27 @@ export default function ScanPage() {
           {method === 'github' && (
             <>
               <div>
-                <label className="block text-sm font-medium text-on-surface mb-2">
+                <label htmlFor="scan-github-url" className="block text-sm font-medium text-on-surface mb-2">
                   GitHub Repository URL
                 </label>
                 <input
+                  id="scan-github-url"
                   type="text"
                   value={githubUrl}
                   onChange={(e) => setGithubUrl(e.target.value)}
                   placeholder="https://github.com/username/repository"
-                  className="w-full px-4 py-2 bg-surface-variant text-on-surface placeholder-on-surface-variant rounded-lg border border-outline-variant focus:outline-none focus:border-primary"
+                  className="w-full px-4 py-2 bg-surface-container-lowest text-on-surface placeholder-on-surface-variant rounded-lg border border-outline-variant focus:outline-none focus:border-indigo"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-on-surface mb-2">
+                <label htmlFor="scan-github-branch" className="block text-sm font-medium text-on-surface mb-2">
                   Target Branch or Tag
                 </label>
                 <input
+                  id="scan-github-branch"
                   type="text"
                   placeholder="main (default: main)"
-                  className="w-full px-4 py-2 bg-surface-variant text-on-surface placeholder-on-surface-variant rounded-lg border border-outline-variant focus:outline-none focus:border-primary"
+                  className="w-full px-4 py-2 bg-surface-container-lowest text-on-surface placeholder-on-surface-variant rounded-lg border border-outline-variant focus:outline-none focus:border-indigo"
                 />
               </div>
             </>
@@ -326,7 +346,7 @@ export default function ScanPage() {
               </div>
             )}
 
-            <Button variant="secondary" className="w-full">
+            <Button variant="secondary" className="w-full" disabled title="Coming soon">
               ↓ Download Report
             </Button>
           </div>

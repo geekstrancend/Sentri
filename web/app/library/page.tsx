@@ -118,7 +118,11 @@ export default function LibraryPage() {
                 className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 pl-9 py-2.5 text-body-md text-on-surface placeholder-outline-variant focus:outline-none focus:border-indigo transition-colors"
               />
               {search && (
-                <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-outline hover:text-on-surface">
+                <button
+                  onClick={() => setSearch('')}
+                  aria-label="Clear search"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-outline hover:text-on-surface"
+                >
                   <X size={14} />
                 </button>
               )}
@@ -130,24 +134,28 @@ export default function LibraryPage() {
 
               {/* Severity */}
               <div className="flex gap-1">
-                {SEVERITIES.map((s) => (
-                  <button
-                    key={s}
-                    onClick={() => setSeverity(s)}
-                    className={`px-3 py-1 rounded-full text-xs font-[600] uppercase tracking-wide border transition-colors ${
-                      severity === s
-                        ? s === 'All' ? 'bg-indigo/15 border-indigo/30 text-secondary' : `bg-${s}/10 border-${s}/30 text-${s}`
-                        : 'bg-transparent border-outline-variant text-outline hover:border-outline'
-                    }`}
-                    style={severity === s && s !== 'All' ? {
-                      backgroundColor: `var(--${s}-bg)`,
-                      borderColor: `var(--${s}-border)`,
-                      color: `var(--${s})`,
-                    } : {}}
-                  >
-                    {s === 'All' ? 'All' : s}
-                  </button>
-                ))}
+                {SEVERITIES.map((s) => {
+                  const severityChipClasses: Record<string, string> = {
+                    All: 'bg-indigo/15 border-indigo/30 text-secondary',
+                    critical: 'bg-critical-bg border-critical-border text-critical',
+                    high: 'bg-high-bg border-high-border text-high',
+                    medium: 'bg-medium-bg border-medium-border text-medium',
+                    low: 'bg-low-bg border-low-border text-low',
+                  }
+                  return (
+                    <button
+                      key={s}
+                      onClick={() => setSeverity(s)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-[600] uppercase tracking-wide border transition-colors ${
+                        severity === s
+                          ? severityChipClasses[s]
+                          : 'bg-transparent border-outline-variant text-outline hover:border-outline'
+                      }`}
+                    >
+                      {s === 'All' ? 'All' : s}
+                    </button>
+                  )
+                })}
               </div>
 
               {/* Chain */}
@@ -170,7 +178,7 @@ export default function LibraryPage() {
               {hasFilters && (
                 <button
                   onClick={() => { setSearch(''); setChain('All'); setCategory('All'); setSeverity('All') }}
-                  className="text-xs text-critical hover:text-critical/80 flex items-center gap-1 transition-colors"
+                  className="text-xs text-outline hover:text-on-surface flex items-center gap-1 transition-colors px-2 py-1.5"
                 >
                   <X size={12} /> Clear all
                 </button>
@@ -218,7 +226,7 @@ export default function LibraryPage() {
                   <div className="flex justify-between items-start gap-2">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-xs bg-surface-container border border-outline-variant text-outline px-2 py-0.5 rounded font-mono">{inv.id}</span>
-                      <span className="text-xs text-outline-variant bg-surface-container border border-outline-variant px-2 py-0.5 rounded">{inv.chain}</span>
+                      <span className="text-xs text-outline bg-surface-container border border-outline-variant px-2 py-0.5 rounded">{inv.chain}</span>
                     </div>
                     <SeverityBadge level={inv.severity} />
                   </div>

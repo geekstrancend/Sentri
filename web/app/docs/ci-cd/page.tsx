@@ -62,28 +62,30 @@ jobs:
           <p className="text-body-md text-on-surface-variant mb-4 leading-relaxed">
             Use exit codes to gate deployments:
           </p>
-          <table className="w-full border border-outline-variant rounded text-body-md mt-4">
-            <thead>
-              <tr className="border-b border-outline-variant">
-                <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Code</th>
-                <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Result</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3">0</td>
-                <td className="p-3 text-on-surface-variant">Success</td>
-              </tr>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3">2</td>
-                <td className="p-3 text-on-surface-variant">High findings - fail</td>
-              </tr>
-              <tr>
-                <td className="p-3">3</td>
-                <td className="p-3 text-on-surface-variant">Critical - fail</td>
-              </tr>
-            </tbody>
-          </table>
+          <div className="overflow-x-auto mt-4">
+            <table className="w-full border border-outline-variant rounded text-body-md">
+              <thead>
+                <tr className="border-b border-outline-variant">
+                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Code</th>
+                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Result</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3">0</td>
+                  <td className="p-3 text-on-surface-variant">Success</td>
+                </tr>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3">2</td>
+                  <td className="p-3 text-on-surface-variant">High findings - fail</td>
+                </tr>
+                <tr>
+                  <td className="p-3">3</td>
+                  <td className="p-3 text-on-surface-variant">Critical - fail</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
 
         <section id="uploading-artifacts">

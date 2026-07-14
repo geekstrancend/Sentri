@@ -48,10 +48,11 @@ export default function SettingsPage() {
           <div className="space-y-6">
             {/* Full Name */}
             <div>
-              <label className="block text-sm font-medium text-on-surface mb-2">
+              <label htmlFor="settings-fullname" className="block text-sm font-medium text-on-surface mb-2">
                 Full Name
               </label>
               <input
+                id="settings-fullname"
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
@@ -61,10 +62,11 @@ export default function SettingsPage() {
 
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-on-surface mb-2">
+              <label htmlFor="settings-email" className="block text-sm font-medium text-on-surface mb-2">
                 Email Address
               </label>
               <input
+                id="settings-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -110,6 +112,8 @@ export default function SettingsPage() {
                   />
                   <button
                     onClick={() => setShowApiKey(!showApiKey)}
+                    aria-label={showApiKey ? 'Hide API key' : 'Show API key'}
+                    aria-pressed={showApiKey}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition"
                   >
                     {showApiKey ? (
@@ -165,7 +169,7 @@ export default function SettingsPage() {
                 $499/month • Unlimited scans • Priority support
               </p>
               <p className="text-xs text-on-surface-variant">
-                Billing date: December 15, 2024 • Next renewal: January 15, 2025
+                Billing date: Jun 15, 2026 • Next renewal: Aug 15, 2026
               </p>
             </div>
 
@@ -191,10 +195,10 @@ export default function SettingsPage() {
 
             {/* Actions */}
             <div className="flex gap-3 pt-4 border-t border-outline-variant">
-              <Button variant="secondary">
+              <Button variant="secondary" disabled title="Coming soon">
                 View Invoice History
               </Button>
-              <Button variant="secondary">
+              <Button variant="secondary" disabled title="Coming soon">
                 Manage Billing
               </Button>
             </div>
@@ -210,7 +214,7 @@ export default function SettingsPage() {
           <p className="text-body-md text-on-surface-variant mb-4">
             These actions cannot be undone. Please proceed with caution.
           </p>
-          <Button variant="secondary" className="text-critical border-critical hover:bg-critical/10">
+          <Button variant="secondary" disabled title="Coming soon" className="text-critical border-critical hover:bg-critical/10">
             Delete Account
           </Button>
         </div>

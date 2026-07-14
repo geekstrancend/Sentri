@@ -43,7 +43,7 @@ export function Callout({ type, title, children, className }: CalloutProps) {
   return (
     <div
       className={clsx(
-        'border-l-3 rounded-r px-5 py-3.5',
+        'border-l-2 rounded-r px-5 py-3.5',
         config.borderColor,
         config.bgColor,
         className,

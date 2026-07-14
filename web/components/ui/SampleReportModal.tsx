@@ -1,8 +1,9 @@
 'use client'
 
-import { X, Download, BarChart3 } from 'lucide-react'
+import { X, Download, BarChart3, Check } from 'lucide-react'
 import { Button } from './Button'
 import { SeverityBadge } from './SeverityBadge'
+import { useEscapeKey } from '@/components/hooks/useEscapeKey'
 
 interface SampleReportModalProps {
   isOpen: boolean
@@ -10,20 +11,29 @@ interface SampleReportModalProps {
 }
 
 export function SampleReportModal({ isOpen, onClose }: SampleReportModalProps) {
+  useEscapeKey(isOpen, onClose)
+
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-surface rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="sample-report-title"
+        className="bg-surface rounded-xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+        onClick={(e) => e.stopPropagation()}
+      >
         {/* Close button */}
         <div className="sticky top-0 flex justify-between items-center px-6 py-4 border-b border-outline-variant bg-surface">
           <div className="flex items-center gap-2">
             <BarChart3 className="w-5 h-5 text-secondary" />
-            <h2 className="text-xl font-bold text-on-surface">Sample Audit Report</h2>
+            <h2 id="sample-report-title" className="text-xl font-bold text-on-surface">Sample Audit Report</h2>
           </div>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-outline-variant rounded-lg transition"
+            aria-label="Close dialog"
+            className="p-2 hover:bg-outline-variant rounded-lg transition"
           >
             <X className="w-5 h-5 text-on-surface" />
           </button>
@@ -41,7 +51,7 @@ export function SampleReportModal({ isOpen, onClose }: SampleReportModalProps) {
               </div>
               <div className="text-right text-xs text-on-surface-variant">
                 <p>Contract Version 2.1.0</p>
-                <p>Scan Date: Dec 15, 2024</p>
+                <p>Scan Date: Jul 10, 2026</p>
               </div>
             </div>
           </div>
@@ -50,19 +60,19 @@ export function SampleReportModal({ isOpen, onClose }: SampleReportModalProps) {
           <div className="grid grid-cols-4 gap-2 bg-surface-container rounded-lg p-4">
             <div className="text-center">
               <div className="font-fraunces text-3xl font-[600] text-critical mb-1">3</div>
-              <div className="text-label-xs text-outline">CRITICAL</div>
+              <div className="text-label-sm text-outline">CRITICAL</div>
             </div>
             <div className="text-center">
               <div className="font-fraunces text-3xl font-[600] text-high mb-1">5</div>
-              <div className="text-label-xs text-outline">HIGH</div>
+              <div className="text-label-sm text-outline">HIGH</div>
             </div>
             <div className="text-center">
               <div className="font-fraunces text-3xl font-[600] text-medium mb-1">8</div>
-              <div className="text-label-xs text-outline">MEDIUM</div>
+              <div className="text-label-sm text-outline">MEDIUM</div>
             </div>
             <div className="text-center">
               <div className="font-fraunces text-3xl font-[600] text-low mb-1">12</div>
-              <div className="text-label-xs text-outline">LOW</div>
+              <div className="text-label-sm text-outline">LOW</div>
             </div>
           </div>
 
@@ -105,15 +115,15 @@ export function SampleReportModal({ isOpen, onClose }: SampleReportModalProps) {
             <h4 className="font-fraunces text-lg font-[600] text-on-surface mb-3">Recommendations</h4>
             <div className="space-y-2 text-sm text-on-surface-variant">
               <div className="flex gap-2">
-                <span className="text-secondary flex-shrink-0">✓</span>
+                <Check size={16} className="text-secondary flex-shrink-0 mt-0.5" />
                 <p>Use Checks-Effects-Interactions pattern to prevent reentrancy</p>
               </div>
               <div className="flex gap-2">
-                <span className="text-secondary flex-shrink-0">✓</span>
+                <Check size={16} className="text-secondary flex-shrink-0 mt-0.5" />
                 <p>Implement OpenZeppelin's ReentrancyGuard for additional protection</p>
               </div>
               <div className="flex gap-2">
-                <span className="text-secondary flex-shrink-0">✓</span>
+                <Check size={16} className="text-secondary flex-shrink-0 mt-0.5" />
                 <p>Add require() statements to validate all external call return values</p>
               </div>
             </div>
@@ -144,7 +154,14 @@ export function SampleReportModal({ isOpen, onClose }: SampleReportModalProps) {
 
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4 border-t border-outline-variant">
-            <Button variant="secondary" fullWidth className="gap-2">
+            <Button
+              variant="secondary"
+              fullWidth
+              className="gap-2"
+              disabled
+              title="Available after signing up"
+              aria-label="Download Full PDF — available after signing up"
+            >
               <Download size={16} />
               Download Full PDF
             </Button>

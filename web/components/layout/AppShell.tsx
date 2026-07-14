@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { signOut } from 'next-auth/react'
 import {
   LayoutDashboard,
   Shield,
@@ -61,13 +61,23 @@ export function AppShell({ children, rightPanel, currentPage = 'dashboard', onNe
 
         {/* New Scan button */}
         <div className="px-3 pt-4 pb-2">
-          <button
-            onClick={onNewScan}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-secondary-container border border-indigo text-on-secondary-container rounded-lg text-body-md font-[600] hover:bg-indigo/90 transition-colors"
-          >
-            <Plus size={15} />
-            New Scan
-          </button>
+          {onNewScan ? (
+            <button
+              onClick={onNewScan}
+              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-secondary-container border border-indigo text-on-secondary-container rounded-lg text-body-md font-[600] hover:bg-indigo/90 transition-colors"
+            >
+              <Plus size={15} />
+              New Scan
+            </button>
+          ) : (
+            <Link
+              href="/dashboard/scan"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-secondary-container border border-indigo text-on-secondary-container rounded-lg text-body-md font-[600] hover:bg-indigo/90 transition-colors"
+            >
+              <Plus size={15} />
+              New Scan
+            </Link>
+          )}
         </div>
 
         {/* Nav */}
@@ -101,7 +111,10 @@ export function AppShell({ children, rightPanel, currentPage = 'dashboard', onNe
             <BookMarked size={16} />
             <span>Documentation</span>
           </Link>
-          <button className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-outline hover:bg-surface-container hover:text-on-surface transition-colors text-body-md">
+          <button
+            onClick={() => signOut({ callbackUrl: '/' })}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-outline hover:bg-surface-container hover:text-on-surface transition-colors text-body-md"
+          >
             <LogOut size={16} />
             <span>Sign Out</span>
           </button>
@@ -130,7 +143,11 @@ export function AppShell({ children, rightPanel, currentPage = 'dashboard', onNe
             <ShieldCheck size={18} className="text-secondary" />
             <span className="font-fraunces text-sm font-[600] text-on-surface">Sentri</span>
           </div>
-          <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 hover:bg-surface-container rounded-lg text-outline transition-colors">
+          <button
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
+            className="p-2 hover:bg-surface-container rounded-lg text-outline transition-colors"
+          >
             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
         </header>
@@ -152,12 +169,4 @@ export function AppShell({ children, rightPanel, currentPage = 'dashboard', onNe
       )}
     </div>
   )
-}
-
-
-interface AppShellProps {
-  children: React.ReactNode
-  rightPanel?: React.ReactNode
-  currentPage?: 'dashboard' | 'audits' | 'library' | 'settings' | 'support'
-  onNewScan?: () => void
 }

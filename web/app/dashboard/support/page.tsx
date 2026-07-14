@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { AppShell } from '@/components/layout/AppShell'
-import { Mail, BookOpen, MessageSquare, Github, ExternalLink, ArrowUpRight } from 'lucide-react'
+import { Mail, BookOpen, Github, ArrowUpRight } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 
 const FAQS = [
@@ -26,7 +26,9 @@ export default function SupportPage() {
             { icon: <Mail size={20} className="text-secondary" />, title: 'Email Support', desc: 'support@sentri.dev · 24h response', href: 'mailto:support@sentri.dev' },
             { icon: <Github size={20} className="text-secondary" />, title: 'GitHub Issues', desc: 'Report bugs or request features', href: 'https://github.com/geekstrancend/Sentri/issues' },
           ].map((card, i) => (
-            <Link key={i} href={card.href} target={card.href.startsWith('http') || card.href.startsWith('mailto') ? '_blank' : undefined}
+            <Link key={i} href={card.href}
+              target={card.href.startsWith('http') ? '_blank' : undefined}
+              rel={card.href.startsWith('http') ? 'noopener noreferrer' : undefined}
               className="bg-surface-container-low border border-outline-variant rounded-xl p-6 hover:border-indigo transition-colors group">
               <div className="w-10 h-10 rounded-lg bg-indigo/10 border border-indigo/20 flex items-center justify-center mb-4">{card.icon}</div>
               <h3 className="font-fraunces text-base font-[600] text-on-surface mb-1 group-hover:text-secondary transition-colors">{card.title}</h3>

@@ -62,36 +62,38 @@ export default function ReportsPage() {
             Findings are classified by potential impact to protocol security and user funds:
           </p>
 
-          <table className="w-full border border-outline-variant rounded text-body-md mt-6">
-            <thead>
-              <tr className="border-b border-outline-variant">
-                <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Severity</th>
-                <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Definition</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3"><span className="text-critical font-[600]">Critical</span></td>
-                <td className="p-3 text-on-surface-variant">Immediate fund loss or protocol compromise possible. Deploy-blocking.</td>
-              </tr>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3"><span className="text-high font-[600]">High</span></td>
-                <td className="p-3 text-on-surface-variant">Significant vulnerability requiring urgent remediation before deployment.</td>
-              </tr>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3"><span className="text-medium font-[600]">Medium</span></td>
-                <td className="p-3 text-on-surface-variant">Notable security issue that should be addressed before deployment.</td>
-              </tr>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3"><span className="text-low font-[600]">Low</span></td>
-                <td className="p-3 text-on-surface-variant">Minor issue or optimization opportunity with limited impact.</td>
-              </tr>
-              <tr>
-                <td className="p-3"><span className="text-outline font-[600]">Info</span></td>
-                <td className="p-3 text-on-surface-variant">Informational finding or best practice recommendation.</td>
-              </tr>
-            </tbody>
-          </table>
+          <div className="overflow-x-auto mt-6">
+            <table className="w-full border border-outline-variant rounded text-body-md">
+              <thead>
+                <tr className="border-b border-outline-variant">
+                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Severity</th>
+                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Definition</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3"><span className="text-critical font-[600]">Critical</span></td>
+                  <td className="p-3 text-on-surface-variant">Immediate fund loss or protocol compromise possible. Deploy-blocking.</td>
+                </tr>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3"><span className="text-high font-[600]">High</span></td>
+                  <td className="p-3 text-on-surface-variant">Significant vulnerability requiring urgent remediation before deployment.</td>
+                </tr>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3"><span className="text-medium font-[600]">Medium</span></td>
+                  <td className="p-3 text-on-surface-variant">Notable security issue that should be addressed before deployment.</td>
+                </tr>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3"><span className="text-low font-[600]">Low</span></td>
+                  <td className="p-3 text-on-surface-variant">Minor issue or optimization opportunity with limited impact.</td>
+                </tr>
+                <tr>
+                  <td className="p-3"><span className="text-outline font-[600]">Info</span></td>
+                  <td className="p-3 text-on-surface-variant">Informational finding or best practice recommendation.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
 
         {/* Reading a Finding */}

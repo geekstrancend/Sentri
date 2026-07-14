@@ -13,7 +13,7 @@ export default function PrivacyPage() {
           Privacy Policy
         </h1>
         <p className="text-body-lg text-on-surface-variant mb-12">
-          Last updated: December 2024
+          Last updated: July 2026
         </p>
 
         <div className="space-y-8 prose prose-invert max-w-none">

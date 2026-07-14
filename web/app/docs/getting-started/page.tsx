@@ -42,7 +42,7 @@ export default function GettingStartedPage() {
             language="bash"
             code={`cargo install sentri-cli`}
           />
-          <p className="text-body-sm text-outline-variant mt-2">
+          <p className="text-body-sm text-outline mt-2">
             Requires Rust 1.70 or later. Install Rust at <a href="https://rustup.rs" target="_blank" rel="noopener" className="text-indigo hover:text-indigo/80">rustup.rs</a>.
           </p>
 
@@ -77,32 +77,34 @@ export default function GettingStartedPage() {
           <h3 className="font-fraunces text-lg font-[600] text-on-surface mt-6 mb-3">
             Common Options
           </h3>
-          <table className="w-full border border-outline-variant rounded text-body-md mt-4">
-            <thead>
-              <tr className="border-b border-outline-variant">
-                <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Flag</th>
-                <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Description</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3"><code className="font-mono text-xs">--chain</code></td>
-                <td className="p-3 text-on-surface-variant">Blockchain: evm, solana, move</td>
-              </tr>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3"><code className="font-mono text-xs">--format</code></td>
-                <td className="p-3 text-on-surface-variant">Output format: json, html, pdf (default: pdf)</td>
-              </tr>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3"><code className="font-mono text-xs">--output</code></td>
-                <td className="p-3 text-on-surface-variant">Output file path</td>
-              </tr>
-              <tr>
-                <td className="p-3"><code className="font-mono text-xs">--seed</code></td>
-                <td className="p-3 text-on-surface-variant">Random seed for reproducible results</td>
-              </tr>
-            </tbody>
-          </table>
+          <div className="overflow-x-auto mt-4">
+            <table className="w-full border border-outline-variant rounded text-body-md">
+              <thead>
+                <tr className="border-b border-outline-variant">
+                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Flag</th>
+                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3"><code className="font-mono text-xs">--chain</code></td>
+                  <td className="p-3 text-on-surface-variant">Blockchain: evm, solana, move</td>
+                </tr>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3"><code className="font-mono text-xs">--format</code></td>
+                  <td className="p-3 text-on-surface-variant">Output format: json, html, pdf (default: pdf)</td>
+                </tr>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3"><code className="font-mono text-xs">--output</code></td>
+                  <td className="p-3 text-on-surface-variant">Output file path</td>
+                </tr>
+                <tr>
+                  <td className="p-3"><code className="font-mono text-xs">--seed</code></td>
+                  <td className="p-3 text-on-surface-variant">Random seed for reproducible results</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
 
         {/* Understanding Output */}
@@ -117,36 +119,38 @@ export default function GettingStartedPage() {
           <h3 className="font-fraunces text-lg font-[600] text-on-surface mt-6 mb-3">
             Severity Levels
           </h3>
-          <table className="w-full border border-outline-variant rounded text-body-md mt-4">
-            <thead>
-              <tr className="border-b border-outline-variant">
-                <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Severity</th>
-                <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Description</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3"><span className="text-critical font-[600]">Critical</span></td>
-                <td className="p-3 text-on-surface-variant">Immediate fund loss or protocol compromise possible</td>
-              </tr>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3"><span className="text-high font-[600]">High</span></td>
-                <td className="p-3 text-on-surface-variant">Significant vulnerability requiring urgent remediation</td>
-              </tr>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3"><span className="text-medium font-[600]">Medium</span></td>
-                <td className="p-3 text-on-surface-variant">Notable issue that should be addressed before deployment</td>
-              </tr>
-              <tr className="border-b border-outline-variant">
-                <td className="p-3"><span className="text-low font-[600]">Low</span></td>
-                <td className="p-3 text-on-surface-variant">Minor issue or optimization opportunity</td>
-              </tr>
-              <tr>
-                <td className="p-3"><span className="text-outline font-[600]">Info</span></td>
-                <td className="p-3 text-on-surface-variant">Informational finding or best practice recommendation</td>
-              </tr>
-            </tbody>
-          </table>
+          <div className="overflow-x-auto mt-4">
+            <table className="w-full border border-outline-variant rounded text-body-md">
+              <thead>
+                <tr className="border-b border-outline-variant">
+                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Severity</th>
+                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Description</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3"><span className="text-critical font-[600]">Critical</span></td>
+                  <td className="p-3 text-on-surface-variant">Immediate fund loss or protocol compromise possible</td>
+                </tr>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3"><span className="text-high font-[600]">High</span></td>
+                  <td className="p-3 text-on-surface-variant">Significant vulnerability requiring urgent remediation</td>
+                </tr>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3"><span className="text-medium font-[600]">Medium</span></td>
+                  <td className="p-3 text-on-surface-variant">Notable issue that should be addressed before deployment</td>
+                </tr>
+                <tr className="border-b border-outline-variant">
+                  <td className="p-3"><span className="text-low font-[600]">Low</span></td>
+                  <td className="p-3 text-on-surface-variant">Minor issue or optimization opportunity</td>
+                </tr>
+                <tr>
+                  <td className="p-3"><span className="text-outline font-[600]">Info</span></td>
+                  <td className="p-3 text-on-surface-variant">Informational finding or best practice recommendation</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
 
         {/* Next Steps */}

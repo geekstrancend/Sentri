@@ -93,7 +93,7 @@ export default function HomePage() {
       <div className="border-y border-outline-variant bg-surface-container-lowest/60 py-3 overflow-hidden w-full mt-8">
         <div className="flex animate-marquee whitespace-nowrap">
           {['Ethereum', 'Solana', 'Arbitrum', 'Base', 'Polygon', 'Optimism', 'Aptos', 'Sui', 'Avalanche', 'BNB Chain', 'Ethereum', 'Solana', 'Arbitrum', 'Base', 'Polygon', 'Optimism', 'Aptos', 'Sui', 'Avalanche', 'BNB Chain'].map((chain, i) => (
-            <span key={i} className="text-label-sm text-outline-variant flex-shrink-0 px-8">
+            <span key={i} className="text-label-sm text-outline flex-shrink-0 px-8">
               ◆ {chain}
             </span>
           ))}

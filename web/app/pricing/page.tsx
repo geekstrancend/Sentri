@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Check, X, ArrowRight, ChevronDown, ShieldCheck, Zap, Brain, GitBranch } from 'lucide-react'
+import { Check, X, ArrowRight, ChevronDown, ShieldCheck } from 'lucide-react'
 import { useReveal } from '@/components/hooks/useReveal'
 import { MarketingNav } from '@/components/layout/MarketingNav'
 import { MarketingFooter } from '@/components/layout/MarketingFooter'
@@ -130,7 +130,7 @@ const FAQS = [
 
 function CellValue({ value }: { value: string | boolean }) {
   if (value === true) return <Check size={16} className="text-low mx-auto" />
-  if (value === false) return <X size={14} className="text-outline-variant mx-auto" />
+  if (value === false) return <X size={14} className="text-outline mx-auto" />
   return <span className="text-body-md text-on-surface-variant">{value}</span>
 }
 
@@ -241,7 +241,7 @@ export default function PricingPage() {
                   ) : (
                     <Link href="/contact"><Button variant={plan.ctaVariant} fullWidth>{plan.cta}</Button></Link>
                   )}
-                  <p className="text-center text-xs text-outline-variant mt-3">
+                  <p className="text-center text-xs text-outline mt-3">
                     {plan.id === 'starter' ? 'No credit card required' : plan.id === 'pro' ? '14-day free trial included' : 'Custom contract & SLA'}
                   </p>
                 </div>

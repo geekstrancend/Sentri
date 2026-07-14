@@ -36,7 +36,8 @@ export function CodeBlock({ code, language, highlightLines = [] }: CodeBlockProp
             </span>
             <button
               onClick={handleCopy}
-              className="text-outline hover:text-on-surface transition-colors p-1"
+              className="text-outline hover:text-on-surface transition-colors p-1.5 -m-0.5"
+              aria-label={copied ? 'Copied to clipboard' : 'Copy code'}
               title="Copy code"
             >
               {copied ? (
