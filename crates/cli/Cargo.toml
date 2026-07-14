@@ -40,7 +40,6 @@ sentri-analyzer-move.workspace = true
 sentri-generator-solana.workspace = true
 sentri-generator-evm.workspace = true
 sentri-generator-move.workspace = true
-# sentri-simulator.workspace = true  # DEPRECATED: Old simulator using revm, disabled for v0.3.0
 
 [dev-dependencies]
 tempfile = "3.8"
