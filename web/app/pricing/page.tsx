@@ -104,7 +104,7 @@ const COMPARISON_ROWS = [
 const FAQS = [
   {
     q: 'What counts as a "scan"?',
-    a: 'A scan is one analysis run on a set of contracts. You can include multiple Solidity, Rust, or Move files in a single scan. Sentri runs all 1,500+ invariant checks plus symbolic execution in one pass.',
+    a: 'A scan is one analysis run on a set of contracts. You can include multiple Solidity, Rust, or Move files in a single scan. Sentri runs all 50+ invariant checks plus symbolic execution in one pass.',
   },
   {
     q: 'Can I try Professional features before paying?',
@@ -164,7 +164,7 @@ export default function PricingPage() {
             Plans for every stage
           </h1>
           <p className="text-body-lg text-outline max-w-xl mx-auto mb-10">
-            Start free. Scale when you're ready. No hidden fees.
+            Start free. Scale when you&apos;re ready. No hidden fees.
           </p>
 
           {/* Billing toggle */}
@@ -255,7 +255,7 @@ export default function PricingPage() {
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
               <h2 className="font-fraunces text-3xl font-[600] text-on-surface mb-3">Full Feature Comparison</h2>
-              <p className="text-body-md text-outline">See exactly what's included at each tier</p>
+              <p className="text-body-md text-outline">See exactly what&apos;s included at each tier</p>
             </div>
             <div ref={tableRef} className="reveal">
               {/* Header */}
@@ -298,7 +298,7 @@ export default function PricingPage() {
         <section className="px-6 py-24 max-w-3xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="font-fraunces text-3xl font-[600] text-on-surface mb-3">Frequently Asked Questions</h2>
-            <p className="text-body-md text-outline">Everything you need to know about Sentri's plans</p>
+            <p className="text-body-md text-outline">Everything you need to know about Sentri&apos;s plans</p>
           </div>
           <div ref={faqRef} className="space-y-3 reveal">
             {FAQS.map((faq, i) => (
@@ -329,7 +329,7 @@ export default function PricingPage() {
             <ShieldCheck size={32} className="text-secondary mx-auto mb-4" />
             <h2 className="font-fraunces text-3xl font-[600] text-on-surface mb-4">Still have questions?</h2>
             <p className="text-body-lg text-outline mb-8">
-              Talk to our security team and we'll help you find the right plan for your protocol.
+              Talk to our security team and we&apos;ll help you find the right plan for your protocol.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button variant="primary" size="lg" icon={<ArrowRight size={16} />} iconPosition="right" onClick={() => { setAuthTab('signup'); setAuthOpen(true) }}>

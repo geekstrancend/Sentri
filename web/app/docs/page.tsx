@@ -22,7 +22,7 @@ const QUICK_START_CARDS = [
   {
     icon: <BookOpen size={20} className="text-secondary" />,
     title: 'Invariant Library',
-    description: '1,500+ security checks. Browse and filter by chain and severity.',
+    description: '50+ security checks. Browse and filter by chain and severity.',
     href: '/library',
     cta: 'Browse invariants',
   },

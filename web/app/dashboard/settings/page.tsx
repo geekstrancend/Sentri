@@ -134,7 +134,7 @@ export default function SettingsPage() {
                 </Button>
               </div>
               <p className="text-xs text-on-surface-variant mt-2">
-                Keep this key secure. Don't share it with anyone or commit it to version control.
+                Keep this key secure. Don&apos;t share it with anyone or commit it to version control.
               </p>
             </div>
 

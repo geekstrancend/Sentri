@@ -159,7 +159,7 @@ export default function GettingStartedPage() {
             Next Steps
           </h2>
           <p className="text-body-md text-on-surface-variant mb-6 leading-relaxed">
-            Now that you've run your first scan, explore the full capabilities of Sentri:
+            Now that you&apos;ve run your first scan, explore the full capabilities of Sentri:
           </p>
           <ul className="list-disc list-inside space-y-3 text-body-md text-on-surface-variant">
             <li>

@@ -1,4 +1,39 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth-options'
+import { z } from 'zod'
+
+const analyzeSchema = z
+  .object({
+    code: z.string().max(100000, 'Code exceeds maximum size (100KB)').optional(),
+    language: z.enum(['solidity', 'rust', 'move']).optional().default('solidity'),
+    githubUrl: z.string().url('Invalid GitHub URL').optional(),
+  })
+  .refine((data) => !!data.code || !!data.githubUrl, {
+    message: 'Code or GitHub URL required',
+  })
+
+/**
+ * Minimal in-memory sliding-window rate limiter.
+ *
+ * This calls a paid third-party API (Claude) on every request, so it must not
+ * be reachable without a cap. This is process-local only - it resets on
+ * redeploy/restart and does not share state across serverless instances - but
+ * it is a meaningful floor where there was previously no limit at all.
+ */
+const RATE_LIMIT_WINDOW_MS = 60_000
+const RATE_LIMIT_MAX_REQUESTS = 5
+const requestLog = new Map<string, number[]>()
+
+function isRateLimited(key: string): boolean {
+  const now = Date.now()
+  const timestamps = (requestLog.get(key) || []).filter(
+    (t) => now - t < RATE_LIMIT_WINDOW_MS
+  )
+  timestamps.push(now)
+  requestLog.set(key, timestamps)
+  return timestamps.length > RATE_LIMIT_MAX_REQUESTS
+}
 
 interface Finding {
   severity: 'critical' | 'high' | 'medium' | 'low'
@@ -146,24 +181,21 @@ Focus on:
 
 export async function POST(request: NextRequest) {
   try {
-    const { code, language = 'solidity', githubUrl } = await request.json()
+    const session = await getServerSession(authOptions)
+    if (!session?.user?.email) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
 
-    if (!code && !githubUrl) {
+    if (isRateLimited(session.user.email)) {
       return NextResponse.json(
-        { error: 'Code or GitHub URL required' },
-        { status: 400 }
+        { error: 'Rate limit exceeded. Please wait before submitting another scan.' },
+        { status: 429 }
       )
     }
 
-    // Size limit check
-    if (code && code.length > 100000) {
-      return NextResponse.json(
-        { error: 'Code exceeds maximum size (100KB)' },
-        { status: 400 }
-      )
-    }
+    const { code, language } = analyzeSchema.parse(await request.json())
 
-    let codeToAnalyze = code || ''
+    const codeToAnalyze = code || ''
 
     // Combine pattern-based and AI analysis
     const [patternFindings, aiFindings] = await Promise.all([
@@ -206,6 +238,13 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     )
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: error.issues[0].message },
+        { status: 400 }
+      )
+    }
+
     console.error('Analysis error:', error)
     return NextResponse.json(
       { error: 'Analysis failed' },

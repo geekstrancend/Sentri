@@ -120,7 +120,7 @@ export function SampleReportModal({ isOpen, onClose }: SampleReportModalProps) {
               </div>
               <div className="flex gap-2">
                 <Check size={16} className="text-secondary flex-shrink-0 mt-0.5" />
-                <p>Implement OpenZeppelin's ReentrancyGuard for additional protection</p>
+                <p>Implement OpenZeppelin&apos;s ReentrancyGuard for additional protection</p>
               </div>
               <div className="flex gap-2">
                 <Check size={16} className="text-secondary flex-shrink-0 mt-0.5" />
@@ -143,7 +143,7 @@ export function SampleReportModal({ isOpen, onClose }: SampleReportModalProps) {
               </div>
               <div>
                 <span className="text-on-surface-variant">Invariants Applied</span>
-                <p className="font-[600] text-on-surface">1,402</p>
+                <p className="font-[600] text-on-surface">50+</p>
               </div>
               <div>
                 <span className="text-on-surface-variant">Scan Duration</span>

@@ -22,7 +22,7 @@ export default function PrivacyPage() {
               1. Introduction
             </h2>
             <p className="text-body-md text-on-surface-variant leading-7">
-              Sentri Security ("we," "us," "our," or "Company") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services.
+              {'Sentri Security ("we," "us," "our," or "Company") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services.'}
             </p>
           </section>
 

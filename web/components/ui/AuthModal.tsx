@@ -348,7 +348,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'signin' }: AuthModalP
               </>
             ) : (
               <>
-                Don't have an account?{' '}
+                Don&apos;t have an account?{' '}
                 <button
                   onClick={() => setTab('signup')}
                   className="text-secondary hover:text-on-surface transition"

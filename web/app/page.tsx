@@ -52,7 +52,7 @@ export default function HomePage() {
             </div>
 
             <h1 className="text-display-lg text-on-surface mb-1 animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
-              Don't get Hacked!
+              Don&apos;t get Hacked!
             </h1>
             <h2 className="text-5xl font-[600] leading-[64px] tracking-[-0.02em] text-secondary mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
               Audit faster. Find more. Miss nothing.
@@ -76,7 +76,7 @@ export default function HomePage() {
             <Terminal
               showBanner={true}
               output={[
-                { prefix: 'INFO', text: 'Initializing Invariant Library: 1,402 checks loaded...', type: 'info' },
+                { prefix: 'INFO', text: 'Initializing Invariant Library: 50+ checks loaded...', type: 'info' },
                 { prefix: 'SCAN', text: 'Symbolic execution engine started on Vault.sol', type: 'scan' },
                 { text: '' },
                 { prefix: 'CRITICAL', text: 'Reentrancy vulnerability detected in `withdrawAll()`', type: 'critical' },
@@ -105,7 +105,7 @@ export default function HomePage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
           <div className="text-center">
             <div className="text-display-md text-secondary font-[600] mb-2 animate-count-glow">
-              <AnimatedCounter value={1500} />+
+              <AnimatedCounter value={50} />+
             </div>
             <p className="text-body-sm text-outline">Security Invariants</p>
           </div>
@@ -151,7 +151,7 @@ export default function HomePage() {
             </div>
             <h3 className="font-fraunces text-xl font-[600] text-on-surface mb-3 relative z-10">Invariant Library</h3>
             <p className="text-body-md text-outline leading-6 mb-6 max-w-xl relative z-10">
-              1,500+ pre-written security invariants for ERC-4626, AMMs, Lending Protocols, and cross-chain bridges. Every check is mapped to a real-world exploit pattern.
+              50+ pre-written security invariants for ERC-4626, AMMs, Lending Protocols, and cross-chain bridges. Every check is mapped to a real-world exploit pattern.
             </p>
             <Link href="/library" className="inline-flex items-center gap-1.5 text-secondary text-sm font-[600] hover:gap-3 transition-all duration-200 relative z-10">
               Browse the Library <ArrowRight size={14} />
@@ -214,7 +214,7 @@ export default function HomePage() {
           <div ref={stepsRef} className="grid grid-cols-1 md:grid-cols-3 gap-8 reveal">
             {[
               { step: '01', icon: <GitBranch size={22} className="text-secondary" />, title: 'Connect Your Repository', description: 'Link GitHub, GitLab, or upload contracts directly. Supports Solidity, Rust (Anchor), and Move languages.' },
-              { step: '02', icon: <Eye size={22} className="text-secondary" />, title: 'Deep Scan & Analysis', description: '1,500+ invariant checks run alongside symbolic execution and full data-flow analysis on every function.' },
+              { step: '02', icon: <Eye size={22} className="text-secondary" />, title: 'Deep Scan & Analysis', description: '50+ invariant checks run alongside symbolic execution and full data-flow analysis on every function.' },
               { step: '03', icon: <FileText size={22} className="text-secondary" />, title: 'Actionable Reports', description: 'Get prioritized findings with code-level recommendations, formal proofs, and one-click remediation paths.' },
             ].map((item, i) => (
               <div key={i} className="bg-surface-container-low border border-outline-variant rounded-xl p-8">
@@ -237,7 +237,7 @@ export default function HomePage() {
             <span className="text-label-sm text-critical">BATTLE-TESTED AGAINST REAL EXPLOITS</span>
           </div>
           <h2 className="font-fraunces text-4xl font-[600] text-on-surface leading-[48px] mb-4">
-            We study every major hack so you don't have to
+            We study every major hack so you don&apos;t have to
           </h2>
           <p className="text-body-lg text-outline max-w-2xl mx-auto">
             Every invariant maps directly to a real-world exploit pattern. Sentri would have flagged these before deployment.
@@ -427,7 +427,7 @@ export default function HomePage() {
                 Ready to audit smarter?
               </h2>
               <p className="text-body-lg text-outline max-w-xl mx-auto mb-10">
-                Join teams securing billions in on-chain value with Sentri's invariant-driven security platform.
+                Join teams securing billions in on-chain value with Sentri&apos;s invariant-driven security platform.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button variant="primary" size="lg" icon={<ArrowRight size={18} />} iconPosition="right" onClick={() => { setAuthTab('signup'); setAuthOpen(true) }}>

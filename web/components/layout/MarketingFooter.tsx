@@ -17,7 +17,7 @@ export function MarketingFooter() {
               <span className="font-mono font-[600] text-on-surface text-base">Sentri</span>
             </Link>
             <p className="text-outline text-body-md mb-6 leading-6">
-              The invariant-driven smart contract security platform. Don't get Hacked.
+              The invariant-driven smart contract security platform. Don&apos;t get Hacked.
             </p>
             <div className="flex items-center gap-3">
               <a

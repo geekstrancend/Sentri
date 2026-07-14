@@ -89,7 +89,7 @@ export default function LibraryPage() {
                   Security Invariant Library
                 </h1>
                 <p className="text-body-lg text-outline max-w-2xl">
-                  1,500+ battle-tested security checks for EVM, Solana, and Move. Every invariant is mapped to a real exploit.
+                  50+ battle-tested security checks for EVM, Solana, and Move. Every invariant is mapped to a real exploit.
                 </p>
               </div>
               <div className="flex gap-3 flex-shrink-0">

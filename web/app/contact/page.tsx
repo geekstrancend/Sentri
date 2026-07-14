@@ -46,7 +46,7 @@ export default function ContactPage() {
               <span className="text-label-sm text-on-secondary-container">CONTACT SALES</span>
             </div>
             <h1 className="font-fraunces text-5xl font-[700] text-on-surface mb-4 leading-[64px]">
-              Let's secure your protocol
+              Let&apos;s secure your protocol
             </h1>
             <p className="text-body-lg text-outline max-w-xl">
               Reach out to discuss Enterprise plans, custom deployments, or research partnerships. Our team responds within 24 hours.

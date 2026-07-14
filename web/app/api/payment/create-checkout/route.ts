@@ -1,7 +1,15 @@
 import Stripe from 'stripe'
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]'
+import { authOptions } from '@/lib/auth-options'
+import { z } from 'zod'
+
+const checkoutSchema = z.object({
+  planId: z.string().min(1, 'planId is required'),
+  planName: z.string().min(1, 'planName is required'),
+  price: z.number().positive('price must be greater than 0'),
+  currency: z.string().length(3, 'currency must be a 3-letter ISO code').optional(),
+})
 
 function getStripeClient() {
   const key = process.env.STRIPE_SECRET_KEY
@@ -22,15 +30,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { planId, planName, price, currency } = await request.json()
-
-    // Validate input
-    if (!planId || !price || price <= 0) {
-      return NextResponse.json(
-        { error: 'Invalid plan information' },
-        { status: 400 }
-      )
-    }
+    const { planId, planName, price, currency } = checkoutSchema.parse(
+      await request.json()
+    )
 
     // Create Stripe checkout session
     const checkoutSession = await stripe.checkout.sessions.create({
@@ -67,6 +69,13 @@ export async function POST(request: NextRequest) {
       { status: 200 }
     )
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: error.issues[0].message },
+        { status: 400 }
+      )
+    }
+
     console.error('Stripe error:', error)
     return NextResponse.json(
       { error: 'Payment processing failed' },

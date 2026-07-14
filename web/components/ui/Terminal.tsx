@@ -19,6 +19,13 @@ export function Terminal({ title = 'sentri-cli --scan ./contracts/Vault.sol', sh
     const delay = output[visibleLines]?.text === '' ? 200 : 500
     const timer = setTimeout(() => setVisibleLines((v) => v + 1), delay)
     return () => clearTimeout(timer)
+    // `output` is intentionally omitted: callers pass an inline array literal
+    // (a fresh reference every render), and this reveal animation should run
+    // once against that transcript, not restart from scratch whenever the
+    // parent re-renders for an unrelated reason. `output.length` and the
+    // current line's text (read via `visibleLines`) are the only values that
+    // actually need to retrigger this effect.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visibleLines, output.length])
 
   const getPrefixStyles = (type?: string) => {

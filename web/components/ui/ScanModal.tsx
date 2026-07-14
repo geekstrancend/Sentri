@@ -241,7 +241,7 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                       className="w-full px-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface placeholder-on-surface-variant focus:outline-none focus:border-indigo transition"
                     />
                     <p className="text-xs text-on-surface-variant mt-2">
-                      Enter the GitHub repository URL to scan. We'll clone the repository and analyze all smart contracts.
+                      Enter the GitHub repository URL to scan. We&apos;ll clone the repository and analyze all smart contracts.
                     </p>
                   </div>
 
@@ -321,7 +321,7 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                 <Loader className="w-4 h-4 animate-spin" />
                 {scanStatus === 'uploading'
                   ? 'Uploading your code to our secure servers...'
-                  : 'Running security analysis with 1,402 automated checks...'}
+                  : 'Running security analysis with 50+ automated checks...'}
               </div>
             </div>
           )}

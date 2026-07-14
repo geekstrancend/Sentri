@@ -76,7 +76,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between mb-8">
           <div>
             <h1 className="font-fraunces text-3xl font-[600] text-on-surface mb-1">Dashboard</h1>
-            <p className="text-body-md text-outline">Welcome back, Alex. Here's your security overview.</p>
+            <p className="text-body-md text-outline">Welcome back, Alex. Here&apos;s your security overview.</p>
           </div>
           <Button variant="primary" size="sm" icon={<Plus size={16} />} onClick={() => setShowScanModal(true)}>
             New Scan

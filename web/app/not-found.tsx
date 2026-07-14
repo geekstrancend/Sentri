@@ -28,7 +28,7 @@ export default function NotFound() {
             Nothing to audit here
           </h2>
           <p className="text-body-lg text-outline mb-10 leading-7">
-            This page doesn't exist or was moved. Let's get you somewhere useful.
+            This page doesn&apos;t exist or was moved. Let&apos;s get you somewhere useful.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-10">

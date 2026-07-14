@@ -362,7 +362,7 @@ export default function ScanPage() {
             },
             {
               icon: <Check size={20} className="text-secondary" />,
-              title: '1500+ Invariants',
+              title: '50+ Invariants',
               description: 'Access our comprehensive invariant library for detailed checks',
             },
             {

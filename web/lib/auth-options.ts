@@ -1,4 +1,4 @@
-import NextAuth, { type NextAuthOptions } from 'next-auth'
+import { type NextAuthOptions } from 'next-auth'
 import GithubProvider from 'next-auth/providers/github'
 import GoogleProvider from 'next-auth/providers/google'
 import CredentialsProvider from 'next-auth/providers/credentials'
@@ -6,6 +6,13 @@ import { PrismaAdapter } from '@next-auth/prisma-adapter'
 import prisma from '@/lib/prisma'
 import bcrypt from 'bcrypt'
 import { ethers } from 'ethers'
+
+// A precomputed hash with no matching password, compared against when a user
+// isn't found so that bcrypt.compare() always runs and takes roughly the same
+// time either way. Without this, an unknown email short-circuits before the
+// (comparatively slow) bcrypt.compare call, letting an attacker distinguish
+// "wrong password" from "no such account" by response time (email enumeration).
+const DUMMY_PASSWORD_HASH = bcrypt.hashSync('sentri-timing-safety-dummy', 10)
 
 /**
  * Verify wallet signature for Web3 authentication
@@ -51,16 +58,14 @@ export const authOptions: NextAuthOptions = {
           where: { email: credentials.email },
         })
 
-        if (!user) {
-          return null
-        }
-
+        // Always call bcrypt.compare, even for an unknown email, so response
+        // timing doesn't reveal whether the account exists.
         const passwordMatch = await bcrypt.compare(
           credentials.password,
-          user.password || ''
+          user?.password || DUMMY_PASSWORD_HASH
         )
 
-        if (!passwordMatch) {
+        if (!user || !passwordMatch) {
           return null
         }
 
@@ -145,5 +150,3 @@ export const authOptions: NextAuthOptions = {
     maxAge: 7 * 24 * 60 * 60, // 7 days (reduced from 30 for security)
   },
 }
-
-export const { GET, POST } = NextAuth(authOptions)

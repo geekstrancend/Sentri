@@ -158,7 +158,7 @@ export default function AIScanPage() {
 
             <div className="p-3 bg-indigo/10 border border-indigo rounded-lg text-xs text-on-surface-variant">
               <p className="font-[600] text-on-surface mb-1">Model: Claude Haiku 4.5</p>
-              <p>Fast and efficient AI analysis powered by Anthropic's Claude Haiku model.</p>
+              <p>Fast and efficient AI analysis powered by Anthropic&apos;s Claude Haiku model.</p>
             </div>
           </div>
 

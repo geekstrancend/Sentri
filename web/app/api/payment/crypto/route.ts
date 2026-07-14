@@ -1,6 +1,25 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
-import { authOptions } from '@/app/api/auth/[...nextauth]'
+import { authOptions } from '@/lib/auth-options'
+import { ethers } from 'ethers'
+import { z } from 'zod'
+
+const WALLET_ADDRESS_REGEX = /^0x[a-fA-F0-9]{40}$/
+const TX_HASH_REGEX = /^0x[a-fA-F0-9]{64}$/
+
+const createPaymentSchema = z.object({
+  planId: z.string().min(1, 'planId is required'),
+  planName: z.string().min(1, 'planName is required'),
+  priceUSD: z.number().positive('priceUSD must be greater than 0'),
+  currency: z.string().optional(),
+  walletAddress: z.string().regex(WALLET_ADDRESS_REGEX, 'Invalid wallet address'),
+})
+
+const verifyPaymentSchema = z.object({
+  transactionHash: z.string().regex(TX_HASH_REGEX, 'Invalid transaction hash'),
+  walletAddress: z.string().regex(WALLET_ADDRESS_REGEX, 'Invalid wallet address'),
+  planId: z.string().min(1, 'planId is required'),
+})
 
 /**
  * Creates a crypto payment request for subscription
@@ -17,15 +36,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { planId, planName, priceUSD, currency, walletAddress } = await request.json()
-
-    // Validate input
-    if (!planId || !priceUSD || priceUSD <= 0 || !walletAddress) {
-      return NextResponse.json(
-        { error: 'Invalid payment information' },
-        { status: 400 }
-      )
-    }
+    const { planId, planName, priceUSD, walletAddress } = createPaymentSchema.parse(
+      await request.json()
+    )
 
     // Convert USD price to crypto amounts
     // These are approximate conversions and should be updated dynamically
@@ -55,6 +68,13 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(paymentRequest, { status: 200 })
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: error.issues[0].message },
+        { status: 400 }
+      )
+    }
+
     console.error('Crypto payment error:', error)
     return NextResponse.json(
       { error: 'Payment request generation failed' },
@@ -76,7 +96,9 @@ export async function PATCH(request: NextRequest) {
       )
     }
 
-    const { transactionHash, walletAddress, planId } = await request.json()
+    const { transactionHash, walletAddress, planId } = verifyPaymentSchema.parse(
+      await request.json()
+    )
 
     // Verify transaction on blockchain
     // This would check the actual blockchain for the transaction
@@ -100,6 +122,13 @@ export async function PATCH(request: NextRequest) {
       { status: 200 }
     )
   } catch (error) {
+    if (error instanceof z.ZodError) {
+      return NextResponse.json(
+        { error: error.issues[0].message },
+        { status: 400 }
+      )
+    }
+
     console.error('Transaction verification error:', error)
     return NextResponse.json(
       { error: 'Verification failed' },
@@ -109,14 +138,57 @@ export async function PATCH(request: NextRequest) {
 }
 
 /**
- * Mock function to verify blockchain transaction
- * In production, use Alchemy, Etherscan API, or similar
+ * Verify a crypto payment transaction on-chain.
+ *
+ * Fails closed: if the RPC endpoint or receiver address isn't configured, this
+ * returns false rather than approving the payment. A payment gate must never
+ * default to "approved" when unconfigured.
  */
 async function verifyBlockchainTransaction(
   transactionHash: string,
   walletAddress: string
 ): Promise<boolean> {
-  // TODO: Implement actual blockchain verification
-  // Check transaction status on Ethereum, Polygon, Arbitrum, etc.
-  return true
+  const rpcUrl = process.env.ETHEREUM_RPC_URL
+  const receiverAddress = process.env.PAYMENT_RECEIVER_ADDRESS
+
+  if (!rpcUrl || !receiverAddress) {
+    console.error(
+      'Crypto payment verification is not configured (ETHEREUM_RPC_URL / PAYMENT_RECEIVER_ADDRESS missing)'
+    )
+    return false
+  }
+
+  if (!/^0x([A-Fa-f0-9]{64})$/.test(transactionHash)) {
+    return false
+  }
+
+  try {
+    const provider = new ethers.JsonRpcProvider(rpcUrl)
+    const receipt = await provider.getTransactionReceipt(transactionHash)
+
+    if (!receipt || receipt.status !== 1) {
+      return false
+    }
+
+    if (receipt.to?.toLowerCase() !== receiverAddress.toLowerCase()) {
+      return false
+    }
+
+    const tx = await provider.getTransaction(transactionHash)
+    if (!tx || tx.from.toLowerCase() !== walletAddress.toLowerCase()) {
+      return false
+    }
+
+    // NOTE: this confirms the transaction succeeded and moved funds between the
+    // claimed wallet and receiver address, but does not yet verify the paid
+    // amount/token matches the invoice (ERC-20 token transfers require decoding
+    // the Transfer event log, not just the native tx value). Until that's added,
+    // treat this as "a real transaction between these two addresses happened",
+    // not "the correct amount was paid".
+    const confirmations = await receipt.confirmations()
+    return confirmations >= 1
+  } catch (error) {
+    console.error('Blockchain verification error:', error)
+    return false
+  }
 }
