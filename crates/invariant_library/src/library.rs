@@ -1,7 +1,42 @@
 //! Invariant library management.
 
-use sentri_core::model::Invariant;
+use sentri_core::model::{Expression, Invariant};
+use sentri_dsl_parser::parse_invariant;
 use std::collections::BTreeMap;
+use tracing::warn;
+
+/// Compile a constraint string (e.g. "call_order_respected AND no_recursive_calls")
+/// into a real `Expression` tree via the DSL parser, the same way
+/// `LibraryLoader` compiles TOML-defined invariants. Falls back to a single
+/// `Expression::Var` (the constraint text as one opaque variable) if parsing
+/// ever fails, so a malformed built-in constraint degrades instead of panicking.
+fn compile_constraint(id: &str, constraint: &str) -> Expression {
+    // The built-in constraint text uses readable "AND"/"OR" keywords, but the
+    // DSL grammar's logical operators are "&&"/"||" (see grammar.rs) - normalize
+    // before compiling. Safe because every identifier here is lower_snake_case,
+    // so the uppercase tokens can only ever be these keywords.
+    let normalized = constraint
+        .split_whitespace()
+        .map(|tok| match tok {
+            "AND" => "&&",
+            "OR" => "||",
+            other => other,
+        })
+        .collect::<Vec<_>>()
+        .join(" ");
+
+    let full = format!("invariant {} {{ {} }}", id, normalized);
+    match parse_invariant(&full) {
+        Ok(inv) => inv.expression,
+        Err(e) => {
+            warn!(
+                "Failed to compile built-in constraint for '{}' ({}): {}. Falling back to opaque variable.",
+                id, constraint, e
+            );
+            Expression::Var(id.to_string())
+        }
+    }
+}
 
 /// A collection of invariants organized by category.
 pub struct InvariantLibrary {
@@ -89,13 +124,13 @@ impl InvariantLibrary {
             ),
         ];
 
-        for (id, name, _constraint) in evm_invariants {
+        for (id, name, constraint) in evm_invariants {
             self.add(
                 "EVM".to_string(),
                 Invariant {
                     name: id.to_string(),
                     description: Some(format!("EVM invariant: {}", name)),
-                    expression: sentri_core::model::Expression::Var(id.to_string()),
+                    expression: compile_constraint(id, constraint),
                     severity: "high".to_string(),
                     category: "evm".to_string(),
                     is_always_true: true,
@@ -146,13 +181,13 @@ impl InvariantLibrary {
             ),
         ];
 
-        for (id, name, _constraint) in solana_invariants {
+        for (id, name, constraint) in solana_invariants {
             self.add(
                 "Solana".to_string(),
                 Invariant {
                     name: id.to_string(),
                     description: Some(format!("Solana invariant: {}", name)),
-                    expression: sentri_core::model::Expression::Var(id.to_string()),
+                    expression: compile_constraint(id, constraint),
                     severity: "high".to_string(),
                     category: "solana".to_string(),
                     is_always_true: true,
@@ -193,13 +228,13 @@ impl InvariantLibrary {
             ),
         ];
 
-        for (id, name, _constraint) in move_invariants {
+        for (id, name, constraint) in move_invariants {
             self.add(
                 "Move".to_string(),
                 Invariant {
                     name: id.to_string(),
                     description: Some(format!("Move invariant: {}", name)),
-                    expression: sentri_core::model::Expression::Var(id.to_string()),
+                    expression: compile_constraint(id, constraint),
                     severity: "high".to_string(),
                     category: "move".to_string(),
                     is_always_true: true,
@@ -234,5 +269,55 @@ impl InvariantLibrary {
 impl Default for InvariantLibrary {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Built-in invariants must carry a real compiled expression tree, not the
+    /// old `Expression::Var(id)` placeholder that discarded the constraint text.
+    #[test]
+    fn evm_defaults_compile_to_real_expressions() {
+        let lib = InvariantLibrary::with_defaults("evm");
+        let invariants = lib.all();
+        assert_eq!(invariants.len(), 10);
+
+        for inv in &invariants {
+            match &inv.expression {
+                Expression::Logical { .. } => {}
+                other => panic!(
+                    "expected invariant '{}' to compile to Expression::Logical, got {:?}",
+                    inv.name, other
+                ),
+            }
+        }
+    }
+
+    #[test]
+    fn solana_defaults_compile_to_real_expressions() {
+        let lib = InvariantLibrary::with_defaults("solana");
+        let invariants = lib.all();
+        assert_eq!(invariants.len(), 7);
+        for inv in &invariants {
+            assert!(matches!(inv.expression, Expression::Logical { .. }));
+        }
+    }
+
+    #[test]
+    fn move_defaults_compile_to_real_expressions() {
+        let lib = InvariantLibrary::with_defaults("move");
+        let invariants = lib.all();
+        assert_eq!(invariants.len(), 5);
+        for inv in &invariants {
+            assert!(matches!(inv.expression, Expression::Logical { .. }));
+        }
+    }
+
+    #[test]
+    fn unknown_chain_yields_empty_library() {
+        let lib = InvariantLibrary::with_defaults("soroban");
+        assert_eq!(lib.count(), 0);
     }
 }

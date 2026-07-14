@@ -21,7 +21,6 @@ serde.workspace = true
 serde_json.workspace = true
 pest.workspace = true
 pest_derive.workspace = true
-sentri-ir.workspace = true
 sentri-core.workspace = true
 
 [dev-dependencies]

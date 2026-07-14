@@ -209,40 +209,41 @@ impl SecurityReport {
         report
     }
 
-    /// Generate JSON report
+    /// Generate JSON report.
+    ///
+    /// Built via `serde_json` rather than hand-formatted strings so that any
+    /// attacker-influenced content (a crafted contract/file name ending up in
+    /// `title`, or a finding `message`/`file` containing quotes or control
+    /// characters) is always escaped correctly instead of corrupting the JSON
+    /// structure.
     fn generate_json(&self) -> String {
-        format!(
-            r#"{{
-  "title": "{}",
-  "timestamp": "{}",
-  "statistics": {{
-    "total_findings": {},
-    "critical": {},
-    "high": {},
-    "medium": {},
-    "low": {},
-    "info": {},
-    "risk_score": {:.1}
-  }},
-  "target_count": {},
-  "summary": "{}"
-}}"#,
-            self.title,
-            self.timestamp,
-            self.severity_stats.total(),
-            self.severity_stats.critical,
-            self.severity_stats.high,
-            self.severity_stats.medium,
-            self.severity_stats.low,
-            self.severity_stats.info,
-            self.severity_stats.risk_score(),
-            self.analyzed_targets.len(),
-            self.executive_summary.replace('"', "\\\"")
-        )
+        let report = serde_json::json!({
+            "title": self.title,
+            "timestamp": self.timestamp,
+            "statistics": {
+                "total_findings": self.severity_stats.total(),
+                "critical": self.severity_stats.critical,
+                "high": self.severity_stats.high,
+                "medium": self.severity_stats.medium,
+                "low": self.severity_stats.low,
+                "info": self.severity_stats.info,
+                "risk_score": self.severity_stats.risk_score(),
+            },
+            "target_count": self.analyzed_targets.len(),
+            "targets": self.analyzed_targets,
+            "summary": self.executive_summary,
+            "findings": self.findings,
+        });
+
+        serde_json::to_string_pretty(&report).unwrap_or_else(|_| "{}".to_string())
     }
 
-    /// Generate HTML report
+    /// Generate HTML report, escaping any content that isn't a fixed literal
+    /// (title comes from the scan target and can contain attacker-chosen text).
     fn generate_html(&self) -> String {
+        let title = html_escape(&self.title);
+        let timestamp = html_escape(&self.timestamp);
+
         format!(
             r#"<!DOCTYPE html>
 <html>
@@ -266,31 +267,48 @@ impl SecurityReport {
     <p>Risk Score: {:.1}/100.0</p>
 </body>
 </html>"#,
-            self.title,
-            self.title,
-            self.timestamp,
+            title,
+            title,
+            timestamp,
             self.severity_stats.total(),
             self.severity_stats.risk_score()
         )
     }
 
-    /// Generate CSV report
+    /// Generate CSV report using RFC 4180 field quoting (every field wrapped
+    /// in double quotes, internal quotes doubled) rather than naive comma
+    /// stripping, so quotes/commas/newlines in a finding can't corrupt columns.
     fn generate_csv(&self) -> String {
         let mut csv = "Severity,Vulnerability_ID,File,Line,Message\n".to_string();
 
         for finding in &self.findings {
             csv.push_str(&format!(
-                "{:?},{},{},{},{}\n",
-                finding.severity,
-                finding.invariant_id,
-                finding.file,
+                "{},{},{},{},{}\n",
+                csv_escape(&format!("{:?}", finding.severity)),
+                csv_escape(&finding.invariant_id),
+                csv_escape(&finding.file),
                 finding.line,
-                finding.message.replace(',', ";")
+                csv_escape(&finding.message)
             ));
         }
 
         csv
     }
+}
+
+/// Escape a single CSV field per RFC 4180: always quote, and double any
+/// embedded quote characters. Safe regardless of commas/quotes/newlines.
+fn csv_escape(field: &str) -> String {
+    format!("\"{}\"", field.replace('"', "\"\""))
+}
+
+/// Escape a string for safe interpolation into HTML text content.
+fn html_escape(s: &str) -> String {
+    s.replace('&', "&amp;")
+        .replace('<', "&lt;")
+        .replace('>', "&gt;")
+        .replace('"', "&quot;")
+        .replace('\'', "&#39;")
 }
 
 #[cfg(test)]
@@ -353,5 +371,66 @@ mod tests {
 
         let md = report.generate(ReportFormat::Markdown);
         assert!(md.contains("Test Report"));
+    }
+
+    /// A malicious title (e.g. derived from an attacker-chosen file/contract
+    /// name) must never corrupt the JSON structure or let content escape its
+    /// string field.
+    #[test]
+    fn json_report_escapes_untrusted_title() {
+        let report = SecurityReport::new(
+            r#"Evil" , "injected": true, "x": ""#.to_string(),
+            vec!["test.sol".to_string()],
+            vec![],
+            "summary".to_string(),
+        );
+
+        let json = report.generate(ReportFormat::Json);
+        let parsed: serde_json::Value =
+            serde_json::from_str(&json).expect("generated JSON must always parse");
+        assert!(parsed.get("injected").is_none(), "must not inject new keys");
+    }
+
+    /// A finding message containing HTML/script content must be escaped, not
+    /// interpolated raw, when embedded in an HTML report.
+    #[test]
+    fn html_report_escapes_script_content() {
+        let report = SecurityReport::new(
+            "<script>alert(1)</script>".to_string(),
+            vec!["test.sol".to_string()],
+            vec![],
+            "summary".to_string(),
+        );
+
+        let html = report.generate(ReportFormat::Html);
+        assert!(!html.contains("<script>alert(1)</script>"));
+        assert!(html.contains("&lt;script&gt;"));
+    }
+
+    /// A finding message containing a comma and a quote must not break CSV
+    /// column alignment - every field is quoted and internal quotes doubled.
+    #[test]
+    fn csv_report_escapes_commas_and_quotes() {
+        let findings = vec![Finding::new(
+            "test_id".to_string(),
+            Severity::High,
+            "file.sol".to_string(),
+            1,
+            0,
+            r#"message, with "quotes" and, commas"#.to_string(),
+            "code".to_string(),
+        )];
+        let report = SecurityReport::new(
+            "Test".to_string(),
+            vec!["test.sol".to_string()],
+            findings,
+            "summary".to_string(),
+        );
+
+        let csv = report.generate(ReportFormat::Csv);
+        let data_line = csv.lines().nth(1).expect("must have a data row");
+        // Exactly 5 quoted fields, not split apart by the embedded commas.
+        assert_eq!(data_line.matches('"').count() % 2, 0, "quotes must balance");
+        assert!(data_line.contains(r#""message, with ""quotes"" and, commas""#));
     }
 }
