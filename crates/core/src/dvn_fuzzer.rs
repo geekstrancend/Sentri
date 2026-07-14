@@ -2,6 +2,7 @@
 /// Property-based testing for DVN (Decentralized Verifier Network) configuration vulnerabilities
 ///
 /// Tests detection of single point of failure in DVN setups.
+use crate::fuzzer::FuzzResult;
 use crate::CodeFuzzer;
 
 /// DVN single point fuzzer
@@ -95,45 +96,6 @@ impl DVNSinglePointFuzzer {
             false_positives,
             false_negatives,
             total: iterations,
-        }
-    }
-}
-
-/// Fuzz result
-#[derive(Debug, Clone)]
-pub struct FuzzResult {
-    pub true_positives: usize,
-    pub false_positives: usize,
-    pub false_negatives: usize,
-    pub total: usize,
-}
-
-impl FuzzResult {
-    pub fn precision(&self) -> f64 {
-        let total = self.true_positives + self.false_positives;
-        if total == 0 {
-            0.0
-        } else {
-            self.true_positives as f64 / total as f64
-        }
-    }
-
-    pub fn recall(&self) -> f64 {
-        let total = self.true_positives + self.false_negatives;
-        if total == 0 {
-            0.0
-        } else {
-            self.true_positives as f64 / total as f64
-        }
-    }
-
-    pub fn f1_score(&self) -> f64 {
-        let p = self.precision();
-        let r = self.recall();
-        if p + r == 0.0 {
-            0.0
-        } else {
-            2.0 * p * r / (p + r)
         }
     }
 }

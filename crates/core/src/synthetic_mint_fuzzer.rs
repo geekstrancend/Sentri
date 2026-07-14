@@ -2,6 +2,7 @@
 /// Property-based testing for unbacked synthetic token minting
 ///
 /// Validates detection of collateral insufficiency in synthetic token minting.
+use crate::fuzzer::FuzzResult;
 use crate::CodeFuzzer;
 
 /// Synthetic mint fuzzer
@@ -100,52 +101,6 @@ impl SyntheticMintFuzzer {
             false_positives,
             false_negatives,
             total: iterations,
-        }
-    }
-}
-
-/// Fuzz result
-#[derive(Debug, Clone)]
-pub struct FuzzResult {
-    /// True positive detections
-    pub true_positives: usize,
-    /// False positive detections
-    pub false_positives: usize,
-    /// False negative detections (missed vulnerabilities)
-    pub false_negatives: usize,
-    /// Total test iterations
-    pub total: usize,
-}
-
-impl FuzzResult {
-    /// Calculate precision metric
-    pub fn precision(&self) -> f64 {
-        let total = self.true_positives + self.false_positives;
-        if total == 0 {
-            0.0
-        } else {
-            self.true_positives as f64 / total as f64
-        }
-    }
-
-    /// Calculate recall metric
-    pub fn recall(&self) -> f64 {
-        let total = self.true_positives + self.false_negatives;
-        if total == 0 {
-            0.0
-        } else {
-            self.true_positives as f64 / total as f64
-        }
-    }
-
-    /// Calculate F1 score
-    pub fn f1_score(&self) -> f64 {
-        let p = self.precision();
-        let r = self.recall();
-        if p + r == 0.0 {
-            0.0
-        } else {
-            2.0 * p * r / (p + r)
         }
     }
 }

@@ -26,3 +26,35 @@ pub use semantic_model::build_semantic_model;
 pub use solana_durable_nonce::detect_solana_durable_nonce_validation;
 pub use solana_pda_authority_validation::detect_solana_pda_authority_validation;
 pub use solana_rent_exemption::detect_solana_rent_exemption;
+
+/// Run every live Solana detector against the given source text.
+///
+/// This is the single entry point the CLI should use for Solana analysis: each
+/// detector operates directly on raw source text, no syn/AST parse is required.
+pub fn run_all_detectors(source: &str, file_path: &str) -> Vec<sentri_core::Finding> {
+    let mut findings = detectors::detect_all(source, file_path);
+
+    findings.extend(detect_solana_durable_nonce_validation(source, file_path));
+    findings.extend(detect_solana_pda_authority_validation(source, file_path));
+    findings.extend(detect_solana_rent_exemption(source, file_path));
+
+    // Chain-agnostic shared-IR rule (Epic 6.1): flags privileged mutations
+    // with no authorization guard, using the same rule EVM and Move share.
+    // Best-effort: a source file the Anchor-account parser can't handle
+    // simply contributes nothing from this rule rather than failing the scan.
+    if let Ok(model) = build_semantic_model(source, file_path) {
+        findings.extend(sentri_ir::rules::find_unauthorized_privileged_mutations(
+            &model,
+        ));
+    }
+
+    let mut seen = std::collections::HashSet::new();
+    findings.retain(|f| seen.insert(f.dedup_key()));
+
+    findings.sort_by(|a, b| match b.severity.cmp(&a.severity) {
+        std::cmp::Ordering::Equal => a.line.cmp(&b.line),
+        other => other,
+    });
+
+    findings
+}

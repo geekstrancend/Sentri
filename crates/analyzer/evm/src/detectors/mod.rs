@@ -74,3 +74,92 @@ pub use synthetic_collateral_oracle::detect_synthetic_collateral_oracle;
 pub use synthetic_mint::detect_unbacked_synthetic_mint;
 pub use token_balance_manipulation::detect_token_balance_manipulation;
 pub use upgrade_path_verification::detect_upgrade_path_verification;
+
+/// Run every live EVM detector (the base pattern set in `implementations::detect_all`
+/// plus every standalone named-exploit detector) against the given source text.
+///
+/// This is the single entry point the CLI should use for EVM analysis: each detector
+/// operates directly on raw source text, so no solc/AST availability is required.
+pub fn run_all_detectors(source: &str, file_path: &str) -> Vec<sentri_core::Finding> {
+    let mut findings = implementations::detect_all(source, file_path);
+
+    findings.extend(aa_entropy_weakness::detect_aa_entropy_weakness(
+        source, file_path,
+    ));
+    findings.extend(arbitrary_call_msg_value::detect_arbitrary_call_msg_value(
+        source, file_path,
+    ));
+    findings.extend(arithmetic_rounding::detect_arithmetic_rounding(
+        source, file_path,
+    ));
+    findings.extend(
+        bridge_address_cryptographic_verify::detect_bridge_address_cryptographic_verify(
+            source, file_path,
+        ),
+    );
+    findings
+        .extend(constructor_race_condition::detect_constructor_race_condition(source, file_path));
+    findings.extend(dvn_single_point::detect_dvn_single_point_failure(
+        source, file_path,
+    ));
+    findings.extend(
+        erc4626_inflation_protection::detect_erc4626_inflation_protection(source, file_path),
+    );
+    findings.extend(health_check::detect_missing_health_check(source, file_path));
+    findings.extend(lst_depeg::detect_lst_depeg_collateral_risk(
+        source, file_path,
+    ));
+    findings.extend(merkle_root::detect_merkle_root_zero_default(
+        source, file_path,
+    ));
+    findings.extend(oracle_self_trade::detect_oracle_self_trade(
+        source, file_path,
+    ));
+    findings.extend(proxy_storage_collision::detect_proxy_storage_collision(
+        source, file_path,
+    ));
+    findings
+        .extend(reentrancy_via_whitelisted::detect_reentrancy_via_whitelisted(source, file_path));
+    findings
+        .extend(router_slippage_validation::detect_router_slippage_validation(source, file_path));
+    findings
+        .extend(signature_replay_protection::detect_signature_replay_protection(source, file_path));
+    findings.extend(state_mutation_ordering::detect_state_mutation_ordering(
+        source, file_path,
+    ));
+    findings
+        .extend(synthetic_collateral_oracle::detect_synthetic_collateral_oracle(source, file_path));
+    findings.extend(synthetic_mint::detect_unbacked_synthetic_mint(
+        source, file_path,
+    ));
+    findings
+        .extend(token_balance_manipulation::detect_token_balance_manipulation(source, file_path));
+    findings.extend(upgrade_path_verification::detect_upgrade_path_verification(
+        source, file_path,
+    ));
+
+    // Chain-agnostic shared-IR rule (Epic 6.1): flags privileged mutations
+    // with no authorization guard, using the same rule Solana and Move share.
+    // This one needs a real solc AST (unlike every detector above, which work
+    // on raw source text), so it's best-effort: if solc isn't installed or
+    // parsing fails, this rule simply contributes nothing rather than
+    // breaking the rest of the scan.
+    if let Ok(contract) = crate::ast::SolidityParser::parse_source(source, file_path) {
+        let model = crate::semantic_model::build_semantic_model(&contract, source, file_path);
+        findings.extend(sentri_ir::rules::find_unauthorized_privileged_mutations(
+            &model,
+        ));
+    }
+
+    // A handful of detectors can overlap in coverage (e.g. merkle_root vs.
+    // merkle_root_zero_default) - dedupe on (invariant_id, file, line) as a safety net.
+    let mut seen = std::collections::HashSet::new();
+    findings.retain(|f| seen.insert(f.dedup_key()));
+
+    findings.sort_by(|a, b| match b.severity.cmp(&a.severity) {
+        std::cmp::Ordering::Equal => a.line.cmp(&b.line),
+        other => other,
+    });
+
+    findings
+}

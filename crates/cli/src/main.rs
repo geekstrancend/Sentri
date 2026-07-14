@@ -17,13 +17,13 @@ use std::time::Instant;
 mod ui;
 use ui::*;
 
-// Import analyzers and simulator
+// Import analyzers
 use sentri_analyzer_evm::EvmAnalyzer;
 use sentri_analyzer_move::MoveAnalyzer;
 use sentri_analyzer_solana::SolanaAnalyzer;
 use sentri_core::traits::ChainAnalyzer;
+use sentri_core::{CodeFuzzer, Finding};
 use sentri_library::InvariantLibrary;
-// use sentri_simulator::SimulationEngine;  // DEPRECATED: Old simulator using revm, disabled for v0.3.0
 
 // ============================================================================
 // CLI STRUCTURE
@@ -402,12 +402,15 @@ fn cmd_check(args: CheckArgs, quiet: bool, verbose: bool) -> Result<()> {
 
     // Count violations by severity
     let (critical, high, medium, low) = count_violations_by_severity(&violations);
-    let total_checks = 22; // Built-in invariants count
-    let passed = if violations.is_empty() {
-        total_checks
-    } else {
-        total_checks - violations.len()
+    // Approximate count of live detectors for this chain (a single detector can produce
+    // multiple findings, so this is a lower bound, not an exact "checks run" count).
+    let detector_count = match args.chain {
+        ChainArg::Evm => 35,
+        ChainArg::Solana => 9,
+        ChainArg::Move => 6,
     };
+    let total_checks = detector_count.max(violations.len());
+    let passed = total_checks.saturating_sub(violations.len());
 
     // Build summary
     let summary = AnalysisSummary {
@@ -523,8 +526,12 @@ fn cmd_check(args: CheckArgs, quiet: bool, verbose: bool) -> Result<()> {
         }
     }
 
-    // Exit with appropriate code
-    if !violations.is_empty() {
+    // Exit non-zero only if a violation meets or exceeds --fail-on (default: low, i.e. any).
+    let fail_rank = severity_arg_rank(&args.fail_on);
+    if violations
+        .iter()
+        .any(|v| severity_rank(&v.severity) >= fail_rank)
+    {
         std::process::exit(1);
     }
 
@@ -718,74 +725,181 @@ fn generate_html_report(summary: &AnalysisSummary, violations: &[Violation]) -> 
     )
 }
 
-/// Run actual analysis on the source file.
+/// File extension associated with each chain's source files.
+fn chain_extension(chain: &ChainArg) -> &'static str {
+    match chain {
+        ChainArg::Evm => "sol",
+        ChainArg::Solana => "rs",
+        ChainArg::Move => "move",
+    }
+}
+
+/// Recursively collect source files matching the chain's extension under `dir`.
+fn collect_source_files(dir: &Path, extension: &str, out: &mut Vec<PathBuf>) -> Result<()> {
+    for entry in std::fs::read_dir(dir)
+        .with_context(|| format!("Failed to read directory {}", dir.display()))?
+    {
+        let entry = entry?;
+        let path = entry.path();
+        if path.is_dir() {
+            // Skip common non-source directories to avoid scanning dependency trees.
+            let name = path.file_name().and_then(|n| n.to_str()).unwrap_or("");
+            if matches!(
+                name,
+                "node_modules" | "target" | ".git" | "build" | "dist" | "out"
+            ) {
+                continue;
+            }
+            collect_source_files(&path, extension, out)?;
+        } else if path.extension().and_then(|e| e.to_str()) == Some(extension) {
+            out.push(path);
+        }
+    }
+    Ok(())
+}
+
+/// Run every live pattern detector for `chain` against a single file's source text.
+fn run_detectors_on_file(chain: &ChainArg, path: &Path) -> Result<Vec<Finding>> {
+    let source = std::fs::read_to_string(path)
+        .with_context(|| format!("Failed to read {}", path.display()))?;
+    let file_path = path.to_string_lossy().to_string();
+
+    let findings = match chain {
+        ChainArg::Evm => sentri_analyzer_evm::detectors::run_all_detectors(&source, &file_path),
+        ChainArg::Solana => sentri_analyzer_solana::run_all_detectors(&source, &file_path),
+        ChainArg::Move => sentri_analyzer_move::run_all_detectors(&source, &file_path),
+    };
+
+    Ok(findings)
+}
+
+/// Convert a title-cased, human-readable name out of a detector's invariant_id,
+/// e.g. "evm_missing_post_state_health_check" -> "Missing Post State Health Check".
+fn invariant_id_to_title(invariant_id: &str) -> String {
+    let stripped = invariant_id
+        .strip_prefix("evm_")
+        .or_else(|| invariant_id.strip_prefix("sol_"))
+        .or_else(|| invariant_id.strip_prefix("move_"))
+        .unwrap_or(invariant_id);
+
+    stripped
+        .split('_')
+        .map(|word| {
+            let mut chars = word.chars();
+            match chars.next() {
+                Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+                None => String::new(),
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+/// Convert a detector `Finding` into a display/report-ready `Violation`.
+fn finding_to_violation(finding: &Finding, index: usize, total: usize) -> Violation {
+    let reference = get_vulnerability_reference(&finding.invariant_id);
+    Violation {
+        index,
+        total,
+        severity: finding.severity.name().to_lowercase(),
+        title: invariant_id_to_title(&finding.invariant_id),
+        invariant_id: finding.invariant_id.clone(),
+        location: format!("{}:{}", finding.file, finding.line),
+        cwe: map_invariant_to_cwe(&finding.invariant_id),
+        message: finding.message.clone(),
+        recommendation: format!(
+            "Review this finding and apply the recommended fix. Details: {}",
+            reference
+        ),
+        reference,
+        code_snippet: finding
+            .source_fragment
+            .clone()
+            .unwrap_or_else(|| finding.snippet.clone()),
+    }
+}
+
+/// Run actual analysis on the source file or directory, returning display-ready violations.
 fn run_analysis(source_path: &Path, chain: &ChainArg, verbose: bool) -> Result<Vec<Violation>> {
-    // Check if file exists
+    // Check if path exists
     if !source_path.exists() {
         return Err(anyhow::anyhow!("Path not found: {}", source_path.display()));
     }
 
-    // Run appropriate analyzer
-    let program = match chain {
-        ChainArg::Evm => {
-            let analyzer = EvmAnalyzer;
-            analyzer
-                .analyze(source_path)
-                .context("Failed to analyze EVM contract")?
-        }
-        ChainArg::Solana => {
-            let analyzer = SolanaAnalyzer;
-            analyzer
-                .analyze(source_path)
-                .context("Failed to analyze Solana program")?
-        }
-        ChainArg::Move => {
-            let analyzer = MoveAnalyzer;
-            analyzer
-                .analyze(source_path)
-                .context("Failed to analyze Move module")?
-        }
+    let extension = chain_extension(chain);
+    let files = if source_path.is_dir() {
+        let mut files = Vec::new();
+        collect_source_files(source_path, extension, &mut files)?;
+        files
+    } else {
+        vec![source_path.to_path_buf()]
     };
+
+    if files.is_empty() {
+        if verbose {
+            eprintln!(
+                "⚠ No .{} files found under {}",
+                extension,
+                source_path.display()
+            );
+        }
+        return Ok(Vec::new());
+    }
+
+    let mut findings = Vec::new();
+    for file in &files {
+        findings.extend(run_detectors_on_file(chain, file)?);
+    }
 
     if verbose {
         eprintln!(
-            "✓ Analysis complete. Found {} functions",
-            program.functions.len()
+            "✓ Scanned {} file(s), {} findings from pattern detectors",
+            files.len(),
+            findings.len()
         );
     }
 
-    // Load real built-in invariants for this chain
-    let chain_name = match chain {
-        ChainArg::Evm => "evm",
-        ChainArg::Solana => "solana",
-        ChainArg::Move => "move",
-    };
-
-    let lib = InvariantLibrary::with_defaults(chain_name);
-    let invariants: Vec<_> = lib.all().iter().map(|i| (*i).clone()).collect();
-
+    // Best-effort structural analysis (function/state-var counts) for diagnostics only.
+    // This requires solc (EVM) to be installed; never let its absence block detection,
+    // since the detectors above operate on raw source text and don't need it.
     if verbose {
+        if let Some(first_file) = files.first() {
+            let structural = match chain {
+                ChainArg::Evm => EvmAnalyzer.analyze(first_file),
+                ChainArg::Solana => SolanaAnalyzer.analyze(first_file),
+                ChainArg::Move => MoveAnalyzer.analyze(first_file),
+            };
+            match structural {
+                Ok(program) => eprintln!(
+                    "✓ Structural analysis: {} functions in {}",
+                    program.functions.len(),
+                    first_file.display()
+                ),
+                Err(e) => eprintln!("⚠ Structural analysis unavailable ({e}); detectors still ran"),
+            }
+        }
+
+        // Load real built-in invariants for this chain (informational for now; the
+        // invariant library's default expressions aren't yet wired into detection).
+        let chain_name = match chain {
+            ChainArg::Evm => "evm",
+            ChainArg::Solana => "solana",
+            ChainArg::Move => "move",
+        };
+        let lib = InvariantLibrary::with_defaults(chain_name);
         eprintln!(
-            "✓ Loaded {} real invariants for {}",
-            invariants.len(),
+            "✓ Loaded {} built-in invariant definitions for {}",
+            lib.all().len(),
             chain_name
         );
     }
 
-    // DEPRECATED: Simulation engine disabled for v0.3.0
-    // Using static analysis detectors directly
-    let violations = Vec::new();
-
-    if verbose {
-        eprintln!("⚠ Note: Using v0.3.0 static analysis detectors");
-    }
-
-    // TODO: Integrate v0.3.0 detectors for direct vulnerability analysis
-    // For now, return empty violations as detectors are not yet integrated into CLI
-    // The detectors are available in:
-    // - EVM: sentri_analyzer_evm::detectors::*
-    // - Solana: sentri_analyzer_solana::*
-    // - Move: sentri_analyzer_move::*
+    let total = findings.len();
+    let violations: Vec<Violation> = findings
+        .iter()
+        .enumerate()
+        .map(|(i, f)| finding_to_violation(f, i + 1, total))
+        .collect();
 
     Ok(violations)
 }
@@ -1753,28 +1867,161 @@ fn cmd_doctor(args: DoctorArgs, quiet: bool) -> Result<()> {
 }
 
 /// Handle the `scan` subcommand (enhanced version of check).
-fn cmd_scan(args: ScanArgs, quiet: bool, _verbose: bool) -> Result<()> {
+/// Rank a violation/finding severity string for threshold comparisons (higher = more severe).
+fn severity_rank(name: &str) -> u32 {
+    match name.to_lowercase().as_str() {
+        "critical" => 3,
+        "high" => 2,
+        "medium" => 1,
+        _ => 0, // low / info
+    }
+}
+
+/// Rank a `SeverityArg` CLI value using the same scale as `severity_rank`.
+fn severity_arg_rank(arg: &SeverityArg) -> u32 {
+    match arg {
+        SeverityArg::Critical => 3,
+        SeverityArg::High => 2,
+        SeverityArg::Medium => 1,
+        SeverityArg::Low => 0,
+    }
+}
+
+fn cmd_scan(args: ScanArgs, quiet: bool, verbose: bool) -> Result<()> {
+    let start_time = Instant::now();
+
+    let chain_name = match args.chain {
+        ChainArg::Evm => "EVM",
+        ChainArg::Solana => "Solana",
+        ChainArg::Move => "Move",
+    };
+
     if !quiet {
-        eprintln!(
-            "▶ Scanning {} on {}...",
-            args.path.display(),
-            match args.chain {
-                ChainArg::Evm => "EVM",
-                ChainArg::Solana => "Solana",
-                ChainArg::Move => "Move",
-            }
-        );
+        eprintln!("▶ Scanning {} on {}...", args.path.display(), chain_name);
+        if args.rpc.is_some() {
+            eprintln!("⚠ --rpc is not yet implemented; on-chain verification will be skipped");
+        }
+        if args.parallel {
+            eprintln!("⚠ --parallel is not yet implemented; scanning sequentially");
+        }
+        if args.no_color {
+            eprintln!("⚠ --no-color is not yet implemented; output may still include ANSI codes");
+        }
     }
 
-    // TODO: Implement full scan with:
-    // - Severity filtering
-    // - Invariant ID filtering
-    // - RPC integration
-    // - Parallel scanning with rayon
-    // - Color output control
+    // Run detectors and convert to display-ready violations.
+    let mut violations = run_analysis(&args.path, &args.chain, verbose)?;
+
+    // Apply minimum-severity filter.
+    if let Some(min_severity) = &args.severity {
+        let min_rank = severity_arg_rank(min_severity);
+        violations.retain(|v| severity_rank(&v.severity) >= min_rank);
+    }
+
+    // Apply invariant ID filter (may be repeated on the CLI).
+    if !args.invariant.is_empty() {
+        violations.retain(|v| {
+            args.invariant
+                .iter()
+                .any(|id| v.invariant_id.contains(id.as_str()))
+        });
+    }
+
+    // Re-number after filtering so index/total stay consistent for display.
+    let total = violations.len();
+    for (i, v) in violations.iter_mut().enumerate() {
+        v.index = i + 1;
+        v.total = total;
+    }
+
+    let duration_secs = start_time.elapsed().as_secs_f64();
+    let (critical, high, medium, low) = count_violations_by_severity(&violations);
+
+    let summary = AnalysisSummary {
+        target: args.path.display().to_string(),
+        chain: chain_name.to_string(),
+        total_checks: violations.len(),
+        violations: violations.len(),
+        passed: 0,
+        suppressed: 0,
+        duration_secs,
+        severity_breakdown: SeverityBreakdown {
+            critical,
+            high,
+            medium,
+            low,
+        },
+    };
+
+    match args.output {
+        FormatArg::Text => {
+            let mut report_text = String::new();
+            if !violations.is_empty() {
+                report_text.push_str(&render_violations(&violations));
+                report_text.push('\n');
+            }
+            report_text.push_str(&render_summary(&summary));
+
+            if let Some(output_path) = &args.file {
+                std::fs::write(output_path, &report_text)?;
+                if !quiet {
+                    eprintln!("✓ Report written to {}", output_path.display());
+                }
+            } else if !quiet {
+                println!("{}", report_text);
+            }
+        }
+        FormatArg::Json => {
+            let report = json!({
+                "version": env!("CARGO_PKG_VERSION"),
+                "chain": summary.chain,
+                "target": summary.target,
+                "duration_ms": (summary.duration_secs * 1000.0) as u64,
+                "summary": {
+                    "violations": summary.violations,
+                    "critical": summary.severity_breakdown.critical,
+                    "high": summary.severity_breakdown.high,
+                    "medium": summary.severity_breakdown.medium,
+                    "low": summary.severity_breakdown.low,
+                },
+                "violations": violations,
+            });
+            let output_json = serde_json::to_string_pretty(&report)?;
+
+            if let Some(output_path) = &args.file {
+                std::fs::write(output_path, &output_json)?;
+                if !quiet {
+                    eprintln!("✓ Report written to {}", output_path.display());
+                }
+            } else {
+                println!("{}", output_json);
+            }
+        }
+        FormatArg::Html => {
+            let html_report = generate_html_report(&summary, &violations);
+
+            if let Some(output_path) = &args.file {
+                std::fs::write(output_path, &html_report)?;
+                if !quiet {
+                    eprintln!("✓ HTML report written to {}", output_path.display());
+                }
+            } else {
+                println!("{}", html_report);
+            }
+        }
+    }
 
     if !quiet {
         eprintln!("✓ Scan complete");
+    }
+
+    // Exit non-zero only if a violation meets or exceeds --fail-on (default: critical).
+    let fail_rank = severity_arg_rank(&args.fail_on);
+    if violations
+        .iter()
+        .any(|v| severity_rank(&v.severity) >= fail_rank)
+    {
+        std::process::exit(1);
     }
 
     Ok(())
@@ -1942,30 +2189,231 @@ fn cmd_invariants(args: InvariantsArgs, quiet: bool) -> Result<()> {
 }
 
 /// Handle the `fuzz` subcommand.
-fn cmd_fuzz(args: FuzzArgs, quiet: bool, _verbose: bool) -> Result<()> {
+/// Apply `depth` random line-level mutations (delete/duplicate/truncate/swap)
+/// to `source`, driven by `fuzzer`'s seeded RNG so a run is fully reproducible
+/// given the same `--seed`. This is deliberately dumb/structural rather than
+/// language-aware: the goal is to stress-test the detectors' robustness
+/// against malformed, truncated, or reordered input, not to produce valid
+/// programs.
+fn mutate_source(fuzzer: &mut sentri_core::CodeFuzzer, source: &str, depth: usize) -> String {
+    let mut lines: Vec<String> = source.lines().map(|l| l.to_string()).collect();
+    if lines.is_empty() {
+        return source.to_string();
+    }
+
+    for _ in 0..depth {
+        if lines.is_empty() {
+            break;
+        }
+        match fuzzer.next_index(4) {
+            0 => {
+                // Delete a random line.
+                let idx = fuzzer.next_index(lines.len());
+                lines.remove(idx);
+            }
+            1 => {
+                // Duplicate a random line.
+                let idx = fuzzer.next_index(lines.len());
+                let line = lines[idx].clone();
+                lines.insert(idx, line);
+            }
+            2 => {
+                // Truncate a random line at a random (char-boundary-safe) point.
+                let idx = fuzzer.next_index(lines.len());
+                let line = lines[idx].clone();
+                if !line.is_empty() {
+                    let mut cut = fuzzer.next_index(line.len());
+                    while cut > 0 && !line.is_char_boundary(cut) {
+                        cut -= 1;
+                    }
+                    lines[idx] = line[..cut].to_string();
+                }
+            }
+            _ => {
+                // Swap two random lines.
+                let a = fuzzer.next_index(lines.len());
+                let b = fuzzer.next_index(lines.len());
+                lines.swap(a, b);
+            }
+        }
+    }
+
+    lines.join("\n")
+}
+
+/// Run every EVM-specific precision/recall self-test fuzzer and combine their
+/// results. These generate wholly synthetic vulnerable/safe patterns (not the
+/// user's file) to measure how well the pattern detectors distinguish the two,
+/// independent of the crash-robustness fuzzing above.
+fn run_detector_precision_fuzzers(iterations_per_fuzzer: usize) -> sentri_core::FuzzResult {
+    use sentri_core::dvn_fuzzer::DVNSinglePointFuzzer;
+    use sentri_core::health_check_fuzzer::HealthCheckFuzzer;
+    use sentri_core::merkle_root_fuzzer::MerkleRootFuzzer;
+    use sentri_core::synthetic_mint_fuzzer::SyntheticMintFuzzer;
+
+    let mut combined = sentri_core::FuzzResult {
+        true_positives: 0,
+        false_positives: 0,
+        false_negatives: 0,
+        total: 0,
+    };
+
+    macro_rules! accumulate {
+        ($fuzzer:expr) => {
+            let r = $fuzzer.fuzz(iterations_per_fuzzer);
+            combined.true_positives += r.true_positives;
+            combined.false_positives += r.false_positives;
+            combined.false_negatives += r.false_negatives;
+            combined.total += r.total;
+        };
+    }
+
+    accumulate!(DVNSinglePointFuzzer::new(Some(1)));
+    accumulate!(HealthCheckFuzzer::new(Some(2)));
+    accumulate!(MerkleRootFuzzer::new(Some(3)));
+    accumulate!(SyntheticMintFuzzer::new(Some(4)));
+
+    combined
+}
+
+fn cmd_fuzz(args: FuzzArgs, quiet: bool, verbose: bool) -> Result<()> {
+    let chain_name = match args.chain {
+        ChainArg::Evm => "EVM",
+        ChainArg::Solana => "Solana",
+        ChainArg::Move => "Move",
+    };
+
     if !quiet {
         eprintln!(
             "▶ Fuzzing {} on {} for {} iterations (depth: {})...",
             args.path.display(),
-            match args.chain {
-                ChainArg::Evm => "EVM",
-                ChainArg::Solana => "Solana",
-                ChainArg::Move => "Move",
-            },
+            chain_name,
             args.iterations,
             args.depth
         );
     }
 
-    // TODO: Implement fuzzer:
-    // - Load contract from path
-    // - Generate randomized call sequences up to --depth
-    // - Run --iterations times with optional --seed
-    // - Check invariant properties
-    // - Report minimal counterexample on failure
+    if !args.path.exists() {
+        return Err(anyhow::anyhow!("Path not found: {}", args.path.display()));
+    }
+
+    let extension = chain_extension(&args.chain);
+    let files = if args.path.is_dir() {
+        let mut files = Vec::new();
+        collect_source_files(&args.path, extension, &mut files)?;
+        files
+    } else {
+        vec![args.path.clone()]
+    };
+
+    if files.is_empty() {
+        if !quiet {
+            eprintln!(
+                "⚠ No .{} files found under {}; nothing to fuzz",
+                extension,
+                args.path.display()
+            );
+        }
+        return Ok(());
+    }
+
+    let sources: Vec<(String, String)> = files
+        .iter()
+        .map(|f| {
+            let content = std::fs::read_to_string(f)
+                .with_context(|| format!("Failed to read {}", f.display()))?;
+            Ok((f.to_string_lossy().to_string(), content))
+        })
+        .collect::<Result<Vec<_>>>()?;
+
+    let seed = args.seed.unwrap_or(42);
+    let mut fuzzer = CodeFuzzer::new(Some(seed));
+    let start = Instant::now();
+
+    // Suppress the default panic handler's stderr spam for the duration of
+    // the fuzzing loop - a caught panic is an expected, reported outcome
+    // here, not an unhandled crash the user needs a backtrace for.
+    let original_hook = std::panic::take_hook();
+    std::panic::set_hook(Box::new(|_| {}));
+
+    let mut crashes: Vec<(u32, String, String)> = Vec::new();
+    let mut finding_counts: Vec<usize> = Vec::new();
+
+    for i in 0..args.iterations {
+        let (file_path, source) = &sources[i as usize % sources.len()];
+        let mutated = mutate_source(&mut fuzzer, source, args.depth);
+
+        let chain = args.chain.clone();
+        let result = std::panic::catch_unwind(|| match chain {
+            ChainArg::Evm => sentri_analyzer_evm::detectors::run_all_detectors(&mutated, file_path),
+            ChainArg::Solana => sentri_analyzer_solana::run_all_detectors(&mutated, file_path),
+            ChainArg::Move => sentri_analyzer_move::run_all_detectors(&mutated, file_path),
+        });
+
+        match result {
+            Ok(findings) => finding_counts.push(findings.len()),
+            Err(panic_payload) => {
+                let msg = panic_payload
+                    .downcast_ref::<&str>()
+                    .map(|s| s.to_string())
+                    .or_else(|| panic_payload.downcast_ref::<String>().cloned())
+                    .unwrap_or_else(|| "<non-string panic payload>".to_string());
+                crashes.push((i, file_path.clone(), msg));
+            }
+        }
+    }
+
+    std::panic::set_hook(original_hook);
+
+    let duration_secs = start.elapsed().as_secs_f64();
 
     if !quiet {
-        eprintln!("✓ Fuzz run complete (0 violations found)");
+        eprintln!(
+            "✓ Ran {} iterations across {} file(s) in {:.2}s",
+            args.iterations,
+            sources.len(),
+            duration_secs
+        );
+
+        if !finding_counts.is_empty() {
+            let min = finding_counts.iter().min().copied().unwrap_or(0);
+            let max = finding_counts.iter().max().copied().unwrap_or(0);
+            let avg = finding_counts.iter().sum::<usize>() as f64 / finding_counts.len() as f64;
+            eprintln!("  Findings per mutated variant: min {min}, max {max}, avg {avg:.1}");
+        }
+
+        if crashes.is_empty() {
+            eprintln!("✓ No crashes found - detectors held up across all mutated inputs");
+        } else {
+            eprintln!(
+                "✗ {} crash(es) found - detectors panicked on mutated input:",
+                crashes.len()
+            );
+            for (iter, file, msg) in crashes.iter().take(10) {
+                eprintln!("  iteration {iter} ({file}): {msg}");
+            }
+            if crashes.len() > 10 {
+                eprintln!("  ... and {} more", crashes.len() - 10);
+            }
+        }
+
+        // Bonus: EVM-specific detector precision/recall self-test, reusing
+        // the existing synthetic-pattern fuzzers rather than leaving them
+        // permanently disconnected from the CLI.
+        if matches!(args.chain, ChainArg::Evm) && verbose {
+            let precision_result = run_detector_precision_fuzzers(args.iterations as usize / 4);
+            eprintln!(
+                "  Detector precision self-test: precision {:.2}, recall {:.2}, F1 {:.2} ({} synthetic cases)",
+                precision_result.precision(),
+                precision_result.recall(),
+                precision_result.f1_score(),
+                precision_result.total,
+            );
+        }
+    }
+
+    if !crashes.is_empty() {
+        std::process::exit(1);
     }
 
     Ok(())

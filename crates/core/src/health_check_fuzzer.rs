@@ -3,6 +3,7 @@
 ///
 /// Tests that the detector properly identifies missing post-state health checks
 /// while avoiding false positives on properly guarded state modifications.
+use crate::fuzzer::FuzzResult;
 use crate::CodeFuzzer;
 
 /// Health check fuzzer test suite
@@ -104,52 +105,6 @@ impl HealthCheckFuzzer {
             false_positives,
             false_negatives,
             total: iterations,
-        }
-    }
-}
-
-/// Fuzzer results
-#[derive(Debug, Clone)]
-pub struct FuzzResult {
-    /// True positives detected
-    pub true_positives: usize,
-    /// False positives (safe code detected as vulnerable)
-    pub false_positives: usize,
-    /// False negatives (vulnerable code not detected)
-    pub false_negatives: usize,
-    /// Total tests run
-    pub total: usize,
-}
-
-impl FuzzResult {
-    /// Calculate precision (TP / (TP + FP))
-    pub fn precision(&self) -> f64 {
-        let total_pos = self.true_positives + self.false_positives;
-        if total_pos == 0 {
-            0.0
-        } else {
-            self.true_positives as f64 / total_pos as f64
-        }
-    }
-
-    /// Calculate recall (TP / (TP + FN))
-    pub fn recall(&self) -> f64 {
-        let actual_pos = self.true_positives + self.false_negatives;
-        if actual_pos == 0 {
-            0.0
-        } else {
-            self.true_positives as f64 / actual_pos as f64
-        }
-    }
-
-    /// Calculate F1 score
-    pub fn f1_score(&self) -> f64 {
-        let p = self.precision();
-        let r = self.recall();
-        if p + r == 0.0 {
-            0.0
-        } else {
-            2.0 * (p * r) / (p + r)
         }
     }
 }

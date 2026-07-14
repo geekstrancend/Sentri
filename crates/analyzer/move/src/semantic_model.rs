@@ -32,14 +32,16 @@ const SENSITIVE_FUNCTIONS: &[(&str, MutationKind)] = &[
 pub fn build_semantic_model(source: &str, file_path: &str) -> SemanticModel {
     let mut model = SemanticModel::new("move", file_path);
 
-    let sig_re = Regex::new(r"public\s+(?:entry\s+)?fun\s+(\w+)\s*(?:<[^>]*>)?\s*\(([^)]*)\)")
+    // Matched against the whole source (not line-by-line): a real-world Move
+    // function signature commonly wraps its parameter list across multiple
+    // lines, which a per-line regex would silently never match at all.
+    // `[\s\S]*?` (rather than `[^)]*`) lets the parameter capture span
+    // newlines; it's non-greedy so it still stops at the first `)`.
+    let sig_re = Regex::new(r"public\s+(?:entry\s+)?fun\s+(\w+)\s*(?:<[^>]*>)?\s*\(([\s\S]*?)\)")
         .expect("valid regex");
     let cap_re = Regex::new(r"&(?:mut\s+)?(\w*Cap\w*)").expect("valid regex");
 
-    for (line_idx, line) in source.lines().enumerate() {
-        let Some(caps) = sig_re.captures(line) else {
-            continue;
-        };
+    for caps in sig_re.captures_iter(source) {
         let fn_name = &caps[1];
         let params = &caps[2];
 
@@ -59,15 +61,28 @@ pub fn build_semantic_model(source: &str, file_path: &str) -> SemanticModel {
             })
             .collect();
 
+        let name_match = caps
+            .get(1)
+            .expect("group 1 always matches with the outer regex");
         model.mutations.push(PrivilegedMutation {
             entry_point: fn_name.to_string(),
             kind: kind.clone(),
-            line: line_idx + 1,
+            line: offset_to_line(source, name_match.start()),
             guards,
         });
     }
 
     model
+}
+
+/// 1-indexed line number containing the given byte offset.
+fn offset_to_line(source: &str, byte_offset: usize) -> usize {
+    source
+        .get(..byte_offset.min(source.len()))
+        .unwrap_or("")
+        .matches('\n')
+        .count()
+        + 1
 }
 
 #[cfg(test)]
@@ -97,5 +112,52 @@ module vault::vault {
         assert_eq!(findings.len(), 1);
         assert!(findings[0].message.contains("withdraw"));
         assert!(!findings[0].message.contains("admin_withdraw"));
+    }
+
+    /// A per-line regex would never match this at all: real-world Move
+    /// signatures commonly wrap a long parameter list across several lines.
+    const MULTILINE_FIXTURE: &str = r#"
+module vault::vault {
+    public entry fun withdraw<T>(
+        vault: &mut Vault<T>,
+        amount: u64,
+        ctx: &mut TxContext
+    ) {
+        // no capability check
+    }
+
+    public entry fun admin_withdraw<T>(
+        admin: &AdminCap,
+        vault: &mut Vault<T>,
+        amount: u64
+    ) {
+        // guarded by capability
+    }
+}
+"#;
+
+    #[test]
+    fn flags_multiline_signature_with_no_guard() {
+        let model = build_semantic_model(MULTILINE_FIXTURE, "vault.move");
+        assert_eq!(model.mutations.len(), 2);
+
+        let findings = find_unauthorized_privileged_mutations(&model);
+        assert_eq!(findings.len(), 1);
+        assert!(findings[0].message.contains("withdraw"));
+        assert!(!findings[0].message.contains("admin_withdraw"));
+
+        // The reported line should point at `withdraw`'s own signature line,
+        // not get thrown off by the multi-line parameter list.
+        let withdraw_mutation = model
+            .mutations
+            .iter()
+            .find(|m| m.entry_point == "withdraw")
+            .unwrap();
+        let expected_line = MULTILINE_FIXTURE
+            .lines()
+            .position(|l| l.contains("fun withdraw"))
+            .unwrap()
+            + 1;
+        assert_eq!(withdraw_mutation.line, expected_line);
     }
 }

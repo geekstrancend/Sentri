@@ -369,6 +369,14 @@ impl BytecodeAnalyzer {
             return Err("Odd-length hex string".to_string());
         }
 
+        // Reject anything that isn't a plain ASCII hex digit up front. This
+        // guarantees every byte index below lands on a char boundary, so the
+        // byte-range slicing that follows can never panic on multi-byte UTF-8
+        // input (e.g. a stray non-ASCII character passed in as "bytecode").
+        if !hex.bytes().all(|b| b.is_ascii_hexdigit()) {
+            return Err("Hex string contains non-hex-digit characters".to_string());
+        }
+
         (0..hex.len())
             .step_by(2)
             .map(|i| {
@@ -549,6 +557,23 @@ mod tests {
 
         let odd_hex = BytecodeAnalyzer::hex_to_bytes("010");
         assert!(odd_hex.is_err());
+    }
+
+    /// A multi-byte UTF-8 character at an even byte offset used to panic
+    /// ("byte index is not a char boundary") instead of returning an error,
+    /// because the odd/even check counted bytes but the slicing that followed
+    /// assumed every byte was a char boundary.
+    #[test]
+    fn test_hex_to_bytes_rejects_non_ascii_without_panicking() {
+        // Even byte length (4), but "X" isn't a hex digit.
+        let result = BytecodeAnalyzer::hex_to_bytes("aXbc");
+        assert!(result.is_err());
+
+        // 'É' is 2 bytes in UTF-8, giving "aÉa" an even *byte* length (4)
+        // while still containing a non-hex-digit multi-byte character - this
+        // used to panic rather than return Err.
+        let result = BytecodeAnalyzer::hex_to_bytes("aÉa");
+        assert!(result.is_err());
     }
 
     #[test]

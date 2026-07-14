@@ -16,3 +16,31 @@ pub use detectors::*;
 pub use move_resource_destruction::detect_move_resource_destruction;
 pub use move_type_safety_violation::detect_move_type_safety_violation;
 pub use semantic_model::build_semantic_model;
+
+/// Run every live Move detector against the given source text.
+///
+/// This is the single entry point the CLI should use for Move analysis: each
+/// detector operates directly on raw source text, no Move AST parse is required.
+pub fn run_all_detectors(source: &str, file_path: &str) -> Vec<sentri_core::Finding> {
+    let mut findings = detectors::detect_all(source, file_path);
+
+    findings.extend(detect_move_resource_destruction(source, file_path));
+    findings.extend(detect_move_type_safety_violation(source, file_path));
+
+    // Chain-agnostic shared-IR rule (Epic 6.1): flags privileged mutations
+    // with no authorization guard, using the same rule EVM and Solana share.
+    let model = build_semantic_model(source, file_path);
+    findings.extend(sentri_ir::rules::find_unauthorized_privileged_mutations(
+        &model,
+    ));
+
+    let mut seen = std::collections::HashSet::new();
+    findings.retain(|f| seen.insert(f.dedup_key()));
+
+    findings.sort_by(|a, b| match b.severity.cmp(&a.severity) {
+        std::cmp::Ordering::Equal => a.line.cmp(&b.line),
+        other => other,
+    });
+
+    findings
+}

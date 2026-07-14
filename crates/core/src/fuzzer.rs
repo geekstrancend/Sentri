@@ -1,6 +1,55 @@
 /// Fuzzer utilities for property-based vulnerability detection testing.
 ///
 /// Generates code patterns to test detector robustness and minimize false positives.
+/// Result of a fuzzing run: how many vulnerable/safe patterns were correctly
+/// or incorrectly classified. Shared by every `*_fuzzer` module (dvn, merkle
+/// root, health check, synthetic mint) rather than each redefining an
+/// identical type.
+#[derive(Debug, Clone)]
+pub struct FuzzResult {
+    /// True positives detected
+    pub true_positives: usize,
+    /// False positives (safe code detected as vulnerable)
+    pub false_positives: usize,
+    /// False negatives (vulnerable code not detected)
+    pub false_negatives: usize,
+    /// Total tests run
+    pub total: usize,
+}
+
+impl FuzzResult {
+    /// Calculate precision (TP / (TP + FP))
+    pub fn precision(&self) -> f64 {
+        let total_pos = self.true_positives + self.false_positives;
+        if total_pos == 0 {
+            0.0
+        } else {
+            self.true_positives as f64 / total_pos as f64
+        }
+    }
+
+    /// Calculate recall (TP / (TP + FN))
+    pub fn recall(&self) -> f64 {
+        let actual_pos = self.true_positives + self.false_negatives;
+        if actual_pos == 0 {
+            0.0
+        } else {
+            self.true_positives as f64 / actual_pos as f64
+        }
+    }
+
+    /// Calculate F1 score (harmonic mean of precision and recall)
+    pub fn f1_score(&self) -> f64 {
+        let p = self.precision();
+        let r = self.recall();
+        if p + r == 0.0 {
+            0.0
+        } else {
+            2.0 * p * r / (p + r)
+        }
+    }
+}
+
 /// Deterministic pseudo-random number generator for fuzz testing
 pub struct CodeFuzzer {
     pub seed: u64,
@@ -30,6 +79,18 @@ impl CodeFuzzer {
     /// Generate random number in range [0, max)
     fn gen_range(&mut self, max: usize) -> usize {
         (self.next_u64() as usize) % max
+    }
+
+    /// Public, deterministic random index in `[0, max)`. Exposed so callers
+    /// (e.g. the CLI's mutation-based fuzz harness) can drive their own
+    /// randomized strategies reproducibly from the same seeded stream used
+    /// internally by this generator.
+    pub fn next_index(&mut self, max: usize) -> usize {
+        if max == 0 {
+            0
+        } else {
+            self.gen_range(max)
+        }
     }
 
     /// Generate random boolean

@@ -235,3 +235,203 @@ mod determinism {
         );
     }
 }
+
+/// Regression tests asserting that `sentri check` actually detects real
+/// vulnerabilities in the bundled fixtures, instead of always reporting a
+/// clean scan. These fixtures previously sat unused by any test while the
+/// detection pipeline itself was disconnected (see CHANGELOG / git history).
+mod detection {
+    use super::*;
+
+    fn fixture_path(name: &str) -> std::path::PathBuf {
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("tests/fixtures")
+            .join(name)
+    }
+
+    #[test]
+    fn test_check_detects_vulnerable_evm_fixture() {
+        let mut cmd = Command::cargo_bin("sentri").expect("Failed to find binary");
+        cmd.arg("check")
+            .arg(fixture_path("test_vulnerable_evm.sol"))
+            .arg("--chain")
+            .arg("evm")
+            .arg("--format")
+            .arg("json");
+
+        let output = cmd.output().expect("Failed to execute");
+        assert_eq!(
+            output.status.code(),
+            Some(1),
+            "A vulnerable EVM contract must fail the scan"
+        );
+
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let json: serde_json::Value =
+            serde_json::from_str(&stdout).expect("check --format json must emit valid JSON");
+        let violation_count = json["summary"]["violations"]
+            .as_u64()
+            .expect("summary.violations must be a number");
+        assert!(
+            violation_count > 0,
+            "Expected at least one violation in the known-vulnerable EVM fixture, found 0"
+        );
+    }
+
+    #[test]
+    fn test_check_detects_vulnerable_solana_fixture() {
+        let mut cmd = Command::cargo_bin("sentri").expect("Failed to find binary");
+        cmd.arg("check")
+            .arg(fixture_path("test_vulnerable_solana.rs"))
+            .arg("--chain")
+            .arg("solana")
+            .arg("--format")
+            .arg("json");
+
+        let output = cmd.output().expect("Failed to execute");
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let json: serde_json::Value =
+            serde_json::from_str(&stdout).expect("check --format json must emit valid JSON");
+        let violation_count = json["summary"]["violations"]
+            .as_u64()
+            .expect("summary.violations must be a number");
+        assert!(
+            violation_count > 0,
+            "Expected at least one violation in the known-vulnerable Solana fixture, found 0"
+        );
+    }
+
+    #[test]
+    fn test_check_detects_vulnerable_move_fixture() {
+        let mut cmd = Command::cargo_bin("sentri").expect("Failed to find binary");
+        cmd.arg("check")
+            .arg(fixture_path("test_vulnerable_move.move"))
+            .arg("--chain")
+            .arg("move")
+            .arg("--format")
+            .arg("json");
+
+        let output = cmd.output().expect("Failed to execute");
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let json: serde_json::Value =
+            serde_json::from_str(&stdout).expect("check --format json must emit valid JSON");
+        let violation_count = json["summary"]["violations"]
+            .as_u64()
+            .expect("summary.violations must be a number");
+        assert!(
+            violation_count > 0,
+            "Expected at least one violation in the known-vulnerable Move fixture, found 0"
+        );
+    }
+
+    /// The chain-agnostic shared-IR rule (`unauthorized_privileged_mutation`,
+    /// sentri_ir::rules) used to only fire in each analyzer crate's own unit
+    /// tests - it was never wired into the production detector pipeline the
+    /// CLI actually calls. This proves it now fires end to end for the two
+    /// chains whose semantic-model extractor needs no external tool (Solana's
+    /// Anchor parser and Move's regex extractor both work on raw source
+    /// text; EVM's needs solc, which this environment doesn't have, so it's
+    /// intentionally not asserted on here).
+    #[test]
+    fn test_shared_ir_rule_fires_for_solana_and_move() {
+        for (fixture, chain) in [
+            ("test_vulnerable_solana.rs", "solana"),
+            ("test_vulnerable_move.move", "move"),
+        ] {
+            let mut cmd = Command::cargo_bin("sentri").expect("Failed to find binary");
+            cmd.arg("check")
+                .arg(fixture_path(fixture))
+                .arg("--chain")
+                .arg(chain)
+                .arg("--format")
+                .arg("json");
+
+            let output = cmd.output().expect("Failed to execute");
+            let stdout = String::from_utf8_lossy(&output.stdout);
+            let json: serde_json::Value =
+                serde_json::from_str(&stdout).expect("check --format json must emit valid JSON");
+            let violations = json["violations"]
+                .as_array()
+                .expect("violations must be an array");
+
+            assert!(
+                violations
+                    .iter()
+                    .any(|v| v["invariant_id"] == "unauthorized_privileged_mutation"),
+                "Expected the shared-IR rule to fire for {chain} fixture {fixture}, but it didn't. Violations: {violations:#?}"
+            );
+        }
+    }
+
+    #[test]
+    fn test_scan_respects_severity_and_fail_on_filters() {
+        let mut cmd = Command::cargo_bin("sentri").expect("Failed to find binary");
+        cmd.arg("scan")
+            .arg(fixture_path("test_vulnerable_evm.sol"))
+            .arg("--chain")
+            .arg("evm")
+            .arg("--output")
+            .arg("json")
+            .arg("--severity")
+            .arg("critical")
+            .arg("--fail-on")
+            .arg("critical");
+
+        let output = cmd.output().expect("Failed to execute");
+        let stdout = String::from_utf8_lossy(&output.stdout);
+        let json: serde_json::Value =
+            serde_json::from_str(&stdout).expect("scan --output json must emit valid JSON");
+        let violations = json["violations"]
+            .as_array()
+            .expect("violations must be an array");
+        assert!(
+            !violations.is_empty(),
+            "Expected at least one critical violation in the vulnerable EVM fixture"
+        );
+        assert!(
+            violations.iter().all(|v| v["severity"] == "critical"),
+            "--severity critical must filter out all non-critical violations"
+        );
+        assert_eq!(
+            output.status.code(),
+            Some(1),
+            "--fail-on critical must fail when critical violations are present"
+        );
+    }
+
+    /// `sentri fuzz` used to be a pure stub that printed "0 violations found"
+    /// without doing any work. It now actually mutates the target file and
+    /// runs the real detectors against each variant, so a run must complete
+    /// successfully (exit 0, no crashes) rather than just no-op.
+    #[test]
+    fn test_fuzz_runs_against_real_detectors_without_crashing() {
+        let mut cmd = Command::cargo_bin("sentri").expect("Failed to find binary");
+        cmd.arg("fuzz")
+            .arg(fixture_path("test_vulnerable_evm.sol"))
+            .arg("--chain")
+            .arg("evm")
+            .arg("--iterations")
+            .arg("50")
+            .arg("--depth")
+            .arg("4")
+            .arg("--seed")
+            .arg("7");
+
+        let output = cmd.output().expect("Failed to execute");
+        assert_eq!(
+            output.status.code(),
+            Some(0),
+            "fuzz must exit 0 when no crashes are found"
+        );
+
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        assert!(
+            stderr.contains("Ran 50 iterations"),
+            "expected fuzz to report the iteration count, got: {stderr}"
+        );
+        assert!(
+            stderr.contains("No crashes found"),
+            "expected fuzz to report no crashes on the known-parseable fixture, got: {stderr}"
+        );
+    }
+}

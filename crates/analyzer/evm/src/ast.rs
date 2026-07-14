@@ -205,7 +205,19 @@ impl SolidityParser {
             AnalysisError::CompilationError(format!("Failed to create temp dir: {}", e))
         })?;
 
-        let temp_file = temp_dir.path().join(filename);
+        // `Path::join` discards its base entirely when the argument is an
+        // absolute path (or replaces components on an unrelated prefix for a
+        // path with directory separators) - callers routinely pass a real
+        // file's absolute/relative path as `filename` (it's only used here
+        // for solc's `--combined-json` output keys), so joining it verbatim
+        // to `temp_dir` could silently resolve outside the temp directory
+        // entirely and overwrite that real file with whatever `source` is
+        // being compiled (e.g. a fuzzer's mutated variant). Only the
+        // basename is needed inside the sandboxed temp dir.
+        let basename = std::path::Path::new(filename)
+            .file_name()
+            .unwrap_or_else(|| std::ffi::OsStr::new("contract.sol"));
+        let temp_file = temp_dir.path().join(basename);
         let mut file = std::fs::File::create(&temp_file).map_err(AnalysisError::IoError)?;
         file.write_all(source.as_bytes())
             .map_err(AnalysisError::IoError)?;
@@ -303,7 +315,7 @@ impl SolidityParser {
             name: output.contract_name.clone(),
             id: ast.get("id").and_then(|id| id.as_u64()).unwrap_or(0),
             state_vars: Self::extract_state_vars(ast)?,
-            functions: Self::extract_functions(ast)?,
+            functions: Self::extract_functions(ast, &output.source)?,
             events: Self::extract_events(ast)?,
             modifiers: Self::extract_modifiers(ast)?,
             base_contracts: Self::extract_base_contracts(ast),
@@ -402,12 +414,12 @@ impl SolidityParser {
     }
 
     /// Extract functions from AST.
-    fn extract_functions(ast: &Value) -> AnalysisResult<Vec<AstFunction>> {
+    fn extract_functions(ast: &Value, source: &str) -> AnalysisResult<Vec<AstFunction>> {
         let mut functions = Vec::new();
 
         if let Some(nodes) = ast.get("nodes").and_then(|n| n.as_array()) {
             for node in nodes {
-                Self::collect_functions(node, &mut functions);
+                Self::collect_functions(node, &mut functions, source);
             }
         }
 
@@ -416,7 +428,7 @@ impl SolidityParser {
     }
 
     /// Recursively collect functions from AST nodes.
-    fn collect_functions(node: &Value, functions: &mut Vec<AstFunction>) {
+    fn collect_functions(node: &Value, functions: &mut Vec<AstFunction>, source: &str) {
         if let Some(node_type) = node.get("nodeType").and_then(|t| t.as_str()) {
             if node_type == "FunctionDefinition" {
                 if let Some(name) = node.get("name").and_then(|n| n.as_str()) {
@@ -445,7 +457,7 @@ impl SolidityParser {
                             .map(|s| s == "view")
                             .unwrap_or(false),
                         modifiers: Self::extract_modifier_names(node),
-                        body: Self::extract_function_body(node),
+                        body: Self::extract_function_body(node, source),
                         id: node.get("id").and_then(|id| id.as_u64()).unwrap_or(0),
                     };
                     functions.push(func);
@@ -455,7 +467,7 @@ impl SolidityParser {
 
         if let Some(children) = node.get("nodes").and_then(|n| n.as_array()) {
             for child in children {
-                Self::collect_functions(child, functions);
+                Self::collect_functions(child, functions, source);
             }
         }
     }
@@ -475,17 +487,28 @@ impl SolidityParser {
         names
     }
 
-    /// Extract function body as raw statements.
-    fn extract_function_body(node: &Value) -> Vec<String> {
-        let mut body = Vec::new();
+    /// Extract function body as raw source lines, sliced from the original source
+    /// text using the AST body node's "src" byte-range ("start:length:fileIndex").
+    fn extract_function_body(node: &Value, source: &str) -> Vec<String> {
+        let Some(src) = node
+            .get("body")
+            .and_then(|b| b.get("src"))
+            .and_then(|s| s.as_str())
+        else {
+            return Vec::new();
+        };
 
-        // For now, we'll just store a placeholder
-        // More detailed body parsing would require implementing a statement visitor
-        if node.get("body").is_some() {
-            body.push("[function body parsed]".to_string());
+        let (start, length, _) = crate::ast_types::parse_src(src);
+        let start = start as usize;
+        let end = start.saturating_add(length as usize).min(source.len());
+
+        // Defensive: never trust byte offsets to land on char boundaries, even
+        // though solc's own offsets should always be self-consistent with `source`.
+        if start >= end || !source.is_char_boundary(start) || !source.is_char_boundary(end) {
+            return Vec::new();
         }
 
-        body
+        source[start..end].lines().map(|l| l.to_string()).collect()
     }
 
     /// Extract function parameters or return types.
@@ -637,5 +660,36 @@ mod tests {
         assert_eq!(Visibility::Internal.to_string(), "internal");
         assert_eq!(Visibility::Private.to_string(), "private");
         assert_eq!(Visibility::External.to_string(), "external");
+    }
+
+    /// `Path::join` silently discards its base when the argument is absolute,
+    /// so passing a real file's absolute path as `filename` used to make
+    /// `compile_to_ast` write straight over that file with whatever `source`
+    /// was being compiled - e.g. a fuzzer's mutated variant of a real
+    /// fixture. This must only ever write inside the temp directory,
+    /// regardless of what shape of path `filename` is.
+    #[test]
+    fn compile_to_ast_never_writes_outside_temp_dir_for_absolute_filename() {
+        let real_file = std::env::temp_dir().join(format!(
+            "sentri_ast_rs_test_sentinel_{}.sol",
+            std::process::id()
+        ));
+        let original_content = "// untouched sentinel file\ncontract C {}\n";
+        std::fs::write(&real_file, original_content).unwrap();
+
+        let absolute_filename = real_file.to_string_lossy().to_string();
+        // solc isn't necessarily installed in the test environment; the
+        // point of this test is only that the temp-file write itself never
+        // lands on `real_file` - whether compilation subsequently succeeds
+        // or fails with "solc not found" is irrelevant here.
+        let _ = SolidityParser::parse_source("contract C {}", &absolute_filename);
+
+        let content_after = std::fs::read_to_string(&real_file).unwrap();
+        std::fs::remove_file(&real_file).ok();
+        assert_eq!(
+            content_after, original_content,
+            "compile_to_ast must not overwrite a real file just because its \
+             absolute path was passed as the `filename` argument"
+        );
     }
 }
