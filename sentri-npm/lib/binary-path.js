@@ -17,7 +17,14 @@ const { BINARY_DIR } = require("./detect-platform");
 function getBinaryPath() {
   // Check environment variable override
   if (process.env.SENTRI_BINARY_PATH) {
-    return process.env.SENTRI_BINARY_PATH;
+    const overridePath = process.env.SENTRI_BINARY_PATH;
+    if (!fs.existsSync(overridePath)) {
+      throw new Error(
+        `Sentri binary not found at SENTRI_BINARY_PATH (${overridePath}).\n` +
+        `Run: npm install @sentri/cli`
+      );
+    }
+    return overridePath;
   }
 
   // Check installed binary in package — this is the most common case

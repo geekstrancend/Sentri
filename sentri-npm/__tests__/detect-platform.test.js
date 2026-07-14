@@ -1,5 +1,5 @@
 describe("Platform Detection", () => {
-  const { detectPlatform, SENTRI_VERSION, GITHUB_REPO, BINARY_DIR } = require("../../lib/detect-platform");
+  const { detectPlatform, SENTRI_VERSION, GITHUB_REPO, BINARY_DIR } = require("../lib/detect-platform");
   const os = require("os");
 
   const originalPlatform = os.platform;
@@ -23,6 +23,14 @@ describe("Platform Detection", () => {
     expect(info.target).toBe("x86_64-unknown-linux-gnu");
     expect(info.archiveFormat).toBe("tar.gz");
     expect(info.archiveName).toContain("x86_64-unknown-linux-gnu");
+
+    // Must exactly match the asset name release.yml actually uploads
+    // ("sentri-v<version>-<target>.<ext>", "v" immediately after "sentri-"),
+    // or the download (and the SHA256SUMS lookup keyed on this same name) 404s.
+    const { version } = require("../package.json");
+    expect(info.archiveName).toBe(
+      `sentri-v${version}-x86_64-unknown-linux-gnu.tar.gz`
+    );
   });
 
   test("macos-aarch64 detected correctly", () => {

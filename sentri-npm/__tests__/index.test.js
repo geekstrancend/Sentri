@@ -1,4 +1,4 @@
-const { analyze, version, isInstalled } = require("../../index.js");
+const { analyze, version, isInstalled } = require("../index.js");
 
 describe("Programmatic API", () => {
   test("analyze() requires path option", async () => {
@@ -24,6 +24,11 @@ describe("Programmatic API", () => {
   test("version() returns promise", async () => {
     const versionPromise = version();
     expect(versionPromise).toBeInstanceOf(Promise);
+    // version() rejects when no binary is installed (as in this test
+    // environment) - attach a handler so that rejection doesn't surface as
+    // an unhandled promise rejection (which crashes the process on modern
+    // Node) once this assertion is done with it.
+    await versionPromise.catch(() => {});
   });
 
   test("isInstalled() returns promise of boolean", async () => {

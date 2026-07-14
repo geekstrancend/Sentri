@@ -3,9 +3,39 @@
 const fs = require("fs");
 const path = require("path");
 const https = require("https");
-const { exec } = require("child_process");
+const { execFile } = require("child_process");
 const { detectPlatform, BINARY_DIR } = require("./detect-platform");
+const { verifyChecksum } = require("./verify");
 const HttpsProxyAgent = require("https-proxy-agent");
+
+/**
+ * Search for `binaryName` directly inside `dir` or one level down (to cover
+ * archives that extract into a wrapping staging directory, e.g. the .tar.gz
+ * layout release.yml produces).
+ *
+ * @private
+ * @param {string} dir - Directory to search
+ * @param {string} binaryName - File name to find (e.g. "sentri" or "sentri.exe")
+ * @returns {Promise<string|null>} Full path if found, else null
+ */
+async function findExtractedBinary(dir, binaryName) {
+  const direct = path.join(dir, binaryName);
+  if (fs.existsSync(direct)) {
+    return direct;
+  }
+
+  const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+  for (const entry of entries) {
+    if (entry.isDirectory() && entry.name !== ".tmp") {
+      const candidate = path.join(dir, entry.name, binaryName);
+      if (fs.existsSync(candidate)) {
+        return candidate;
+      }
+    }
+  }
+
+  return null;
+}
 
 /**
  * Download the Sentri binary for the current platform.
@@ -47,12 +77,46 @@ async function downloadBinary(platformInfo, options = {}) {
 
     await downloadFile(downloadUrl, archivePath, verbose);
 
+    // Verify the downloaded archive against the published SHA256SUMS before
+    // extracting or executing anything from it - never trust a download by
+    // TLS alone (redirects, a compromised release asset, or a CDN issue can
+    // all substitute the wrong bytes).
+    if (verbose) {
+      console.log(`Verifying checksum for ${platformInfo.archiveName}...`);
+    }
+    await verifyChecksum(archivePath, platformInfo);
+
     // Extract binary
     if (verbose) {
       console.log(`Extracting ${platformInfo.archiveName}...`);
     }
 
     await extractArchive(archivePath, binaryDir, platformInfo);
+
+    // release.yml's .zip archives (Windows) are flat - built by `cd`-ing into
+    // the staging directory before zipping - but its .tar.gz archives
+    // (Linux/macOS) tar the staging directory itself from outside it, so the
+    // binary actually lands one level down, e.g.
+    // `.sentri-bin/sentri-v1.2.3-x86_64-unknown-linux-gnu/sentri`, not
+    // `.sentri-bin/sentri` as this code otherwise assumes. Locate it wherever
+    // it actually ended up and move it to the flat path the rest of this
+    // package expects, rather than hardcoding one archive layout.
+    if (!fs.existsSync(binaryPath)) {
+      const nestedPath = await findExtractedBinary(binaryDir, platformInfo.binaryName);
+      if (!nestedPath) {
+        throw new Error(
+          `Extracted archive did not contain expected binary '${platformInfo.binaryName}' ` +
+          `anywhere under ${binaryDir}`
+        );
+      }
+      await fs.promises.rename(nestedPath, binaryPath);
+      // Clean up the now-empty (aside from LICENSE/README/VERSION) staging
+      // directory the archive extracted into.
+      const stagingDir = path.dirname(nestedPath);
+      if (stagingDir !== binaryDir) {
+        await fs.promises.rm(stagingDir, { recursive: true, force: true });
+      }
+    }
 
     // Make executable on Unix
     if (process.platform !== "win32") {
@@ -189,24 +253,37 @@ async function downloadFile(url, destinationPath, verbose) {
  */
 async function extractArchive(archivePath, destDir, platformInfo) {
   return new Promise((resolve, reject) => {
-    let command;
+    let bin;
+    let args;
 
     if (platformInfo.archiveFormat === "tar.gz") {
-      // Extract tar.gz
-      command = `tar xzf "${archivePath}" -C "${destDir}"`;
+      bin = "tar";
+      args = ["xzf", archivePath, "-C", destDir];
     } else if (platformInfo.archiveFormat === "zip") {
-      // Extract zip on Windows using PowerShell
-      command = `powershell -Command "Expand-Archive -Path '${archivePath}' -DestinationPath '${destDir}' -Force"`;
+      bin = "powershell";
+      args = [
+        "-NoProfile",
+        "-NonInteractive",
+        "-Command",
+        "Expand-Archive",
+        "-Path",
+        archivePath,
+        "-DestinationPath",
+        destDir,
+        "-Force",
+      ];
     } else {
       reject(new Error(`Unknown archive format: ${platformInfo.archiveFormat}`));
       return;
     }
 
-    exec(command, (error, stdout, stderr) => {
+    // Use execFile (argument array, no shell) rather than exec (shell string)
+    // so archive/destination paths can never be interpreted as shell syntax.
+    execFile(bin, args, (error, stdout, stderr) => {
       if (error) {
         reject(new Error(
           `Failed to extract archive: ${error.message}\n` +
-          `Command: ${command}\n` +
+          `Command: ${bin} ${args.join(" ")}\n` +
           `stderr: ${stderr}`
         ));
         return;

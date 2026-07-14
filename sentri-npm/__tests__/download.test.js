@@ -1,6 +1,6 @@
 const fs = require("fs").promises;
 const path = require("path");
-const { downloadBinary } = require("../../lib/download");
+const { downloadBinary } = require("../lib/download");
 
 describe("Binary Download", () => {
   test("skips download if binary already exists and force=false", async () => {
