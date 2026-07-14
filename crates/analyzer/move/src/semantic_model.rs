@@ -1,12 +1,13 @@
 //! Chain-agnostic semantic-model extraction for Move modules.
 //!
-//! Move has no `syn`-equivalent structural parser wired in yet (bringing one
-//! online is follow-on work under Epic 6.1/6.2's pattern, tracked
-//! separately), so this extractor works over signature-line text like the
-//! rest of the Move analyzer does today. The point of this module isn't
-//! parser quality — it's proving that the same chain-agnostic rule in
-//! [`sentri_ir::rules`] fires correctly once Move populates the shared
-//! [`SemanticModel`], with zero rule-side code changed to support it.
+//! Extraction is AST-based, via the vendored Sui Move tree-sitter grammar
+//! (see [`crate::tree_sitter_grammar`]) - a real parse rather than
+//! re-scanning source text, so multi-line signatures, nested generics, and
+//! comments/strings that merely *look* like a function signature are all
+//! handled correctly. If the grammar fails to produce an error-free parse
+//! (it's an upstream work-in-progress grammar with no guarantee of covering
+//! every valid Move construct), this falls back to the original per-source
+//! regex heuristic rather than silently reporting nothing.
 
 use regex::Regex;
 use sentri_ir::{
@@ -30,6 +31,130 @@ const SENSITIVE_FUNCTIONS: &[(&str, MutationKind)] = &[
 /// authorization check — possession of the typed value at the call site
 /// stands in for a signer/role check.
 pub fn build_semantic_model(source: &str, file_path: &str) -> SemanticModel {
+    match build_semantic_model_ast(source, file_path) {
+        Some(model) => model,
+        None => build_semantic_model_regex(source, file_path),
+    }
+}
+
+/// AST-based extraction. Returns `None` (rather than a possibly-wrong,
+/// possibly-empty model) if the grammar can't produce a clean parse, so the
+/// caller knows to fall back instead of silently trusting a broken tree.
+fn build_semantic_model_ast(source: &str, file_path: &str) -> Option<SemanticModel> {
+    let mut parser = tree_sitter::Parser::new();
+    parser
+        .set_language(crate::tree_sitter_grammar::language())
+        .expect("the vendored grammar must load - this is a static, compiled-in constant");
+
+    let tree = parser.parse(source, None)?;
+    let root = tree.root_node();
+    if root.has_error() {
+        return None;
+    }
+
+    let mut model = SemanticModel::new("move", file_path);
+    let src_bytes = source.as_bytes();
+    let text = |node: tree_sitter::Node| node.utf8_text(src_bytes).unwrap_or("");
+
+    visit_function_definitions(root, &mut |func_node| {
+        let Some(name_node) = func_node.child_by_field_name("name") else {
+            return;
+        };
+        let fn_name = text(name_node);
+
+        // Only functions actually reachable from outside the module (public,
+        // public(package), or a transaction entry point) are relevant entry
+        // points for this rule - a private helper isn't callable without
+        // going through one of those anyway.
+        let mut modifiers = vec![];
+        for i in 0..func_node.child_count() {
+            if let Some(child) = func_node.child(i) {
+                if child.kind() == "modifier" {
+                    modifiers.push(text(child));
+                }
+            }
+        }
+        let is_reachable = modifiers
+            .iter()
+            .any(|m| m.starts_with("public") || *m == "entry");
+        if !is_reachable {
+            return;
+        }
+
+        let lower = fn_name.to_lowercase();
+        let Some((_, kind)) = SENSITIVE_FUNCTIONS
+            .iter()
+            .find(|(needle, _)| lower.contains(needle))
+        else {
+            return;
+        };
+
+        let guards = func_node
+            .child_by_field_name("parameters")
+            .map(|params_node| {
+                let mut guards = Vec::new();
+                for i in 0..params_node.child_count() {
+                    let Some(param) = params_node.child(i) else {
+                        continue;
+                    };
+                    if param.kind() != "function_parameter" {
+                        continue;
+                    }
+                    let Some(type_node) = param.child_by_field_name("type") else {
+                        continue;
+                    };
+                    let type_text = text(type_node);
+                    // Find the innermost type identifier (e.g. `AdminCap` out
+                    // of `&AdminCap` or `&Capability<AdminCap>`) by looking
+                    // for any "Cap"-containing word, matching the same
+                    // capability-pattern convention the regex fallback uses.
+                    if let Some(cap_word) = type_text
+                        .split(|c: char| !c.is_alphanumeric() && c != '_')
+                        .find(|w| w.contains("Cap") && !w.is_empty())
+                    {
+                        guards.push(AuthorizationCheck {
+                            kind: AuthCheckKind::RoleOrCapability,
+                            source: cap_word.to_string(),
+                        });
+                    }
+                }
+                guards
+            })
+            .unwrap_or_default();
+
+        model.mutations.push(PrivilegedMutation {
+            entry_point: fn_name.to_string(),
+            kind: kind.clone(),
+            line: func_node.start_position().row + 1,
+            guards,
+        });
+    });
+
+    Some(model)
+}
+
+/// Recursively visit every `function_definition` node in the tree, calling
+/// `visit` on each. Function definitions can appear nested inside a
+/// `module_body` (brace form) or directly under `source_file` (Move 2024's
+/// semicolon module form), so this walks the whole tree rather than
+/// assuming one specific shape.
+fn visit_function_definitions<'a>(
+    node: tree_sitter::Node<'a>,
+    visit: &mut impl FnMut(tree_sitter::Node<'a>),
+) {
+    if node.kind() == "function_definition" {
+        visit(node);
+    }
+    let mut cursor = node.walk();
+    for child in node.children(&mut cursor) {
+        visit_function_definitions(child, visit);
+    }
+}
+
+/// Regex-based fallback, used only when the AST parse fails. Kept as its own
+/// function (rather than deleted) precisely for that degraded-but-still-useful
+/// path — see the module doc comment.
+fn build_semantic_model_regex(source: &str, file_path: &str) -> SemanticModel {
     let mut model = SemanticModel::new("move", file_path);
 
     // Matched against the whole source (not line-by-line): a real-world Move
@@ -159,5 +284,41 @@ module vault::vault {
             .unwrap()
             + 1;
         assert_eq!(withdraw_mutation.line, expected_line);
+    }
+
+    /// Proves the AST path is actually engaged for ordinary fixtures (not
+    /// silently falling back to regex on every call, which would make the
+    /// two tests above pass for the wrong reason).
+    #[test]
+    fn ast_extraction_succeeds_for_brace_style_module() {
+        assert!(
+            build_semantic_model_ast(FIXTURE, "vault.move").is_some(),
+            "expected the vendored grammar to parse this fixture without error"
+        );
+    }
+
+    /// A text like `// TODO: implement withdraw(admin: &AdminCap)` or a
+    /// string literal containing that shape would fool the regex fallback
+    /// into reporting a phantom function - real AST extraction only looks at
+    /// actual `function_definition` nodes, so comments and strings can't
+    /// masquerade as one.
+    #[test]
+    fn ast_extraction_ignores_lookalikes_in_comments_and_strings() {
+        let source = r#"
+module vault::vault {
+    // withdraw(admin: &AdminCap, vault: &mut Vault, amount: u64) - not real code
+    public fun log_note(): vector<u8> {
+        b"fun withdraw(vault: &mut Vault, amount: u64) {}"
+    }
+}
+"#;
+        let model =
+            build_semantic_model_ast(source, "vault.move").expect("fixture must parse cleanly");
+        assert!(
+            model.mutations.is_empty(),
+            "a comment/string containing lookalike text must not be treated as a real \
+             function definition, got: {:?}",
+            model.mutations
+        );
     }
 }

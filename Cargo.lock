@@ -1345,6 +1345,7 @@ name = "sentri-analyzer-move"
 version = "0.3.0"
 dependencies = [
  "anyhow",
+ "cc",
  "lazy_static",
  "regex",
  "sentri-core",
@@ -1355,6 +1356,7 @@ dependencies = [
  "tempfile",
  "thiserror 1.0.69",
  "tracing",
+ "tree-sitter",
 ]
 
 [[package]]
@@ -1918,6 +1920,16 @@ dependencies = [
  "tracing-core",
  "tracing-log",
  "tracing-serde",
+]
+
+[[package]]
+name = "tree-sitter"
+version = "0.20.10"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e747b1f9b7b931ed39a548c1fae149101497de3c1fc8d9e18c62c1a66c683d3d"
+dependencies = [
+ "cc",
+ "regex",
 ]
 
 [[package]]

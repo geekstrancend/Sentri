@@ -10,6 +10,8 @@ pub mod move_resource_destruction;
 pub mod move_type_safety_violation;
 /// Chain-agnostic semantic-model extraction (Epic 6.1 shared IR)
 pub mod semantic_model;
+/// Real structural parsing via a vendored Sui Move tree-sitter grammar
+pub mod tree_sitter_grammar;
 
 pub use analyzer::MoveAnalyzer;
 pub use detectors::*;

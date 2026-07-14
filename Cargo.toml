@@ -78,6 +78,7 @@ hex = "0.4"
 petgraph = { version = "0.6", features = ["serde-1"] }
 tree-sitter = "0.20"
 tree-sitter-solidity = "1.2"
+cc = "1.0"
 
 # Terminal UI
 terminal_size = "0.3"
