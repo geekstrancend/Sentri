@@ -126,7 +126,6 @@ Files to update:
 - `crates/analyzer/solana/Cargo.toml`
 - `crates/analyzer/evm/Cargo.toml`
 - `crates/analyzer/move/Cargo.toml`
-- `crates/simulator/Cargo.toml`
 - `crates/dsl_parser/Cargo.toml`
 - `crates/ir/Cargo.toml`
 - `crates/report/Cargo.toml`

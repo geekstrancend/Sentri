@@ -5,6 +5,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- All four test files imported from `../../lib/x` (two directories up) instead of `../lib/x`, matching the actual `__tests__`/`lib` layout - every test suite failed to even load. This is also presumably why the bugs below went uncaught: the suite had never actually run.
+- `detectPlatform()` never returned a `version` field despite `postinstall.js` and `verify.js` both reading `platformInfo.version`, silently producing `.../download/vundefined/SHA256SUMS` - the checksum fetch 404'd every time.
+- `getBinaryPath()` never validated a `SENTRI_BINARY_PATH` override actually exists, silently returning a bogus path instead of a clear error.
+- **Live bug**: `release.yml`'s `.tar.gz` archives (Linux/macOS) nest the binary in a subdirectory (tar-ing the staging directory from outside it), while its `.zip` archive (Windows) is flat (`cd`s into the staging directory before zipping). The installer assumed the flat layout unconditionally, so every real Linux/macOS install would download and checksum-verify successfully and then fail to find the binary. Verified fixed against the real published GitHub release.
+
+### Added
+
+- musl detection (via `detect-libc`) so Alpine and other musl-based Linux systems get the matching binary instead of a glibc build that won't start.
+- CI workflow (`npm-package-ci.yml`) - this package had zero CI coverage before, which is exactly how the bugs above went uncaught for as long as they did.
+
 ## [0.1.8] - 2026-03-10
 
 ### Fixed

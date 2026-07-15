@@ -1,12 +1,9 @@
 # sentri-core
 
-Core types, configuration, and error handling for the Sentri invariant checking framework.
-
-This crate provides the fundamental types and utilities you need to build tools within the Sentri ecosystem.
+Core types, traits, and shared utilities for the Sentri framework. Every
+other crate in the workspace depends on this one.
 
 ## Usage
-
-As a library dependency:
 
 ```toml
 [dependencies]
@@ -15,27 +12,30 @@ sentri-core = "0.3.0"
 
 ## Key Types
 
-- `Invariant` — represents a security invariant specification
-- `Violation` — a detected invariant violation
-- `Config` — project and analysis configuration
-- `SeverityLevel` — violation severity (Critical, High, Medium, Low, Info)
+- `Finding` — a single detected violation (`invariant_id`, `severity`, `file`, `line`, `col`, `message`, `snippet`, plus optional metadata/source-fragment via the builder methods)
+- `Severity` — `Critical | High | Medium | Low | Info`
+- `Invariant`, `ProgramModel`, `FunctionModel`, `StateVar` — the program model chain analyzers produce (also re-exported from `sentri-ir`)
+- `ChainAnalyzer`, `CodeGenerator`, `Simulator` — the traits each chain's analyzer/generator crate implements
+- `Config`, `ChainConfig`, `AlertConfig`, `InvariantConfig` — project configuration (`.sentri.toml`)
+- `CodeFuzzer`, `FuzzResult` — deterministic, seeded synthetic-pattern generation used by the fuzz-testing infrastructure
 
 ## Example
 
 ```rust
-use sentri_core::{Invariant, Violation, SeverityLevel};
+use sentri_core::{Finding, Severity};
 
-let violation = Violation {
-    id: "EVM_001".to_string(),
-    severity: SeverityLevel::Critical,
-    title: "Reentrancy Vulnerability".to_string(),
-    message: "External call before state change detected".to_string(),
-};
+let finding = Finding::new(
+    "evm_reentrancy_classic".to_string(),
+    Severity::Critical,
+    "Vault.sol".to_string(),
+    42,
+    0,
+    "External call before state update".to_string(),
+    "(bool ok,) = msg.sender.call{value: amount}(\"\");".to_string(),
+)
+.with_metadata("detector".to_string(), "pattern_match".to_string());
 ```
-
-See [Sentri documentation](https://github.com/geekstrancend/Sentri) for more examples.
 
 ## License
 
 MIT
-

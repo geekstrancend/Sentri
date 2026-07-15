@@ -2,13 +2,19 @@
 //!
 //! # #[invariant_enforced] Attribute Macro
 //!
-//! Injects invariant checks into Solana instruction handlers. This macro:
-//! 1. Identifies state mutations in the function body
-//! 2. Injects invariant checks after mutations
-//! 3. Validates check syntax at compile-time
-//! 4. Emits compile errors if invariants cannot be verified
+//! **Current status: scaffolding only, not yet enforcing.** This macro parses
+//! its check-expression arguments and computes a deterministic hash of them
+//! (see `parse_invariant_checks`/`compute_check_hash`), but
+//! `generate_check_statements` currently emits only comments
+//! (`// Invariant: <check>`) followed by `let _ = ();` - no assertion, no
+//! `require`, no compile-time validation, no runtime enforcement. Applying
+//! this attribute to a function does not change that function's behavior.
 //!
-//! # Security Properties
+//! Do not rely on this macro for any security property until real
+//! enforcement is implemented; the properties below describe the intended
+//! design, not current behavior.
+//!
+//! # Intended Security Properties (not yet implemented)
 //! - Deterministic injection order (alphabetical by state variable)
 //! - No silent failures (compile error if invariant can't be resolved)
 //! - Tamper detection: Hash embedded in generated code comments
@@ -17,11 +23,7 @@
 //! # Example
 //!
 //! ```ignore
-//! #[invariant_enforced(
-//!     "invariants/token.invar",
-//!     "balance >= 0",
-//!     "supply == sum_of_balances"
-//! )]
+//! #[invariant_enforced("balance >= 0", "supply == sum_of_balances")]
 //! pub fn transfer(
 //!     from: &mut Account,
 //!     to: &mut Account,
@@ -29,7 +31,7 @@
 //! ) -> ProgramResult {
 //!     from.balance = from.balance.checked_sub(amount)?;
 //!     to.balance = to.balance.checked_add(amount)?;
-//!     // Invariant checks automatically injected here
+//!     // No invariant check is actually injected here yet.
 //!     Ok(())
 //! }
 //! ```
@@ -38,20 +40,14 @@ use proc_macro::TokenStream;
 use quote::quote;
 use syn::{parse_macro_input, FnArg, ItemFn, Pat};
 
-/// Procedural attribute macro for enforcing invariants on Solana instruction handlers.
+/// Procedural attribute macro, currently scaffolding only - see the module
+/// doc comment above. It parses the check expressions given as its
+/// arguments but does not currently validate, type-check, or enforce them;
+/// applying it to a function is a no-op.
 ///
 /// # Attributes
-/// - `file`: Path to .invar file containing invariant definitions (required)
-/// - `checks`: Comma-separated invariant expressions to verify (at least one)
-///
-/// # Compile-time Validation
-/// 1. Verifies all referenced state variables are parameters
-/// 2. Validates invariant expression syntax
-/// 3. Type-checks invariant expressions
-/// 4. Generates deterministic injection points
-///
-/// # Runtime Behavior
-/// If any invariant fails, function immediately returns an error.
+/// - Comma-separated, quoted invariant expression strings, e.g.
+///   `#[invariant_enforced("balance >= 0", "supply > 0")]`
 #[proc_macro_attribute]
 pub fn invariant_enforced(args: TokenStream, input: TokenStream) -> TokenStream {
     let input_fn = parse_macro_input!(input as ItemFn);

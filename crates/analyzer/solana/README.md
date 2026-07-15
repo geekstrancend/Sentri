@@ -1,8 +1,6 @@
 # sentri-analyzer-solana
 
-Solana program analyzer for the Sentri framework.
-
-Performs static analysis on Solana programs (Rust/Anchor) and transaction data to detect security invariant violations.
+Solana (Anchor/native Rust) analyzer for the Sentri framework.
 
 ## Usage
 
@@ -15,34 +13,26 @@ sentri-ir = "0.3.0"
 
 ## Key Components
 
-- `SolanaAnalyzer`: Main analysis engine for Solana programs
-- `AccountValidator`: Validates account constraints and permissions
-- `SignerChecker`: Verifies signer requirements
-- `PDAValidator`: Analyzes Program Derived Address derivations
+- `SolanaAnalyzer` — implements `ChainAnalyzer` (`analyze(&self, path: &Path) -> Result<ProgramModel>`)
+- `anchor_parser::parse_anchor_accounts` — a real parser (not regex) for `#[derive(Accounts)]` structs; understands `Signer<'info>`, `has_one`/`owner`/`address` constraints, and `/// CHECK:` comments
+- `detectors::run_all_detectors(source, file_path)` — the entry point the CLI calls; runs all 9 Solana pattern detectors plus the shared cross-chain `unauthorized_privileged_mutation` rule
+- `semantic_model::build_semantic_model` — builds the chain-agnostic `sentri_ir::SemanticModel` that rule consumes, reading guards off the real parsed `AccountSecurity` for each field (not re-derived from source text)
 
 ## Example
 
 ```rust
-use sentri_analyzer_solana::SolanaAnalyzer;
-use sentri_core::Target;
+use sentri_analyzer_solana::detectors::run_all_detectors;
 
-let mut analyzer = SolanaAnalyzer::new();
-let program_id = "11111111111111111111111111111111";
-
-let violations = analyzer.analyze(program_id.as_bytes(), Target::Solana)?;
-println!("Found {} violations", violations.len());
+let source = std::fs::read_to_string("lib.rs")?;
+let findings = run_all_detectors(&source, "lib.rs");
+println!("Found {} findings", findings.len());
 ```
 
-## Supported Features
+## Detectors (9)
 
-- Anchor framework analysis
-- Native Solana program inspection
-- Signer verification
-- Account rent (lamport) validation
-- PDA safety checks
-- Cross-program invocation tracking
-
-See [Sentri documentation](https://github.com/geekstrancend/Sentri) for detailed analysis capabilities.
+Missing signer checks, oracle rate/self-trade manipulation, treasury single
+authority, admin without timelock, sysvar account validation, durable
+nonce validation, rent exemption, PDA authority validation.
 
 ## License
 

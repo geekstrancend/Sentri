@@ -1,8 +1,10 @@
 # sentri-ir
 
-Intermediate representation (IR) for Sentri invariant specifications.
+Chain-agnostic intermediate representation for Sentri.
 
-Defines the AST and IR structures used to represent and analyze invariant specifications across EVM, Solana, and Move platforms.
+Re-exports the core program/invariant model types from `sentri-core`, and
+defines the shared semantic IR that lets a detection rule be written once
+and apply unmodified to every chain.
 
 ## Usage
 
@@ -14,26 +16,48 @@ sentri-core = "0.3.0"
 
 ## Key Types
 
-- `Spec` — complete invariant specification
-- `Check` — individual check/invariant
-- `Expression` — semantic expressions in invariants
-- `Target` — chain target (EVM, Solana, Move)
+Re-exported from `sentri-core::model`:
+- `Expression`, `BinaryOp`, `LogicalOp` — invariant expression AST
+- `Invariant`, `ProgramModel`, `FunctionModel`, `StateVar` — the program model chain analyzers produce
+- `GenerationOutput`, `SimulationReport`
+
+Defined in this crate:
+- `SemanticModel` — a chain-agnostic set of [`PrivilegedMutation`] sites extracted from one source file, independent of the chain's native syntax
+- `PrivilegedMutation` — an entry point performing a sensitive state change (`MutationKind`: fund transfer, authority change, upgrade, account close), plus whatever `AuthorizationCheck`s guard it
+- `AuthorizationCheck` / `AuthCheckKind` — a guard found protecting a mutation (signer, role/capability, multisig, or other)
+- `AnalysisContext` — accumulates warnings/validity state during analysis
+- `DependencyGraph` — dependency ordering for generation output
+
+## Shared cross-chain rule
+
+`sentri_ir::rules::find_unauthorized_privileged_mutations` is the first rule
+built on this pattern: it flags any `PrivilegedMutation` with no guard, and
+is written once in `crates/ir/src/rules.rs`. Each chain analyzer (EVM,
+Solana, Move) builds its own `SemanticModel` from its own native syntax —
+EVM from a solc AST, Solana from a real Anchor-account parse, Move from a
+vendored tree-sitter grammar — and the rule itself never changes to support
+a new chain. This is the intended pattern for adding more chain-agnostic
+rules: extend `SemanticModel` with whatever new fact the rule needs, then
+have each analyzer populate it.
 
 ## Example
 
 ```rust
-use sentri_ir::{Spec, Target};
+use sentri_ir::{SemanticModel, PrivilegedMutation, MutationKind};
+use sentri_ir::rules::find_unauthorized_privileged_mutations;
 
-let spec = Spec {
-    name: "balance_check".to_string(),
-    target: Target::EVM,
-    description: "Validate balance consistency".to_string(),
-};
+let mut model = SemanticModel::new("evm", "Vault.sol");
+model.mutations.push(PrivilegedMutation {
+    entry_point: "withdraw".to_string(),
+    kind: MutationKind::FundTransfer,
+    line: 42,
+    guards: vec![], // no authorization check found
+});
+
+let findings = find_unauthorized_privileged_mutations(&model);
+assert_eq!(findings.len(), 1);
 ```
-
-See [Sentri documentation](https://github.com/geekstrancend/Sentri) for IR details.
 
 ## License
 
 MIT
-

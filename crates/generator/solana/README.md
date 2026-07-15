@@ -1,8 +1,6 @@
 # sentri-generator-solana
 
-Code generator for Solana programs using Sentri invariants.
-
-Generates Rust/Anchor code and runtime instrumentation to enforce Sentri invariants in Solana programs.
+Code generator for Solana (Anchor/native Rust) invariant enforcement.
 
 ## Usage
 
@@ -10,44 +8,30 @@ Generates Rust/Anchor code and runtime instrumentation to enforce Sentri invaria
 [dependencies]
 sentri-generator-solana = "0.3.0"
 sentri-core = "0.3.0"
-sentri-ir = "0.3.0"
 ```
 
-## Key Components
+## Current State
 
-- `AnchorGenerator`: Generates Anchor instruction handlers with checks
-- `InstructionInstrumentor`: Adds safety checks to instruction handlers
-- `AccountValidator`: Creates account constraint validators
-- `PDASafetyChecker`: Generates PDA validation code
+`SolanaGenerator` implements the `CodeGenerator` trait: given a
+`ProgramModel` and a list of `Invariant`s, it emits one
+`assert!(<expression>, "Invariant <name> violated");` string per invariant.
+This is straightforward string templating, not a validating code
+generator - it doesn't check that the expression is well-formed Rust, and
+it isn't currently invoked by the CLI.
 
 ## Example
 
 ```rust
-use sentri_generator_solana::AnchorGenerator;
+use sentri_core::traits::CodeGenerator;
+use sentri_generator_solana::SolanaGenerator;
 
-let mut generator = AnchorGenerator::new();
-let invariants = vec!["is_signer == true", "lamports > 0"];
-
-let generated_handler = generator.generate(&invariants)?;
-println!("Generated handler with {} checks", generated_handler.checks);
+let generator = SolanaGenerator;
+let output = generator.generate(&program_model, &invariants)?;
+println!("{}", output.code);
+for assertion in &output.assertions {
+    println!("{assertion}");
+}
 ```
-
-## Generation Targets
-
-- Anchor framework programs
-- Native Solana program instructions
-- Account constraint checks
-- Signer verification code
-
-## Features
-
-- Anchor instruction macro instrumentation
-- Account constraint generation
-- Signer requirement enforcement
-- Rent/lamport validation
-- Cross-program invocation safety
-
-See [Sentri documentation](https://github.com/geekstrancend/Sentri) for Solana generation options.
 
 ## License
 

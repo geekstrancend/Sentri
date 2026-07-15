@@ -130,7 +130,7 @@ sentri check ./programs --chain solana --format html --output ./report.html
 sentri check ./programs --chain solana --seed 42
 
 # Fail CI if high or critical violations found
-sentri check ./programs --chain solana --failon high
+sentri check ./programs --chain solana --fail-on high
 
 # Run health check
 sentri doctor
@@ -189,7 +189,7 @@ Add one step to your workflow:
 - name: Sentri security check
   run: |
     cargo install sentri-cli
-    sentri check ./programs --chain solana --failon high
+    sentri check ./programs --chain solana --fail-on high
 ```
 
 CI fails automatically on high or critical violations. Zero additional

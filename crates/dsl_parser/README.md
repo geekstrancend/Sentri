@@ -1,8 +1,10 @@
 # sentri-dsl-parser
 
-Parser for Sentri's invariant DSL.
+Parser for Sentri's invariant DSL, built on `pest`.
 
-Parses `.invar` files into the Sentri intermediate representation (IR) using the `pest` parser generator.
+Compiles a single invariant definition string into a `sentri_ir::Invariant`
+(name, expression, severity, category) — this is what backs
+`sentri-library`'s built-in invariants and any user-defined invariants.
 
 ## Usage
 
@@ -12,34 +14,30 @@ sentri-dsl-parser = "0.3.0"
 sentri-ir = "0.3.0"
 ```
 
-## Parsing Invariant Files
+## Parsing an Invariant
 
 ```rust
-use sentri_dsl_parser::Parser;
+use sentri_dsl_parser::parse_invariant;
 
-let parser = Parser::new();
-let spec = parser.parse_file("invariants.invar")?;
-println!("Loaded {} checks", spec.checks.len());
+let invariant = parse_invariant("invariant BalancePositive { balance >= 0 }")?;
+println!("{}: {}", invariant.name, invariant.expression);
 ```
 
 ## DSL Syntax
 
-The invariant DSL provides a readable, declarative way to express security properties:
-
 ```
-invariant_check no_reentrancy {
-  description: "Detect reentrancy patterns"
-  chain: evm
-  severity: critical
-  check {
-    NO_EXTERNAL_CALLS_BEFORE_STATE_CHANGE
-  }
+invariant BalancePositive { balance >= 0 }
+
+invariant NoReentrancy {
+  call_order_respected AND no_recursive_calls
 }
 ```
 
-See [Sentri documentation](https://github.com/geekstrancend/Sentri) for complete DSL reference.
+An invariant is a name followed by a `{ ... }` block containing a boolean
+expression built from comparisons (`>=`, `<=`, `==`, ...), logical operators
+(`AND`, `OR`, `NOT`), and identifiers referring to state/predicates the
+target chain analyzer understands.
 
 ## License
 
 MIT
-

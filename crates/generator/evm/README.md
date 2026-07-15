@@ -1,8 +1,6 @@
 # sentri-generator-evm
 
-Code generator for EVM smart contracts using Sentri invariants.
-
-Generates Solidity code and EVM bytecode instrumentation to enforce Sentri invariants at runtime.
+Code generator for EVM (Solidity) invariant enforcement.
 
 ## Usage
 
@@ -10,42 +8,31 @@ Generates Solidity code and EVM bytecode instrumentation to enforce Sentri invar
 [dependencies]
 sentri-generator-evm = "0.3.0"
 sentri-core = "0.3.0"
-sentri-ir = "0.3.0"
 ```
 
-## Key Components
+## Current State
 
-- `SolidityGenerator`: Generates Solidity inline checks
-- `BytecodeInstrumentor`: Inserts runtime verification into bytecode
-- `GasEstimator`: Calculates gas costs of instrumentation
-- `ASTTransformer`: Modifies contract AST for invariant enforcement
+`EvmGenerator` implements the `CodeGenerator` trait: given a `ProgramModel`
+and a list of `Invariant`s, it emits one `require(<expression>, "Invariant:
+<name>");` assertion string per invariant. This is straightforward string
+templating, not a validating code generator - it doesn't check that the
+expression is well-formed Solidity, and it isn't currently invoked by the
+CLI (`cargo tree`-reachable from `sentri-cli`, but no command wires it up
+yet).
 
 ## Example
 
 ```rust
-use sentri_generator_evm::SolidityGenerator;
+use sentri_core::traits::CodeGenerator;
+use sentri_generator_evm::EvmGenerator;
 
-let mut generator = SolidityGenerator::new();
-let invariants = vec!["balance != 0", "owner != address(0)"];
-
-let instrumented_code = generator.generate(&invariants)?;
-println!("Generated {} lines", instrumented_code.lines().count());
+let generator = EvmGenerator;
+let output = generator.generate(&program_model, &invariants)?;
+println!("{}", output.code);
+for assertion in &output.assertions {
+    println!("{assertion}");
+}
 ```
-
-## Generation Targets
-
-- Solidity 0.8.x contracts
-- EVM bytecode (via ethers-rs)
-- Runtime invariant enforcement
-- Gas-optimized checks
-
-## Output Formats
-
-- Pure Solidity (.sol files)
-- Solidity with external caller contracts
-- Standalone verification contracts
-
-See [Sentri documentation](https://github.com/geekstrancend/Sentri) for generation options.
 
 ## License
 

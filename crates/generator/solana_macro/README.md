@@ -1,58 +1,39 @@
 # sentri-solana-macro
 
-Procedural macros for Sentri Solana code generation.
-
-Provides derive and attribute macros for automating invariant enforcement in Solana programs.
+Procedural attribute macro scaffolding for Solana invariant enforcement.
 
 ## Usage
 
 ```toml
 [dependencies]
 sentri-solana-macro = "0.3.0"
-sentri-core = "0.3.0"
 ```
 
-## Available Macros
+## Current State
 
-- `#[invariant]`: Mark functions for invariant checking
-- `#[derive(Validate)]`: Automatically generate account validators
-- `#[signer_required]`: Enforce signer constraints on accounts
-- `#[rent_exempt]`: Validate rent exemption status
+`#[invariant_enforced(...)]` parses its `checks` argument list and the
+annotated function's signature, and computes a deterministic hash of the
+parsed checks (`generate_check_statements`, `compute_check_hash`) - but the
+statements it currently injects are comments (`// Invariant: <check>`)
+followed by `let _ = ();`, not real assertions. **It does not currently
+enforce anything at compile time or runtime** - applying it to a function
+changes nothing about that function's behavior. Treat it as parsing/hashing
+scaffolding for a real enforcement mechanism that hasn't been built yet,
+not as a working invariant-enforcement macro.
 
 ## Example
 
 ```rust
-use sentri_solana_macro::{invariant, Validate};
+use sentri_solana_macro::invariant_enforced;
 
-#[invariant("signer_required")]
-pub fn transfer(ctx: Context<Transfer>, amount: u64) -> Result<()> {
-    // Macro automatically enforces signer requirement
+#[invariant_enforced("balance >= 0", "supply == sum_of_balances")]
+pub fn transfer(from: &mut Account, to: &mut Account, amount: u64) -> ProgramResult {
+    from.balance = from.balance.checked_sub(amount)?;
+    to.balance = to.balance.checked_add(amount)?;
     Ok(())
-}
-
-#[derive(Validate)]
-pub struct TransferAccounts {
-    #[account(signer)]
-    pub authority: Signer<'info>,
-    pub from: Account<'info, TokenAccount>,
+    // No invariant check is actually injected here yet.
 }
 ```
-
-## Macro Features
-
-- Procedural derive macros for account validation
-- Attribute macros for safety enforcement
-- Compile-time constraint checking
-- Zero runtime overhead
-
-## Use Cases
-
-- Account constraint generation
-- Signer requirement enforcement
-- Automatic validation code generation
-- Type-safe Anchor integration
-
-See [Sentri documentation](https://github.com/geekstrancend/Sentri) for macro API details.
 
 ## License
 

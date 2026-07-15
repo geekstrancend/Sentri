@@ -6,10 +6,18 @@ This guide explains how to set up and use the authentication system in the Sentr
 
 The authentication system uses:
 - **Next Auth 4.24.14** for session management
-- **Prisma** for database models
-- **PostgreSQL** for data storage
-- **Bcrypt** for password hashing
-- Support for both **Credentials** (email/password) and **OAuth** (GitHub) authentication
+- **Prisma 7** for database models, via `@prisma/adapter-better-sqlite3` (Prisma 7 requires
+  an explicit driver adapter - `new PrismaClient()` with no arguments no longer works)
+- **SQLite** for data storage by default (`prisma/dev.db`); `@prisma/adapter-pg` is installed
+  for a future Postgres migration but not wired up - switching requires changing
+  `schema.prisma`'s provider and regenerating migrations, not just swapping the adapter
+- **Bcrypt** for password hashing, with a constant-time comparison against a dummy hash on
+  an unknown email so response timing can't be used to enumerate accounts
+- Four providers: **Credentials** (email/password), **GitHub**, **Google**, and **Web3
+  Wallet** (signature-based)
+
+All provider/session config lives in `web/lib/auth-options.ts`, imported by both the
+NextAuth route handler and any API route that needs the current session server-side.
 
 ## Setup Instructions
 
@@ -25,17 +33,17 @@ Copy this value to your `.env.local` file.
 
 ### 2. Configure Database
 
-Set your `DATABASE_URL` in `.env.local`:
+Set your `DATABASE_URL` in `.env.local` (defaults to a local SQLite file if unset):
 
 ```bash
-DATABASE_URL="postgresql://user:password@localhost:5432/sentri_web"
+DATABASE_URL="file:./prisma/dev.db"
 ```
 
 ### 3. Run Prisma Migrations
 
 ```bash
 cd web
-npm run prisma:migrate
+npx prisma migrate dev
 ```
 
 This creates the necessary tables:
@@ -189,7 +197,7 @@ Get current user session (protected route).
 1. **Passwords**: Always hashed with bcrypt before storage
 2. **Secrets**: Store NEXTAUTH_SECRET securely (never commit to git)
 3. **HTTPS**: Use HTTPS in production
-4. **Session Timeout**: Sessions expire after 30 days by default
+4. **Session Timeout**: Sessions expire after 7 days
 5. **CSRF Protection**: Built into Next Auth
 
 ## Troubleshooting
@@ -208,13 +216,13 @@ Check that the callback URL matches exactly in your OAuth provider settings:
 
 Verify `DATABASE_URL` is correct and the database is running.
 
-## Next Steps
+## Not Yet Implemented
 
-1. ✅ Implement email verification
-2. ✅ Add "Forgot Password" flow
-3. ✅ Implement more OAuth providers (Google, Microsoft)
-4. ✅ Add user profile management page
-5. ✅ Implement role-based access control (RBAC)
+1. Email verification
+2. "Forgot Password" flow
+3. Additional OAuth providers (Microsoft)
+4. User profile management page
+5. Role-based access control (RBAC)
 
 ## Resources
 

@@ -1,8 +1,7 @@
 # sentri-utils
 
-Utility functions for the Sentri invariant checking framework.
-
-Provides helpers for logging, configuration loading, and common operations across Sentri tools.
+Shared utilities used across the Sentri workspace: logging setup, `solc`
+invocation, release/versioning helpers.
 
 ## Usage
 
@@ -11,26 +10,31 @@ Provides helpers for logging, configuration loading, and common operations acros
 sentri-utils = "0.3.0"
 ```
 
-## Key Functions
+## Key Modules
 
-- `setup_logging()` — initialize tracing-based logging
-- `load_config()` — load `.sentri.toml` configuration
-- `format_report()` — format violations for display
-- `determine_severity()` — classify violation severity
+- `logging::setup_tracing()` — initialize `tracing`-based logging
+- `solc::SolcManager` — locates and invokes the `solc` compiler, parses its `--combined-json` output into `SolcOutput`/`SourceData` (used by the EVM analyzer's AST-based path; gracefully unavailable if `solc` isn't installed)
+- `release::ReleaseManager` — release artifact/manifest helpers used by the CLI's release tooling
+- `version::{Platform, ReleaseArtifact, SemanticVersion, ReproducibleBuildConfig}` — platform target triples and semver parsing shared by the CLI and npm packaging
 
 ## Example
 
 ```rust
-use sentri_utils::{setup_logging, load_config};
+use sentri_utils::{setup_tracing, SolcManager};
 
-setup_logging()?;
-let config = load_config("sentri.toml")?;
-println!("Analyzing chain: {}", config.chain);
+setup_tracing();
+
+match SolcManager::new() {
+    Ok(solc) => {
+        let output = solc.get_ast_for_source(source, "Vault.sol")?;
+        // ...
+    }
+    Err(_) => {
+        // solc not installed - callers fall back to pattern-based analysis
+    }
+}
 ```
-
-See [Sentri documentation](https://github.com/geekstrancend/Sentri) for more examples.
 
 ## License
 
 MIT
-

@@ -1,8 +1,6 @@
 # sentri-analyzer-evm
 
-EVM bytecode analyzer for the Sentri framework.
-
-Performs static analysis on Solidity smart contracts and EVM bytecode to detect security invariant violations.
+EVM (Solidity) analyzer for the Sentri framework.
 
 ## Usage
 
@@ -15,33 +13,35 @@ sentri-ir = "0.3.0"
 
 ## Key Components
 
-- `EVMAnalyzer`: Main analysis engine for EVM bytecode
-- `SolidityAnalyzer`: Source-level analysis for Solidity contracts
-- `Pattern Detector`: Identifies security anti-patterns
-- `ControlFlow`: Analyzes transaction and call flows
+- `EvmAnalyzer` — implements `ChainAnalyzer` (`analyze(&self, path: &Path) -> Result<ProgramModel>`); parses via `solc`'s JSON AST when `solc` is installed
+- `detectors::run_all_detectors(source, file_path)` — the entry point the CLI calls; runs all 35 EVM pattern detectors (regex/source-text based, no `solc` required) plus the shared cross-chain `unauthorized_privileged_mutation` rule (best-effort, needs `solc`)
+- `bytecode::BytecodeAnalyzer` — disassembles and inspects compiled bytecode (not currently wired into `run_all_detectors`)
+- `cfg::ControlFlowGraph`, `symbolic` — control-flow/symbolic-value scaffolding used internally by `semantic_model`
 
 ## Example
 
 ```rust
-use sentri_analyzer_evm::EVMAnalyzer;
-use sentri_core::Target;
+use sentri_analyzer_evm::detectors::run_all_detectors;
 
-let mut analyzer = EVMAnalyzer::new();
-let bytecode = vec![0x60, 0x01, 0x60, 0x02, 0x01]; // Simple bytecode
-
-let violations = analyzer.analyze(&bytecode, Target::EVM)?;
-println!("Found {} violations", violations.len());
+let source = std::fs::read_to_string("Vault.sol")?;
+let findings = run_all_detectors(&source, "Vault.sol");
+println!("Found {} findings", findings.len());
 ```
+
+## Detectors (35)
+
+Named historical-exploit patterns (health check, merkle root, DVN single
+point of failure, unbacked synthetic mint, LST depeg, oracle self-trade,
+ERC4626 inflation, arbitrary call `msg.value`, reentrancy via whitelisted
+contracts, proxy storage collision, bridge address verification, and more)
+plus a base set of classic patterns (reentrancy, missing signer/access
+checks, unchecked math, missing conservation checks). See
+`src/detectors/mod.rs` for the full list.
 
 ## Supported Chains
 
-- Ethereum
-- Arbitrum
-- Optimism
-- Polygon
-- All EVM-compatible chains
-
-See [Sentri documentation](https://github.com/geekstrancend/Sentri) for chain-specific configuration.
+Any EVM-compatible chain (Ethereum, Arbitrum, Optimism, Polygon, ...) —
+detection is source/AST based, not chain-ID specific.
 
 ## License
 

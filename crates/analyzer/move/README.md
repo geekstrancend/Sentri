@@ -1,8 +1,10 @@
 # sentri-analyzer-move
 
-Move language analyzer for the Sentri framework.
+Move language analyzer for the Sentri framework (Aptos, Sui, and other
+Move-based networks).
 
-Performs static analysis on Move modules and transactions to detect security invariant violations and unsafe patterns.
+Performs static analysis on Move module *source* (not compiled bytecode) to
+detect security invariant violations and unsafe patterns.
 
 ## Usage
 
@@ -15,39 +17,39 @@ sentri-ir = "0.3.0"
 
 ## Key Components
 
-- `MoveAnalyzer`: Main analysis engine for Move bytecode
-- `TypeChecker`: Validates Move type system compliance
-- `AccessControl`: Analyzes visibility and access patterns
-- `ResourceAnalyzer`: Tracks resource creation and movement
+- `MoveAnalyzer` — implements the `ChainAnalyzer` trait (`analyze(&self, path: &Path) -> Result<ProgramModel>`), the same interface every chain analyzer in the workspace shares
+- `run_all_detectors(source, file_path)` — the entry point the CLI actually calls; runs all 6 pattern detectors plus the shared cross-chain `unauthorized_privileged_mutation` rule
+- `build_semantic_model(source, file_path)` — builds the chain-agnostic `sentri_ir::SemanticModel` consumed by that shared rule
+- `tree_sitter_grammar` — a vendored Sui Move tree-sitter grammar (see `vendor/tree-sitter-move-sui/PROVENANCE.md`) backs `build_semantic_model`'s real AST parsing; falls back to a regex heuristic if a file doesn't parse cleanly (the upstream grammar is itself still work-in-progress)
 
 ## Example
 
 ```rust
-use sentri_analyzer_move::MoveAnalyzer;
-use sentri_core::Target;
+use sentri_analyzer_move::run_all_detectors;
 
-let mut analyzer = MoveAnalyzer::new();
-let module_data = vec![0x00, 0x01]; // Move compiled module
-
-let violations = analyzer.analyze(&module_data, Target::Move)?;
-println!("Found {} violations", violations.len());
+let source = std::fs::read_to_string("Vault.move")?;
+let findings = run_all_detectors(&source, "Vault.move");
+println!("Found {} findings", findings.len());
 ```
+
+## Detectors (6)
+
+- Resource destruction (`move_resource_destruction`)
+- Type safety violations (`move_type_safety_violation`)
+- Access control missing (`move_access_control_missing`)
+- Liquidity conservation, admin timelock, oracle spot price (`detectors.rs`)
+
+Plus the shared `unauthorized_privileged_mutation` rule (flags privileged
+mutations — fund transfers, authority changes, upgrades, account closes —
+with no capability/authorization check reaching them), which every chain
+analyzer in the workspace contributes to and shares verbatim.
 
 ## Supported Platforms
 
+- Sui (primary target for the vendored grammar)
 - Aptos
-- Movement
-- Other Move-compatible networks
-
-## Analysis Capabilities
-
-- Move module bytecode inspection
-- Type safety verification
-- Resource leak detection
-- Access control validation
-- Integer overflow checking
-
-See [Sentri documentation](https://github.com/geekstrancend/Sentri) for detailed Move analysis documentation.
+- Other Move-compatible networks (best-effort; falls back to the regex
+  heuristic for syntax the grammar doesn't recognize)
 
 ## License
 

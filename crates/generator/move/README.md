@@ -1,8 +1,6 @@
 # sentri-generator-move
 
-Code generator for Move modules using Sentri invariants.
-
-Generates Move module code and runtime checks to enforce Sentri invariants in Move programs.
+Code generator for Move invariant enforcement.
 
 ## Usage
 
@@ -10,44 +8,29 @@ Generates Move module code and runtime checks to enforce Sentri invariants in Mo
 [dependencies]
 sentri-generator-move = "0.3.0"
 sentri-core = "0.3.0"
-sentri-ir = "0.3.0"
 ```
 
-## Key Components
+## Current State
 
-- `MoveCodeGenerator`: Generates Move module code with invariant checks
-- `ResourceValidator`: Creates resource safety validators
-- `AccessControlGenerator`: Generates access control checks
-- `TypeSafetyChecker`: Enforces Move type system constraints
+`MoveGenerator` implements the `CodeGenerator` trait: given a `ProgramModel`
+and a list of `Invariant`s, it emits one `assert!(<expression>,
+E_INVARIANT_<NAME>);` string per invariant. This is straightforward string
+templating, not a validating code generator - it doesn't check that the
+expression is well-formed Move, and it isn't currently invoked by the CLI.
 
 ## Example
 
 ```rust
-use sentri_generator_move::MoveCodeGenerator;
+use sentri_core::traits::CodeGenerator;
+use sentri_generator_move::MoveGenerator;
 
-let mut generator = MoveCodeGenerator::new();
-let invariants = vec!["balance > 0", "owner != @0x0"];
-
-let generated_module = generator.generate(&invariants)?;
-println!("Generated module with {} checks", generated_module.check_count);
+let generator = MoveGenerator;
+let output = generator.generate(&program_model, &invariants)?;
+println!("{}", output.code);
+for assertion in &output.assertions {
+    println!("{assertion}");
+}
 ```
-
-## Generation Targets
-
-- Aptos Move modules
-- Movement ecosystem programs
-- Resource lifecycle enforcement
-- Type-safe invariant checks
-
-## Features
-
-- Module-level invariant enforcement
-- Resource safety validation
-- Access control generation
-- Type system compliance
-- Atomic operation safety
-
-See [Sentri documentation](https://github.com/geekstrancend/Sentri) for Move generation options.
 
 ## License
 
