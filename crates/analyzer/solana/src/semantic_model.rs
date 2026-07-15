@@ -23,6 +23,16 @@ const SENSITIVE_HANDLERS: &[(&str, MutationKind)] = &[
     ("close", MutationKind::AccountClose),
     ("set_authority", MutationKind::AuthorityChange),
     ("upgrade", MutationKind::Upgrade),
+    // Broadened after auditing Cashio ($52M, Mar 2022): its exploited entry
+    // point was a mint/deposit handler, not one of the verbs above, so it
+    // would have slipped past this list entirely despite its accounts
+    // struct having a completely unchecked "collateral" field.
+    ("mint", MutationKind::FundTransfer),
+    ("deposit", MutationKind::FundTransfer),
+    ("collateral", MutationKind::FundTransfer),
+    ("borrow", MutationKind::FundTransfer),
+    ("liquidate", MutationKind::FundTransfer),
+    ("swap", MutationKind::FundTransfer),
 ];
 
 /// Build a chain-agnostic semantic model from Anchor program source.

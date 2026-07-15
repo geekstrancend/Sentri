@@ -6,6 +6,7 @@
 pub mod analyzer;
 /// Vulnerability detectors for Move modules
 pub mod detectors;
+pub mod move_manual_overflow_check;
 pub mod move_resource_destruction;
 pub mod move_type_safety_violation;
 /// Chain-agnostic semantic-model extraction (Epic 6.1 shared IR)
@@ -15,6 +16,7 @@ pub mod tree_sitter_grammar;
 
 pub use analyzer::MoveAnalyzer;
 pub use detectors::*;
+pub use move_manual_overflow_check::detect_move_manual_overflow_check;
 pub use move_resource_destruction::detect_move_resource_destruction;
 pub use move_type_safety_violation::detect_move_type_safety_violation;
 pub use semantic_model::build_semantic_model;
@@ -28,6 +30,7 @@ pub fn run_all_detectors(source: &str, file_path: &str) -> Vec<sentri_core::Find
 
     findings.extend(detect_move_resource_destruction(source, file_path));
     findings.extend(detect_move_type_safety_violation(source, file_path));
+    findings.extend(detect_move_manual_overflow_check(source, file_path));
 
     // Chain-agnostic shared-IR rule (Epic 6.1): flags privileged mutations
     // with no authorization guard, using the same rule EVM and Solana share.

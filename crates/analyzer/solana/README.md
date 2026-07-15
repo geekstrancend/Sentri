@@ -15,7 +15,7 @@ sentri-ir = "0.3.0"
 
 - `SolanaAnalyzer` — implements `ChainAnalyzer` (`analyze(&self, path: &Path) -> Result<ProgramModel>`)
 - `anchor_parser::parse_anchor_accounts` — a real parser (not regex) for `#[derive(Accounts)]` structs; understands `Signer<'info>`, `has_one`/`owner`/`address` constraints, and `/// CHECK:` comments
-- `detectors::run_all_detectors(source, file_path)` — the entry point the CLI calls; runs all 9 Solana pattern detectors plus the shared cross-chain `unauthorized_privileged_mutation` rule
+- `detectors::run_all_detectors(source, file_path)` — the entry point the CLI calls; runs all 10 Solana pattern detectors plus the shared cross-chain `unauthorized_privileged_mutation` rule
 - `semantic_model::build_semantic_model` — builds the chain-agnostic `sentri_ir::SemanticModel` that rule consumes, reading guards off the real parsed `AccountSecurity` for each field (not re-derived from source text)
 
 ## Example
@@ -28,11 +28,12 @@ let findings = run_all_detectors(&source, "lib.rs");
 println!("Found {} findings", findings.len());
 ```
 
-## Detectors (9)
+## Detectors (10)
 
 Missing signer checks, oracle rate/self-trade manipulation, treasury single
 authority, admin without timelock, sysvar account validation, durable
-nonce validation, rent exemption, PDA authority validation.
+nonce validation, rent exemption, PDA authority validation, unchecked
+token/mint account type (fake-account substitution).
 
 ## License
 

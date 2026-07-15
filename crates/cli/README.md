@@ -44,14 +44,14 @@ sentri check ./contracts --format json --output report.json
 
 | Chain | Language | Checks | Status |
 |-------|----------|--------|--------|
-| **EVM** | Solidity, Vyper | 35 built-in detectors | ✅ Stable |
-| **Solana** | Rust (Anchor, native) | 9 built-in detectors | ✅ Stable |
-| **Move** | Move (Aptos, Sui) | 6 built-in detectors, real AST via a vendored Sui tree-sitter grammar | ✅ Stable |
+| **EVM** | Solidity, Vyper | 37 built-in detectors | ✅ Stable |
+| **Solana** | Rust (Anchor, native) | 10 built-in detectors | ✅ Stable |
+| **Move** | Move (Aptos, Sui) | 7 built-in detectors, real AST via a vendored Sui tree-sitter grammar | ✅ Stable |
 | **Soroban** | Rust (Stellar) | 8 built-in detectors | ✅ Stable |
 
 ## Features
 
-- 58 smart contract vulnerability detectors, plus a chain-agnostic rule (`unauthorized_privileged_mutation`) shared across all four
+- 62 smart contract vulnerability detectors, plus a chain-agnostic rule (`unauthorized_privileged_mutation`) shared across all four
 - Custom invariant DSL
 - JSON/HTML/text reports
 - CI/CD integration

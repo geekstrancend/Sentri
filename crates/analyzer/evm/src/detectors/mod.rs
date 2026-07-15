@@ -17,6 +17,8 @@
 //! - evm_reentrancy_via_whitelisted (H29 Penpie - $27M)
 //! - evm_proxy_storage_collision (H28 Pike - $1.68M)
 //! - evm_bridge_address_cryptographic_verify (H49 Purrlend)
+//! - evm_readonly_reentrancy (H57 dForce - $3.7M)
+//! - evm_insufficient_multisig_threshold (Ronin - $625M, Harmony Horizon - $100M)
 //! - More...
 
 pub mod aa_entropy_weakness;
@@ -32,12 +34,14 @@ pub mod erc4626_inflation_protection;
 // pub mod flash_loan;
 pub mod health_check;
 pub mod implementations;
+pub mod insufficient_multisig_threshold;
 pub mod lst_depeg;
 pub mod merkle_root;
 pub mod oracle_self_trade;
 // DEPRECATED: Old detector using legacy Violation struct, disabled for v0.3.0
 // pub mod overflow;
 pub mod proxy_storage_collision;
+pub mod readonly_reentrancy;
 // DEPRECATED: Old detector using legacy Violation struct, disabled for v0.3.0
 // pub mod reentrancy;
 pub mod reentrancy_via_whitelisted;
@@ -60,11 +64,13 @@ pub use erc4626_inflation_protection::detect_erc4626_inflation_protection;
 // pub use flash_loan::FlashLoanDetector;
 pub use health_check::detect_missing_health_check;
 pub use implementations::*;
+pub use insufficient_multisig_threshold::detect_insufficient_multisig_threshold;
 pub use lst_depeg::detect_lst_depeg_collateral_risk;
 pub use merkle_root::detect_merkle_root_zero_default;
 pub use oracle_self_trade::detect_oracle_self_trade;
 // pub use overflow::OverflowDetector;
 pub use proxy_storage_collision::detect_proxy_storage_collision;
+pub use readonly_reentrancy::detect_readonly_reentrancy;
 // pub use reentrancy::ReentrancyDetector;
 pub use reentrancy_via_whitelisted::detect_reentrancy_via_whitelisted;
 pub use router_slippage_validation::detect_router_slippage_validation;
@@ -118,6 +124,12 @@ pub fn run_all_detectors(source: &str, file_path: &str) -> Vec<sentri_core::Find
     findings.extend(proxy_storage_collision::detect_proxy_storage_collision(
         source, file_path,
     ));
+    findings.extend(readonly_reentrancy::detect_readonly_reentrancy(
+        source, file_path,
+    ));
+    findings.extend(
+        insufficient_multisig_threshold::detect_insufficient_multisig_threshold(source, file_path),
+    );
     findings
         .extend(reentrancy_via_whitelisted::detect_reentrancy_via_whitelisted(source, file_path));
     findings

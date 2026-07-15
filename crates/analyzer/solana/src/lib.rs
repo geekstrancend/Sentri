@@ -15,6 +15,7 @@ pub mod semantic_model;
 pub mod solana_durable_nonce;
 pub mod solana_pda_authority_validation;
 pub mod solana_rent_exemption;
+pub mod solana_unchecked_token_account;
 
 pub use analyzer::SolanaAnalyzer;
 pub use anchor_model::{
@@ -26,6 +27,7 @@ pub use semantic_model::build_semantic_model;
 pub use solana_durable_nonce::detect_solana_durable_nonce_validation;
 pub use solana_pda_authority_validation::detect_solana_pda_authority_validation;
 pub use solana_rent_exemption::detect_solana_rent_exemption;
+pub use solana_unchecked_token_account::detect_unchecked_token_account_type;
 
 /// Run every live Solana detector against the given source text.
 ///
@@ -37,6 +39,7 @@ pub fn run_all_detectors(source: &str, file_path: &str) -> Vec<sentri_core::Find
     findings.extend(detect_solana_durable_nonce_validation(source, file_path));
     findings.extend(detect_solana_pda_authority_validation(source, file_path));
     findings.extend(detect_solana_rent_exemption(source, file_path));
+    findings.extend(detect_unchecked_token_account_type(source, file_path));
 
     // Chain-agnostic shared-IR rule (Epic 6.1): flags privileged mutations
     // with no authorization guard, using the same rule EVM and Move share.
