@@ -19,17 +19,24 @@
 //! - evm_bridge_address_cryptographic_verify (H49 Purrlend)
 //! - evm_readonly_reentrancy (H57 dForce - $3.7M)
 //! - evm_insufficient_multisig_threshold (Ronin - $625M, Harmony Horizon - $100M)
+//! - evm_arbitrary_function_selector_dispatch (H62 Poly Network - $611M)
+//! - evm_stale_oracle_price (Venus/BSC LUNA crash and many audited protocols)
+//! - evm_fee_on_transfer_incompatibility (recurring code4rena/Sherlock finding)
+//! - evm_cross_chain_replay_missing_chainid (Wintermute/Optimism - $20M, Multichain)
 //! - More...
 
 pub mod aa_entropy_weakness;
 // DEPRECATED: Old detector using legacy Violation struct, disabled for v0.3.0
 // pub mod access_control;
 pub mod arbitrary_call_msg_value;
+pub mod arbitrary_function_selector_dispatch;
 pub mod arithmetic_rounding;
 pub mod bridge_address_cryptographic_verify;
 pub mod constructor_race_condition;
+pub mod cross_chain_replay_missing_chainid;
 pub mod dvn_single_point;
 pub mod erc4626_inflation_protection;
+pub mod fee_on_transfer_incompatibility;
 // DEPRECATED: Old detector using legacy Violation struct, disabled for v0.3.0
 // pub mod flash_loan;
 pub mod health_check;
@@ -47,6 +54,7 @@ pub mod readonly_reentrancy;
 pub mod reentrancy_via_whitelisted;
 pub mod router_slippage_validation;
 pub mod signature_replay_protection;
+pub mod stale_oracle_price;
 pub mod state_mutation_ordering;
 pub mod synthetic_collateral_oracle;
 pub mod synthetic_mint;
@@ -56,11 +64,14 @@ pub mod upgrade_path_verification;
 pub use aa_entropy_weakness::detect_aa_entropy_weakness;
 // pub use access_control::AccessControlDetector;
 pub use arbitrary_call_msg_value::detect_arbitrary_call_msg_value;
+pub use arbitrary_function_selector_dispatch::detect_arbitrary_function_selector_dispatch;
 pub use arithmetic_rounding::detect_arithmetic_rounding;
 pub use bridge_address_cryptographic_verify::detect_bridge_address_cryptographic_verify;
 pub use constructor_race_condition::detect_constructor_race_condition;
+pub use cross_chain_replay_missing_chainid::detect_cross_chain_replay_missing_chainid;
 pub use dvn_single_point::detect_dvn_single_point_failure;
 pub use erc4626_inflation_protection::detect_erc4626_inflation_protection;
+pub use fee_on_transfer_incompatibility::detect_fee_on_transfer_incompatibility;
 // pub use flash_loan::FlashLoanDetector;
 pub use health_check::detect_missing_health_check;
 pub use implementations::*;
@@ -75,6 +86,7 @@ pub use readonly_reentrancy::detect_readonly_reentrancy;
 pub use reentrancy_via_whitelisted::detect_reentrancy_via_whitelisted;
 pub use router_slippage_validation::detect_router_slippage_validation;
 pub use signature_replay_protection::detect_signature_replay_protection;
+pub use stale_oracle_price::detect_stale_oracle_price;
 pub use state_mutation_ordering::detect_state_mutation_ordering;
 pub use synthetic_collateral_oracle::detect_synthetic_collateral_oracle;
 pub use synthetic_mint::detect_unbacked_synthetic_mint;
@@ -129,6 +141,22 @@ pub fn run_all_detectors(source: &str, file_path: &str) -> Vec<sentri_core::Find
     ));
     findings.extend(
         insufficient_multisig_threshold::detect_insufficient_multisig_threshold(source, file_path),
+    );
+    findings.extend(
+        arbitrary_function_selector_dispatch::detect_arbitrary_function_selector_dispatch(
+            source, file_path,
+        ),
+    );
+    findings.extend(stale_oracle_price::detect_stale_oracle_price(
+        source, file_path,
+    ));
+    findings.extend(
+        fee_on_transfer_incompatibility::detect_fee_on_transfer_incompatibility(source, file_path),
+    );
+    findings.extend(
+        cross_chain_replay_missing_chainid::detect_cross_chain_replay_missing_chainid(
+            source, file_path,
+        ),
     );
     findings
         .extend(reentrancy_via_whitelisted::detect_reentrancy_via_whitelisted(source, file_path));
