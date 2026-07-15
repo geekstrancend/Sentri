@@ -5,6 +5,30 @@ All notable changes to the Sentri project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+
+- **Detection pipeline was completely disconnected from the CLI.** `sentri check`/`sentri scan` hardcoded an empty violation list regardless of input; the 35 EVM + 9 Solana + 6 Move detector functions existed and were tested in isolation but were never actually called from the command handlers. All 50 are now wired into `run_all_detectors()` per chain and reachable from the CLI.
+- **`sentri fuzz` was a no-op stub.** Now mutates real source files (line deletion/duplication/truncation/swap, seeded for reproducibility) and runs them through the live detectors looking for crashes, plus an optional precision/recall self-test against four detector-benchmark fuzzers that existed but were never wired to anything.
+- Fixed a bug where an absolute file path passed to the EVM analyzer's solc-staging step could overwrite that real file with whatever source was being compiled, due to `Path::join` discarding its base for absolute arguments.
+- Fixed a UTF-8 slice panic and an unbounded-recursion stack-overflow risk in the EVM bytecode/AST-walking code.
+- Fixed report-generation (JSON/CSV/HTML) escaping gaps that could be triggered by attacker-influenced contract names or messages.
+- Fixed the invariant library's built-in defaults, which stored a bare variable reference instead of a compiled expression; they now compile through the real DSL parser.
+- Fixed multiple bugs in `sentri-npm` (the `@dextonicx/cli` npm wrapper): its test suite had never actually run due to wrong import paths in all four test files; `detectPlatform()` never returned a `version` field, silently 404ing every checksum fetch; and a live bug where `.tar.gz` release archives (Linux/macOS) nest the binary in a subdirectory while `.zip` (Windows) doesn't, which the installer didn't account for.
+
+### Added
+
+- **Chain-agnostic detection rule** (`unauthorized_privileged_mutation`): flags privileged mutations (fund transfers, authority changes, upgrades, account closes) with no authorization check reaching them. Each chain's analyzer builds a shared `SemanticModel` from its own native syntax; the rule itself is written once and applies unmodified to all three chains.
+- **Real Move parsing** via a vendored Sui Move tree-sitter grammar (see `crates/analyzer/move/vendor/tree-sitter-move-sui/PROVENANCE.md`), replacing Move's previous regex-only extraction for the shared semantic model. Falls back to the regex heuristic if a file fails to parse.
+- musl support for the npm installer (Alpine and other musl-based Linux systems now get the matching binary instead of a glibc build that won't start).
+- CI coverage for `web/` and `sentri-npm/` — neither had any automated checks before (which is exactly how several of the bugs above went uncaught).
+- Web app: session-checked/rate-limited `/api/analyze`, real crypto-payment verification, consolidated NextAuth config, zod validation on remaining API routes, a Prisma 7 driver adapter (required as of Prisma 7 — the app didn't build without one), and a large accessibility/consistency pass.
+
+### Removed
+
+- `crates/simulator` — had been commented out of the workspace and unused since a prior release; deleted along with its now-dangling workspace dependency entry.
+
 ## [0.3.0] - 2026-06-18 — Phase B Complete: 26 Vulnerability Detectors
 
 ### Major Features

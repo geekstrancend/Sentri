@@ -18,20 +18,25 @@ One tool. Three chains. One DSL.
 
 ## What's new in v0.3.0
 
-v0.3.0 significantly expands vulnerability detection with 18+ detectors across all supported chains (EVM, Solana, Move).
+v0.3.0 reconnects the full detection pipeline into the CLI and adds a
+chain-agnostic detection layer on top of it.
 
 **Key improvements:**
 
-- ✅ **26 Smart Contract Vulnerability Detectors** — Comprehensive coverage of critical and high-priority exploits
-- ✅ **Solana Program Analysis** — Enhanced Move and Solana-specific vulnerability patterns
-- ✅ **Improved Pattern Detection** — Fixed regex and detection logic for reduced false positives
-- ✅ **Better CLI Experience** — Enhanced command interface and help documentation
+- ✅ **50 Smart Contract Vulnerability Detectors** — Comprehensive coverage of critical and high-priority exploits, wired end-to-end into `sentri check`/`sentri scan`
+- ✅ **Chain-agnostic shared rule** — `unauthorized_privileged_mutation` runs against a common semantic model built by each chain's own analyzer, so one rule (missing an authorization check on a privileged mutation) is written once and applies to all three chains
+- ✅ **Real Move parsing** — a vendored Sui Move tree-sitter grammar backs Move's semantic extraction, with the original regex heuristic kept as an automatic fallback if a file fails to parse
+- ✅ **Real fuzzing** — `sentri fuzz` mutates real source files and runs them through the live detectors looking for crashes, instead of a no-op stub
 - ✅ **Production Ready** — All tests passing, security audit complete, reproducible builds
 
 **Detector Coverage:**
-- **EVM**: 9+ detectors (reentrancy, missing checks, oracle manipulation, proxy issues)
-- **Solana**: 7+ detectors (PDA validation, authority checks, replay attacks)
-- **Move**: 5+ detectors (resource destruction, type safety, access control)
+- **EVM**: 35 detectors (reentrancy, missing checks, oracle manipulation, proxy issues, and 20+ named historical-exploit patterns)
+- **Solana**: 9 detectors (PDA validation, authority checks, replay attacks, durable nonce, rent exemption)
+- **Move**: 6 detectors (resource destruction, type safety, access control)
+
+Sentri also ships a web dashboard (`web/`) — sign-up, scan submission, and
+report viewing on top of the same CLI engine — alongside the `sentri` CLI
+and its npm wrapper (`@dextonicx/cli`).
 
 ---
 
