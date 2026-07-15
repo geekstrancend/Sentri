@@ -50,6 +50,7 @@ EVM's `onlyOwner`).
 | `sor_storage_ttl_not_extended` | Medium | A `persistent()` storage write with no `extend_ttl`/`.bump(` call anywhere in the function |
 | `sor_temporary_storage_critical_state` | Medium | A `temporary()` write whose key/type name looks durable (balance/admin/owner/supply/price) — `temporary()` entries don't survive |
 | `sor_reentrancy_external_call` | High | A cross-contract call (`invoke_contract`/`Client::new`) precedes a later storage write in the same function (checks-effects-interactions violation) |
+| `sor_thin_liquidity_oracle_price` | High | A price read from a single spot-price call (`get_price`/`.price(`/`spot_price`/`exchange_rate`) with no TWAP/multi-source corroboration anywhere in the function |
 | `sor_unhandled_panic` | Low | `.unwrap()`/`.expect(` calls, which abort the whole invocation |
 
 Plus the shared `unauthorized_privileged_mutation` (Critical) rule from

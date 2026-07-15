@@ -220,6 +220,40 @@ pub fn detect_reentrancy_external_call(
         .collect()
 }
 
+/// Detects a price read from what looks like a single spot-price call with
+/// no TWAP/multi-source corroboration. A thin-liquidity venue's spot price
+/// can be pumped by one large order, letting an attacker over-borrow
+/// against manipulated collateral — the pattern behind YieldBlox ($10.2M,
+/// Feb 2026, Stellar/Soroban), where a thin USTRY/USDC market let an
+/// attacker inflate a VWAP oracle's reported price.
+pub fn detect_thin_liquidity_oracle_price(
+    functions: &[ContractFunction],
+    file_path: &str,
+) -> Vec<Finding> {
+    functions
+        .iter()
+        .filter(|f| f.uses_single_source_price_oracle)
+        .map(|f| {
+            Finding::new(
+                "sor_thin_liquidity_oracle_price".to_string(),
+                Severity::High,
+                file_path.to_string(),
+                f.line,
+                0,
+                format!(
+                    "Function '{}' reads a price from a single spot-price call with no TWAP/\
+                     multi-source corroboration anywhere in the function — a thin-liquidity \
+                     venue's price can be pumped by a single large order, the exact pattern \
+                     behind YieldBlox ($10.2M, Feb 2026, Stellar/Soroban)",
+                    f.name
+                ),
+                f.name.clone(),
+            )
+            .with_metadata("chain".to_string(), "soroban".to_string())
+        })
+        .collect()
+}
+
 /// Detects `.unwrap()`/`.expect(` calls, which abort the whole invocation on
 /// failure.
 pub fn detect_unhandled_panic(functions: &[ContractFunction], file_path: &str) -> Vec<Finding> {
@@ -258,6 +292,7 @@ pub fn detect_all(functions: &[ContractFunction], file_path: &str) -> Vec<Findin
         functions, file_path,
     ));
     findings.extend(detect_reentrancy_external_call(functions, file_path));
+    findings.extend(detect_thin_liquidity_oracle_price(functions, file_path));
     findings.extend(detect_unhandled_panic(functions, file_path));
 
     findings.sort_by(|a, b| match b.severity.cmp(&a.severity) {
@@ -317,5 +352,52 @@ impl VaultContract {
         assert!(ids.contains("sor_temporary_storage_critical_state"));
         assert!(ids.contains("sor_reentrancy_external_call"));
         assert!(ids.contains("sor_unhandled_panic"));
+    }
+
+    #[test]
+    fn flags_single_source_spot_price_read() {
+        let source = r#"
+#[contract]
+pub struct LendingContract;
+
+#[contractimpl]
+impl LendingContract {
+    pub fn borrow(env: Env, from: Address, amount: i128) {
+        from.require_auth();
+        let price = pool_client.get_price(&env);
+        let collateral_value = price * amount;
+        env.storage().persistent().set(&DataKey::Debt(from), &collateral_value);
+    }
+}
+"#;
+        let functions = parse_contract_functions(source).unwrap();
+        let findings = detect_thin_liquidity_oracle_price(&functions, "lending.rs");
+        assert!(findings
+            .iter()
+            .any(|f| f.invariant_id == "sor_thin_liquidity_oracle_price"));
+    }
+
+    #[test]
+    fn does_not_flag_twap_price_read() {
+        let source = r#"
+#[contract]
+pub struct LendingContract;
+
+#[contractimpl]
+impl LendingContract {
+    pub fn borrow(env: Env, from: Address, amount: i128) {
+        from.require_auth();
+        let price = pool_client.get_price(&env);
+        let twap_price = compute_time_weighted_average(&env, price);
+        let collateral_value = twap_price * amount;
+        env.storage().persistent().set(&DataKey::Debt(from), &collateral_value);
+    }
+}
+"#;
+        let functions = parse_contract_functions(source).unwrap();
+        let findings = detect_thin_liquidity_oracle_price(&functions, "safe_lending.rs");
+        assert!(!findings
+            .iter()
+            .any(|f| f.invariant_id == "sor_thin_liquidity_oracle_price"));
     }
 }

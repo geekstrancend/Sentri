@@ -115,6 +115,15 @@ fn analyze_function(method: &syn::ImplItemFn, source: &str) -> ContractFunction 
         )
     };
 
+    let uses_single_source_price_oracle = (body.contains("get_price(")
+        || body.contains(".price(")
+        || body.contains("spot_price(")
+        || body.contains("exchange_rate("))
+        && !body_lower.contains("twap")
+        && !body_lower.contains("time_weighted")
+        && !body_lower.contains("average_price")
+        && !body_lower.contains("median");
+
     ContractFunction {
         name,
         line,
@@ -128,6 +137,7 @@ fn analyze_function(method: &syn::ImplItemFn, source: &str) -> ContractFunction 
         extends_ttl,
         writes_temporary_storage_of_sensitive_state,
         external_call_before_storage_write,
+        uses_single_source_price_oracle,
     }
 }
 

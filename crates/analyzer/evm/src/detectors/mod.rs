@@ -23,6 +23,9 @@
 //! - evm_stale_oracle_price (Venus/BSC LUNA crash and many audited protocols)
 //! - evm_fee_on_transfer_incompatibility (recurring code4rena/Sherlock finding)
 //! - evm_cross_chain_replay_missing_chainid (Wintermute/Optimism - $20M, Multichain)
+//! - evm_unbounded_pricing_input (H66 Truebit - $26.2M)
+//! - evm_erc4337_validation_side_effects (H67 Lumi Finance - $270K)
+//! - evm_eip7702_eoa_assumption (proactive - no confirmed public exploit yet)
 //! - More...
 
 pub mod aa_entropy_weakness;
@@ -35,6 +38,8 @@ pub mod bridge_address_cryptographic_verify;
 pub mod constructor_race_condition;
 pub mod cross_chain_replay_missing_chainid;
 pub mod dvn_single_point;
+pub mod eip7702_eoa_assumption;
+pub mod erc4337_validation_side_effects;
 pub mod erc4626_inflation_protection;
 pub mod fee_on_transfer_incompatibility;
 // DEPRECATED: Old detector using legacy Violation struct, disabled for v0.3.0
@@ -59,6 +64,7 @@ pub mod state_mutation_ordering;
 pub mod synthetic_collateral_oracle;
 pub mod synthetic_mint;
 pub mod token_balance_manipulation;
+pub mod unbounded_pricing_input;
 pub mod upgrade_path_verification;
 
 pub use aa_entropy_weakness::detect_aa_entropy_weakness;
@@ -70,6 +76,8 @@ pub use bridge_address_cryptographic_verify::detect_bridge_address_cryptographic
 pub use constructor_race_condition::detect_constructor_race_condition;
 pub use cross_chain_replay_missing_chainid::detect_cross_chain_replay_missing_chainid;
 pub use dvn_single_point::detect_dvn_single_point_failure;
+pub use eip7702_eoa_assumption::detect_eip7702_eoa_assumption;
+pub use erc4337_validation_side_effects::detect_erc4337_validation_side_effects;
 pub use erc4626_inflation_protection::detect_erc4626_inflation_protection;
 pub use fee_on_transfer_incompatibility::detect_fee_on_transfer_incompatibility;
 // pub use flash_loan::FlashLoanDetector;
@@ -91,6 +99,7 @@ pub use state_mutation_ordering::detect_state_mutation_ordering;
 pub use synthetic_collateral_oracle::detect_synthetic_collateral_oracle;
 pub use synthetic_mint::detect_unbacked_synthetic_mint;
 pub use token_balance_manipulation::detect_token_balance_manipulation;
+pub use unbounded_pricing_input::detect_unbounded_pricing_input;
 pub use upgrade_path_verification::detect_upgrade_path_verification;
 
 /// Run every live EVM detector (the base pattern set in `implementations::detect_all`
@@ -158,6 +167,15 @@ pub fn run_all_detectors(source: &str, file_path: &str) -> Vec<sentri_core::Find
             source, file_path,
         ),
     );
+    findings.extend(unbounded_pricing_input::detect_unbounded_pricing_input(
+        source, file_path,
+    ));
+    findings.extend(
+        erc4337_validation_side_effects::detect_erc4337_validation_side_effects(source, file_path),
+    );
+    findings.extend(eip7702_eoa_assumption::detect_eip7702_eoa_assumption(
+        source, file_path,
+    ));
     findings
         .extend(reentrancy_via_whitelisted::detect_reentrancy_via_whitelisted(source, file_path));
     findings

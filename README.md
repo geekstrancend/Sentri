@@ -23,7 +23,7 @@ chain-agnostic detection layer on top of it.
 
 **Key improvements:**
 
-- ✅ **67 Smart Contract Vulnerability Detectors** — Comprehensive coverage of critical and high-priority exploits, wired end-to-end into `sentri check`/`sentri scan`
+- ✅ **71 Smart Contract Vulnerability Detectors** — Comprehensive coverage of critical and high-priority exploits, wired end-to-end into `sentri check`/`sentri scan`
 - ✅ **Chain-agnostic shared rule** — `unauthorized_privileged_mutation` runs against a common semantic model built by each chain's own analyzer, so one rule (missing an authorization check on a privileged mutation) is written once and applies to all four chains
 - ✅ **Real Move parsing** — a vendored Sui Move tree-sitter grammar backs Move's semantic extraction, with the original regex heuristic kept as an automatic fallback if a file fails to parse
 - ✅ **Soroban (Stellar) support** — a fourth full chain analyzer covering `require_auth` gaps, unprotected contract upgrades, re-initialization, unchecked arithmetic, storage TTL/expiry, and reentrancy-shaped checks-effects-interactions violations
@@ -31,10 +31,10 @@ chain-agnostic detection layer on top of it.
 - ✅ **Production Ready** — All tests passing, security audit complete, reproducible builds
 
 **Detector Coverage:**
-- **EVM**: 41 detectors (reentrancy incl. read-only reentrancy, missing checks, oracle manipulation incl. stale-price feeds, proxy issues, insufficient multisig threshold, arbitrary function-selector dispatch, fee-on-transfer/rebasing incompatibility, cross-chain signature replay, and 20+ named historical-exploit patterns)
+- **EVM**: 44 detectors (reentrancy incl. read-only reentrancy, missing checks, oracle manipulation incl. stale-price feeds, proxy issues, insufficient multisig threshold, arbitrary function-selector dispatch, fee-on-transfer/rebasing incompatibility, cross-chain signature replay, unbounded pricing input, ERC-4337 validation side effects, EIP-7702 EOA assumptions, and 20+ named historical-exploit patterns)
 - **Solana**: 11 detectors (PDA validation, authority checks, replay attacks, durable nonce, rent exemption, unchecked token/mint account substitution, fake sysvar instructions account)
 - **Move**: 7 detectors (resource destruction, type safety, access control, hand-rolled overflow checks)
-- **Soroban**: 8 detectors (missing require_auth, unprotected upgrade, re-initialization, unchecked arithmetic, storage TTL/expiry, reentrancy)
+- **Soroban**: 9 detectors (missing require_auth, unprotected upgrade, re-initialization, unchecked arithmetic, storage TTL/expiry, reentrancy, thin-liquidity oracle price)
 
 Sentri also ships a web dashboard (`web/`) — sign-up, scan submission, and
 report viewing on top of the same CLI engine — alongside the `sentri` CLI

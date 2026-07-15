@@ -41,6 +41,10 @@ pub struct ContractFunction {
     /// appears before a later storage write in the same function — a
     /// checks-effects-interactions violation shape.
     pub external_call_before_storage_write: bool,
+    /// Whether the body reads a price from what looks like a single spot-
+    /// price call (`get_price`/`.price(`/`spot_price`/`exchange_rate`) with
+    /// no TWAP/multi-source corroboration anywhere in the function.
+    pub uses_single_source_price_oracle: bool,
 }
 
 /// Key/type-name substrings that indicate storage holding durable contract

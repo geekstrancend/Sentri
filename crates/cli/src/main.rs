@@ -409,10 +409,10 @@ fn cmd_check(args: CheckArgs, quiet: bool, verbose: bool) -> Result<()> {
     // Approximate count of live detectors for this chain (a single detector can produce
     // multiple findings, so this is a lower bound, not an exact "checks run" count).
     let detector_count = match args.chain {
-        ChainArg::Evm => 41,
+        ChainArg::Evm => 44,
         ChainArg::Solana => 11,
         ChainArg::Move => 7,
-        ChainArg::Soroban => 8,
+        ChainArg::Soroban => 9,
     };
     let total_checks = detector_count.max(violations.len());
     let passed = total_checks.saturating_sub(violations.len());
