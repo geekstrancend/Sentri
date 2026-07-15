@@ -1380,6 +1380,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "sentri-analyzer-soroban"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "lazy_static",
+ "proc-macro2",
+ "quote",
+ "regex",
+ "sentri-core",
+ "sentri-ir",
+ "sentri-utils",
+ "serde",
+ "serde_json",
+ "syn",
+ "tempfile",
+ "thiserror 1.0.69",
+ "tracing",
+]
+
+[[package]]
 name = "sentri-cli"
 version = "0.3.0"
 dependencies = [
@@ -1393,6 +1413,7 @@ dependencies = [
  "sentri-analyzer-evm",
  "sentri-analyzer-move",
  "sentri-analyzer-solana",
+ "sentri-analyzer-soroban",
  "sentri-core",
  "sentri-dsl-parser",
  "sentri-generator-evm",

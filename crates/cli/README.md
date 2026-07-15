@@ -1,6 +1,6 @@
 # sentri
 
-Multi-chain smart contract invariant checker for EVM, Solana, and Move.
+Multi-chain smart contract invariant checker for EVM, Solana, Move, and Soroban.
 
 [![Crates.io](https://img.shields.io/crates/v/sentri-cli)](https://crates.io/crates/sentri-cli)
 [![Downloads](https://img.shields.io/crates/d/sentri-cli)](https://crates.io/crates/sentri-cli)
@@ -8,7 +8,7 @@ Multi-chain smart contract invariant checker for EVM, Solana, and Move.
 
 ## What is Sentri?
 
-Sentri is a unified invariant checking framework for smart contracts. Define security properties once in Sentri's DSL and verify them across EVM, Solana, and Move contracts automatically.
+Sentri is a unified invariant checking framework for smart contracts. Define security properties once in Sentri's DSL and verify them across EVM, Solana, Move, and Soroban contracts automatically.
 
 ## Quick Start
 
@@ -47,10 +47,11 @@ sentri check ./contracts --format json --output report.json
 | **EVM** | Solidity, Vyper | 35 built-in detectors | ✅ Stable |
 | **Solana** | Rust (Anchor, native) | 9 built-in detectors | ✅ Stable |
 | **Move** | Move (Aptos, Sui) | 6 built-in detectors, real AST via a vendored Sui tree-sitter grammar | ✅ Stable |
+| **Soroban** | Rust (Stellar) | 8 built-in detectors | ✅ Stable |
 
 ## Features
 
-- 50 smart contract vulnerability detectors, plus a chain-agnostic rule (`unauthorized_privileged_mutation`) shared across all three
+- 58 smart contract vulnerability detectors, plus a chain-agnostic rule (`unauthorized_privileged_mutation`) shared across all four
 - Custom invariant DSL
 - JSON/HTML/text reports
 - CI/CD integration

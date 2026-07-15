@@ -6,13 +6,13 @@
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![CI](https://github.com/geekstrancend/Sentri/actions/workflows/ci.yml/badge.svg)](https://github.com/geekstrancend/Sentri/actions)
 
-**Multi-chain smart contract security analyzer for EVM, Solana, and Move.**
+**Multi-chain smart contract security analyzer for EVM, Solana, Move, and Soroban.**
 
 Sentri checks your smart contracts and programs for vulnerabilities before
 deployment. Define what should always be true — invariants — and Sentri
 verifies your code cannot violate them.
 
-One tool. Three chains. One DSL.
+One tool. Four chains. One DSL.
 
 ---
 
@@ -23,9 +23,10 @@ chain-agnostic detection layer on top of it.
 
 **Key improvements:**
 
-- ✅ **50 Smart Contract Vulnerability Detectors** — Comprehensive coverage of critical and high-priority exploits, wired end-to-end into `sentri check`/`sentri scan`
-- ✅ **Chain-agnostic shared rule** — `unauthorized_privileged_mutation` runs against a common semantic model built by each chain's own analyzer, so one rule (missing an authorization check on a privileged mutation) is written once and applies to all three chains
+- ✅ **58 Smart Contract Vulnerability Detectors** — Comprehensive coverage of critical and high-priority exploits, wired end-to-end into `sentri check`/`sentri scan`
+- ✅ **Chain-agnostic shared rule** — `unauthorized_privileged_mutation` runs against a common semantic model built by each chain's own analyzer, so one rule (missing an authorization check on a privileged mutation) is written once and applies to all four chains
 - ✅ **Real Move parsing** — a vendored Sui Move tree-sitter grammar backs Move's semantic extraction, with the original regex heuristic kept as an automatic fallback if a file fails to parse
+- ✅ **Soroban (Stellar) support** — a fourth full chain analyzer covering `require_auth` gaps, unprotected contract upgrades, re-initialization, unchecked arithmetic, storage TTL/expiry, and reentrancy-shaped checks-effects-interactions violations
 - ✅ **Real fuzzing** — `sentri fuzz` mutates real source files and runs them through the live detectors looking for crashes, instead of a no-op stub
 - ✅ **Production Ready** — All tests passing, security audit complete, reproducible builds
 
@@ -33,6 +34,7 @@ chain-agnostic detection layer on top of it.
 - **EVM**: 35 detectors (reentrancy, missing checks, oracle manipulation, proxy issues, and 20+ named historical-exploit patterns)
 - **Solana**: 9 detectors (PDA validation, authority checks, replay attacks, durable nonce, rent exemption)
 - **Move**: 6 detectors (resource destruction, type safety, access control)
+- **Soroban**: 8 detectors (missing require_auth, unprotected upgrade, re-initialization, unchecked arithmetic, storage TTL/expiry, reentrancy)
 
 Sentri also ships a web dashboard (`web/`) — sign-up, scan submission, and
 report viewing on top of the same CLI engine — alongside the `sentri` CLI
@@ -120,6 +122,9 @@ sentri check ./contracts --chain evm
 # Check Move modules
 sentri check ./sources --chain move
 
+# Check Soroban contracts
+sentri check ./contracts --chain soroban
+
 # Output as JSON
 sentri check ./programs --chain solana --format json
 
@@ -199,7 +204,7 @@ configuration required.
 
 ## Built-in invariants
 
-Sentri ships with 22 built-in security checks across all three chains.
+Sentri ships with 28 built-in security checks across all four chains.
 
 ### EVM (10 invariants)
 
@@ -237,6 +242,17 @@ Sentri ships with 22 built-in security checks across all three chains.
 | `move_resource_leaks` | Resource Leaks | High |
 | `move_type_safety` | Type Safety | High |
 | `move_signer_requirement` | Signer Requirement | Critical |
+
+### Soroban (6 invariants)
+
+| ID | Name | Severity |
+| --- | --- | --- |
+| `sor_require_auth_checks` | Require-Auth Checks | High |
+| `sor_no_unprotected_upgrade` | Protected Upgrade | High |
+| `sor_init_guard` | Initializer Guard | High |
+| `sor_checked_arithmetic` | Checked Arithmetic | High |
+| `sor_storage_ttl_extended` | Storage TTL Extended | High |
+| `sor_no_reentrancy` | No Reentrancy | High |
 
 ---
 

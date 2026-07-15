@@ -7,6 +7,7 @@ members = [
     "crates/analyzer/solana",
     "crates/analyzer/evm",
     "crates/analyzer/move",
+    "crates/analyzer/soroban",
     "crates/generator/solana",
     "crates/generator/solana_macro",
     "crates/generator/evm",
@@ -37,6 +38,7 @@ sentri-dsl-parser = { path = "crates/dsl_parser", version = "0.3.0" }
 sentri-analyzer-solana = { path = "crates/analyzer/solana", version = "0.3.0" }
 sentri-analyzer-evm = { path = "crates/analyzer/evm", version = "0.3.0" }
 sentri-analyzer-move = { path = "crates/analyzer/move", version = "0.3.0" }
+sentri-analyzer-soroban = { path = "crates/analyzer/soroban", version = "0.3.0" }
 sentri-generator-solana = { path = "crates/generator/solana", version = "0.3.0" }
 sentri-solana-macro = { path = "crates/generator/solana_macro", version = "0.3.0" }
 sentri-generator-evm = { path = "crates/generator/evm", version = "0.3.0" }

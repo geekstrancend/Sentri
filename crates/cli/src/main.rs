@@ -21,6 +21,7 @@ use ui::*;
 use sentri_analyzer_evm::EvmAnalyzer;
 use sentri_analyzer_move::MoveAnalyzer;
 use sentri_analyzer_solana::SolanaAnalyzer;
+use sentri_analyzer_soroban::SorobanAnalyzer;
 use sentri_core::traits::ChainAnalyzer;
 use sentri_core::{CodeFuzzer, Finding};
 use sentri_library::InvariantLibrary;
@@ -33,7 +34,7 @@ use sentri_library::InvariantLibrary;
 #[derive(Parser)]
 #[command(
     name = "sentri",
-    about = "Enforce invariants on smart contracts across Solana, EVM, and Move",
+    about = "Enforce invariants on smart contracts across Solana, EVM, Move, and Soroban",
     version = env!("CARGO_PKG_VERSION"),
     author = "Sentri Contributors"
 )]
@@ -285,6 +286,8 @@ enum ChainArg {
     Solana,
     /// Move (Aptos, Sui).
     Move,
+    /// Soroban (Stellar).
+    Soroban,
 }
 
 /// Violation severity levels.
@@ -355,6 +358,7 @@ fn cmd_check(args: CheckArgs, quiet: bool, verbose: bool) -> Result<()> {
         ChainArg::Evm => "EVM",
         ChainArg::Solana => "Solana",
         ChainArg::Move => "Move",
+        ChainArg::Soroban => "Soroban",
     };
 
     // Convert config path to String for header
@@ -408,6 +412,7 @@ fn cmd_check(args: CheckArgs, quiet: bool, verbose: bool) -> Result<()> {
         ChainArg::Evm => 35,
         ChainArg::Solana => 9,
         ChainArg::Move => 6,
+        ChainArg::Soroban => 8,
     };
     let total_checks = detector_count.max(violations.len());
     let passed = total_checks.saturating_sub(violations.len());
@@ -731,6 +736,7 @@ fn chain_extension(chain: &ChainArg) -> &'static str {
         ChainArg::Evm => "sol",
         ChainArg::Solana => "rs",
         ChainArg::Move => "move",
+        ChainArg::Soroban => "rs",
     }
 }
 
@@ -768,6 +774,7 @@ fn run_detectors_on_file(chain: &ChainArg, path: &Path) -> Result<Vec<Finding>> 
         ChainArg::Evm => sentri_analyzer_evm::detectors::run_all_detectors(&source, &file_path),
         ChainArg::Solana => sentri_analyzer_solana::run_all_detectors(&source, &file_path),
         ChainArg::Move => sentri_analyzer_move::run_all_detectors(&source, &file_path),
+        ChainArg::Soroban => sentri_analyzer_soroban::run_all_detectors(&source, &file_path),
     };
 
     Ok(findings)
@@ -868,6 +875,7 @@ fn run_analysis(source_path: &Path, chain: &ChainArg, verbose: bool) -> Result<V
                 ChainArg::Evm => EvmAnalyzer.analyze(first_file),
                 ChainArg::Solana => SolanaAnalyzer.analyze(first_file),
                 ChainArg::Move => MoveAnalyzer.analyze(first_file),
+                ChainArg::Soroban => SorobanAnalyzer.analyze(first_file),
             };
             match structural {
                 Ok(program) => eprintln!(
@@ -885,6 +893,7 @@ fn run_analysis(source_path: &Path, chain: &ChainArg, verbose: bool) -> Result<V
             ChainArg::Evm => "evm",
             ChainArg::Solana => "solana",
             ChainArg::Move => "move",
+            ChainArg::Soroban => "soroban",
         };
         let lib = InvariantLibrary::with_defaults(chain_name);
         eprintln!(
@@ -1798,6 +1807,11 @@ fn cmd_doctor(args: DoctorArgs, quiet: bool) -> Result<()> {
             message: "Initialized successfully".to_string(),
         },
         HealthCheck {
+            component: "Soroban analyzer".to_string(),
+            passed: true,
+            message: "Initialized successfully".to_string(),
+        },
+        HealthCheck {
             component: "DSL parser".to_string(),
             passed: true,
             message: "Parsed test invariant successfully".to_string(),
@@ -1805,7 +1819,7 @@ fn cmd_doctor(args: DoctorArgs, quiet: bool) -> Result<()> {
         HealthCheck {
             component: "Invariant library".to_string(),
             passed: true,
-            message: "22 built-in invariants loaded".to_string(),
+            message: "28 built-in invariants loaded".to_string(),
         },
         HealthCheck {
             component: "Report generator".to_string(),
@@ -1894,6 +1908,7 @@ fn cmd_scan(args: ScanArgs, quiet: bool, verbose: bool) -> Result<()> {
         ChainArg::Evm => "EVM",
         ChainArg::Solana => "Solana",
         ChainArg::Move => "Move",
+        ChainArg::Soroban => "Soroban",
     };
 
     if !quiet {
@@ -2281,6 +2296,7 @@ fn cmd_fuzz(args: FuzzArgs, quiet: bool, verbose: bool) -> Result<()> {
         ChainArg::Evm => "EVM",
         ChainArg::Solana => "Solana",
         ChainArg::Move => "Move",
+        ChainArg::Soroban => "Soroban",
     };
 
     if !quiet {
@@ -2348,6 +2364,7 @@ fn cmd_fuzz(args: FuzzArgs, quiet: bool, verbose: bool) -> Result<()> {
             ChainArg::Evm => sentri_analyzer_evm::detectors::run_all_detectors(&mutated, file_path),
             ChainArg::Solana => sentri_analyzer_solana::run_all_detectors(&mutated, file_path),
             ChainArg::Move => sentri_analyzer_move::run_all_detectors(&mutated, file_path),
+            ChainArg::Soroban => sentri_analyzer_soroban::run_all_detectors(&mutated, file_path),
         });
 
         match result {

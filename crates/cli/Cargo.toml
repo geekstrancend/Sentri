@@ -37,6 +37,7 @@ sentri-report.workspace = true
 sentri-analyzer-solana.workspace = true
 sentri-analyzer-evm.workspace = true
 sentri-analyzer-move.workspace = true
+sentri-analyzer-soroban.workspace = true
 sentri-generator-solana.workspace = true
 sentri-generator-evm.workspace = true
 sentri-generator-move.workspace = true

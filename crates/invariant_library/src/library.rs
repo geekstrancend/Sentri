@@ -65,6 +65,7 @@ impl InvariantLibrary {
             "evm" => self.add_evm_defaults(),
             "solana" => self.add_solana_defaults(),
             "move" => self.add_move_defaults(),
+            "soroban" => self.add_soroban_defaults(),
             _ => {}
         }
     }
@@ -245,6 +246,58 @@ impl InvariantLibrary {
         }
     }
 
+    /// Add Soroban-specific invariants.
+    fn add_soroban_defaults(&mut self) {
+        let soroban_invariants = vec![
+            (
+                "sor_require_auth_checks",
+                "Require-Auth Checks",
+                "privileged_functions_require_auth AND auth_address_matches_actor",
+            ),
+            (
+                "sor_no_unprotected_upgrade",
+                "Protected Upgrade",
+                "upgrade_requires_auth AND upgrade_target_verified",
+            ),
+            (
+                "sor_init_guard",
+                "Initializer Guard",
+                "initialize_checks_not_already_set AND admin_set_exactly_once",
+            ),
+            (
+                "sor_checked_arithmetic",
+                "Checked Arithmetic",
+                "arithmetic_uses_checked_ops AND values_within_bounds",
+            ),
+            (
+                "sor_storage_ttl_extended",
+                "Storage TTL Extended",
+                "persistent_entries_ttl_extended AND no_unexpected_archival",
+            ),
+            (
+                "sor_no_reentrancy",
+                "No Reentrancy",
+                "state_written_before_external_call AND checks_effects_interactions_respected",
+            ),
+        ];
+
+        for (id, name, constraint) in soroban_invariants {
+            self.add(
+                "Soroban".to_string(),
+                Invariant {
+                    name: id.to_string(),
+                    description: Some(format!("Soroban invariant: {}", name)),
+                    expression: compile_constraint(id, constraint),
+                    severity: "high".to_string(),
+                    category: "soroban".to_string(),
+                    is_always_true: true,
+                    layers: vec!["contract_layer".to_string(), "storage_layer".to_string()],
+                    phases: vec!["parsing".to_string(), "execution".to_string()],
+                },
+            );
+        }
+    }
+
     /// Add an invariant to the library.
     pub fn add(&mut self, category: String, invariant: Invariant) {
         self.categories.entry(category).or_default().push(invariant);
@@ -316,8 +369,18 @@ mod tests {
     }
 
     #[test]
-    fn unknown_chain_yields_empty_library() {
+    fn soroban_defaults_compile_to_real_expressions() {
         let lib = InvariantLibrary::with_defaults("soroban");
+        let invariants = lib.all();
+        assert_eq!(invariants.len(), 6);
+        for inv in &invariants {
+            assert!(matches!(inv.expression, Expression::Logical { .. }));
+        }
+    }
+
+    #[test]
+    fn unknown_chain_yields_empty_library() {
+        let lib = InvariantLibrary::with_defaults("cosmwasm");
         assert_eq!(lib.count(), 0);
     }
 }
