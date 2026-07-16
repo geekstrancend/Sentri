@@ -12,8 +12,10 @@
 
 #[cfg(feature = "revm-backend")]
 pub mod backend;
+pub mod rpc;
 pub mod solc_bridge;
 pub mod types;
+pub mod well_known_selectors;
 
 pub use types::CompiledContract;
 
@@ -146,6 +148,107 @@ pub fn fuzz_solidity_source(source: &str, config: FuzzConfig) -> anyhow::Result<
     let actors = config.actors.clone();
     let factory = backend::backend_factory(&contract, &actors);
     Ok(fuzz(factory, &contract.functions, invariants, config))
+}
+
+/// Probes already-deployed runtime bytecode (no ABI available — the common
+/// case for an unverified contract, a realistic real-world bug-bounty
+/// target) against a fixed list of well-known ERC20/Ownable selectors,
+/// keeping only the ones that don't revert. The same "read as proxy"
+/// technique block explorers use for unverified contracts. Not a complete
+/// function-discovery mechanism — it only knows about the selectors it's
+/// told to try — but enough to drive [`auto_detect_invariants`] against a
+/// contract with zero source available.
+#[cfg(feature = "revm-backend")]
+pub fn probe_deployed_contract(bytecode: Vec<u8>, contract_address: [u8; 20]) -> Vec<FunctionSpec> {
+    use sentri_dynamic_core::EncodedCall;
+    use well_known_selectors::{
+        erc20_mutator_functions, erc20_probe_functions, ownable_mutator_functions,
+        ownable_probe_functions,
+    };
+
+    fn all_probes_succeed(
+        backend: &mut dyn sentri_dynamic_core::ExecutionBackend,
+        caller: [u8; 20],
+        fns: &[FunctionSpec],
+    ) -> bool {
+        fns.iter().all(|f| {
+            let mut calldata = f.selector.to_vec();
+            calldata.extend(std::iter::repeat(0u8).take(32 * f.inputs.len()));
+            let outcome = backend.call(&EncodedCall {
+                function: f.clone(),
+                calldata,
+                caller,
+                value: 0,
+            });
+            !outcome.reverted
+        })
+    }
+
+    let mut backend = backend::RevmBackend::from_runtime_bytecode(bytecode, contract_address);
+    let probe_caller = [0xEEu8; 20];
+    let mut confirmed = Vec::new();
+
+    let erc20_read = erc20_probe_functions();
+    if all_probes_succeed(&mut backend, probe_caller, &erc20_read) {
+        confirmed.extend(erc20_read);
+        confirmed.extend(erc20_mutator_functions());
+    }
+
+    let ownable_read = ownable_probe_functions();
+    if all_probes_succeed(&mut backend, probe_caller, &ownable_read) {
+        confirmed.extend(ownable_read);
+        confirmed.extend(ownable_mutator_functions());
+    }
+
+    confirmed
+}
+
+/// Fetches deployed bytecode from `rpc_url` for `contract_address`, probes
+/// it against known selectors (see [`probe_deployed_contract`]),
+/// auto-detects invariants from whatever's confirmed present, and runs the
+/// dynamic fuzzer against it — the no-source-available counterpart to
+/// [`fuzz_solidity_source`].
+///
+/// This does **not** fork the contract's real on-chain storage — only its
+/// code is fetched and deployed into an otherwise-empty account. That's
+/// enough to exercise bugs in the contract's own accounting logic (exactly
+/// what `ConservationInvariant`/`AccessControlInvariant` check), but any
+/// behavior depending on pre-existing on-chain storage (existing balances,
+/// addresses of other contracts read from storage, etc.) won't be
+/// reproduced faithfully. Full state forking is a larger feature this
+/// intentionally doesn't attempt yet.
+#[cfg(feature = "revm-backend")]
+pub fn fuzz_deployed_contract(
+    rpc_url: &str,
+    contract_address: [u8; 20],
+    config: FuzzConfig,
+) -> anyhow::Result<Option<Violation>> {
+    let bytecode = crate::rpc::fetch_bytecode(rpc_url, contract_address)?;
+    if bytecode.is_empty() {
+        anyhow::bail!("no code deployed at this address (per eth_getCode) — nothing to fuzz");
+    }
+
+    let functions = probe_deployed_contract(bytecode.clone(), contract_address);
+    if functions.is_empty() {
+        anyhow::bail!(
+            "deployed bytecode didn't respond successfully to any known ERC20/Ownable probe selectors — no auto-detectable surface to fuzz"
+        );
+    }
+
+    let invariants = auto_detect_invariants(&functions, &config.actors);
+    if invariants.is_empty() {
+        anyhow::bail!("probed functions present, but no auto-detectable invariant on this surface");
+    }
+
+    let actors = config.actors.clone();
+    let fresh_backend = move || -> Box<dyn sentri_dynamic_core::ExecutionBackend> {
+        let mut backend =
+            backend::RevmBackend::from_runtime_bytecode(bytecode.clone(), contract_address);
+        backend.fund_actors(&actors);
+        Box::new(backend)
+    };
+
+    Ok(fuzz(fresh_backend, &functions, invariants, config))
 }
 
 #[cfg(test)]

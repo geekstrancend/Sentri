@@ -11,7 +11,9 @@
 
 use crate::types::CompiledContract;
 use revm::db::InMemoryDB;
-use revm::primitives::{AccountInfo, Address, Bytes, ExecutionResult, Output, TransactTo, U256};
+use revm::primitives::{
+    AccountInfo, Address, Bytecode, Bytes, ExecutionResult, Output, TransactTo, U256,
+};
 use revm::Evm;
 use sentri_dynamic_core::{CallOutcome, EncodedCall, ExecutionBackend};
 
@@ -80,6 +82,27 @@ impl RevmBackend {
             contract_address,
             snapshots: Vec::new(),
         })
+    }
+
+    /// Deploys already-compiled *runtime* bytecode directly, without
+    /// running a constructor. For contracts fetched from a live chain via
+    /// `eth_getCode` — which returns runtime bytecode, not creation/init
+    /// code — there is no constructor to run; the code is simply placed at
+    /// the target address with an otherwise-empty account (see
+    /// `sentri_dynamic_evm::fuzz_deployed_contract`'s doc comment for what
+    /// that does and doesn't reproduce faithfully versus the real chain).
+    pub fn from_runtime_bytecode(bytecode: Vec<u8>, contract_address: [u8; 20]) -> Self {
+        let address = Address::from(contract_address);
+        let mut db = InMemoryDB::default();
+        let mut info = AccountInfo::from_bytecode(Bytecode::new_raw(Bytes::from(bytecode)));
+        info.balance = U256::from(u128::MAX);
+        db.insert_account_info(address, info);
+
+        Self {
+            db,
+            contract_address: address,
+            snapshots: Vec::new(),
+        }
     }
 
     /// Pre-fund a set of addresses so they can be used as callers/`value`

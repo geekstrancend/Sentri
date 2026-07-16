@@ -2700,6 +2700,7 @@ dependencies = [
  "assert_cmd",
  "clap",
  "colored",
+ "hex",
  "predicates",
  "proptest",
  "regex",
@@ -2776,8 +2777,10 @@ dependencies = [
  "sentri-core",
  "sentri-dynamic-core",
  "sentri-utils",
+ "serde",
  "serde_json",
  "sha3",
+ "ureq",
 ]
 
 [[package]]

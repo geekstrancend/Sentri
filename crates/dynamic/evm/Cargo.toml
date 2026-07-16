@@ -28,10 +28,12 @@ sentri-dynamic-core.workspace = true
 sentri-core.workspace = true
 sentri-utils.workspace = true
 anyhow.workspace = true
+serde.workspace = true
 serde_json.workspace = true
 rand.workspace = true
 revm = { workspace = true, optional = true }
 sha3.workspace = true
 hex.workspace = true
+ureq.workspace = true
 
 [dev-dependencies]

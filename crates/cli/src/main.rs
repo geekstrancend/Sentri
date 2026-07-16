@@ -225,8 +225,10 @@ enum InvariantsAction {
 /// Arguments for the `fuzz` subcommand.
 #[derive(Parser)]
 struct FuzzArgs {
-    /// Contract file or directory to fuzz.
-    path: PathBuf,
+    /// Contract file or directory to fuzz. Omit when using --address to
+    /// fuzz an already-deployed contract by fetching its bytecode instead
+    /// of reading local source.
+    path: Option<PathBuf>,
 
     /// Blockchain to fuzz for.
     #[arg(long, value_enum, default_value = "evm")]
@@ -258,6 +260,18 @@ struct FuzzArgs {
     /// source-mutation crash fuzzer. EVM only for now.
     #[arg(long)]
     dynamic: bool,
+
+    /// Fuzz an already-deployed contract by address instead of local
+    /// source: fetches its bytecode via --rpc-url and probes it against
+    /// known ERC20/Ownable selectors (no ABI available for an unverified
+    /// contract). Only valid with --dynamic; requires --rpc-url. Does not
+    /// fork the contract's on-chain storage — only its code.
+    #[arg(long, conflicts_with = "path")]
+    address: Option<String>,
+
+    /// JSON-RPC endpoint to fetch bytecode from when using --address.
+    #[arg(long, requires = "address")]
+    rpc_url: Option<String>,
 }
 
 /// Arguments for the `report` subcommand.
@@ -2310,26 +2324,6 @@ fn cmd_dynamic_fuzz(args: FuzzArgs, quiet: bool, verbose: bool) -> Result<()> {
             "--dynamic fuzzing currently only supports --chain evm (Solana/Move/Soroban need their own execution backends, not yet built)"
         ));
     }
-    if !args.path.exists() {
-        return Err(anyhow::anyhow!("Path not found: {}", args.path.display()));
-    }
-
-    let files = if args.path.is_dir() {
-        let mut files = Vec::new();
-        collect_source_files(&args.path, "sol", &mut files)?;
-        files
-    } else {
-        vec![args.path.clone()]
-    };
-    if files.is_empty() {
-        if !quiet {
-            eprintln!(
-                "⚠ No .sol files found under {}; nothing to fuzz",
-                args.path.display()
-            );
-        }
-        return Ok(());
-    }
 
     // Fixed actor pool: address arguments and callers are drawn only from
     // here (see sentri_dynamic_core::abi_encode's random_word for why an
@@ -2341,6 +2335,60 @@ fn cmd_dynamic_fuzz(args: FuzzArgs, quiet: bool, verbose: bool) -> Result<()> {
         sequence_depth: args.depth,
         actors,
     };
+
+    if let Some(address_str) = &args.address {
+        let rpc_url = args
+            .rpc_url
+            .as_deref()
+            .ok_or_else(|| anyhow::anyhow!("--rpc-url is required when using --address"))?;
+        let address = parse_evm_address(address_str)?;
+
+        if !quiet {
+            eprintln!(
+                "▶ Fetching bytecode for {address_str} from {rpc_url} and dynamically fuzzing it ({} runs, depth {})...",
+                config.max_runs, config.sequence_depth
+            );
+        }
+
+        return match sentri_dynamic_evm::fuzz_deployed_contract(rpc_url, address, config.clone()) {
+            Ok(Some(violation)) => {
+                println!("\n✗ {address_str}");
+                println!("{}", sentri_dynamic_core::format_poc(&violation));
+                std::process::exit(1);
+            }
+            Ok(None) => {
+                if !quiet {
+                    eprintln!("  ✓ no violation found in {} runs", config.max_runs);
+                }
+                Ok(())
+            }
+            Err(e) => Err(e),
+        };
+    }
+
+    let path = args.path.clone().ok_or_else(|| {
+        anyhow::anyhow!("either a contract path or --address (with --rpc-url) is required")
+    })?;
+    if !path.exists() {
+        return Err(anyhow::anyhow!("Path not found: {}", path.display()));
+    }
+
+    let files = if path.is_dir() {
+        let mut files = Vec::new();
+        collect_source_files(&path, "sol", &mut files)?;
+        files
+    } else {
+        vec![path.clone()]
+    };
+    if files.is_empty() {
+        if !quiet {
+            eprintln!(
+                "⚠ No .sol files found under {}; nothing to fuzz",
+                path.display()
+            );
+        }
+        return Ok(());
+    }
 
     let mut found_violation = false;
     for file in &files {
@@ -2383,10 +2431,31 @@ fn cmd_dynamic_fuzz(args: FuzzArgs, quiet: bool, verbose: bool) -> Result<()> {
     Ok(())
 }
 
+/// Parses a `0x`-prefixed (or bare) 40-hex-character EVM address.
+fn parse_evm_address(s: &str) -> Result<[u8; 20]> {
+    let trimmed = s.strip_prefix("0x").unwrap_or(s);
+    let bytes = hex::decode(trimmed).map_err(|e| anyhow::anyhow!("invalid address '{s}': {e}"))?;
+    if bytes.len() != 20 {
+        return Err(anyhow::anyhow!(
+            "invalid address '{s}': expected 20 bytes, got {}",
+            bytes.len()
+        ));
+    }
+    let mut out = [0u8; 20];
+    out.copy_from_slice(&bytes);
+    Ok(out)
+}
+
 fn cmd_fuzz(args: FuzzArgs, quiet: bool, verbose: bool) -> Result<()> {
     if args.dynamic {
         return cmd_dynamic_fuzz(args, quiet, verbose);
     }
+
+    let path = args.path.clone().ok_or_else(|| {
+        anyhow::anyhow!(
+            "a contract path is required for the mutation fuzzer (--address/--rpc-url live-fetch mode is only available with --dynamic)"
+        )
+    })?;
 
     let chain_name = match args.chain {
         ChainArg::Evm => "EVM",
@@ -2398,24 +2467,24 @@ fn cmd_fuzz(args: FuzzArgs, quiet: bool, verbose: bool) -> Result<()> {
     if !quiet {
         eprintln!(
             "▶ Fuzzing {} on {} for {} iterations (depth: {})...",
-            args.path.display(),
+            path.display(),
             chain_name,
             args.iterations,
             args.depth
         );
     }
 
-    if !args.path.exists() {
-        return Err(anyhow::anyhow!("Path not found: {}", args.path.display()));
+    if !path.exists() {
+        return Err(anyhow::anyhow!("Path not found: {}", path.display()));
     }
 
     let extension = chain_extension(&args.chain);
-    let files = if args.path.is_dir() {
+    let files = if path.is_dir() {
         let mut files = Vec::new();
-        collect_source_files(&args.path, extension, &mut files)?;
+        collect_source_files(&path, extension, &mut files)?;
         files
     } else {
-        vec![args.path.clone()]
+        vec![path.clone()]
     };
 
     if files.is_empty() {
@@ -2423,7 +2492,7 @@ fn cmd_fuzz(args: FuzzArgs, quiet: bool, verbose: bool) -> Result<()> {
             eprintln!(
                 "⚠ No .{} files found under {}; nothing to fuzz",
                 extension,
-                args.path.display()
+                path.display()
             );
         }
         return Ok(());

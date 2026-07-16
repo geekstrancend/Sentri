@@ -43,6 +43,7 @@ sentri-generator-evm.workspace = true
 sentri-generator-move.workspace = true
 sentri-dynamic-core.workspace = true
 sentri-dynamic-evm = { workspace = true, features = ["revm-backend"] }
+hex.workspace = true
 
 [dev-dependencies]
 tempfile = "3.8"
