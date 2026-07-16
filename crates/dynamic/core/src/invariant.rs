@@ -5,7 +5,7 @@
 //! path (the sequence under test) cleanly separated from the oracle path
 //! (is the resulting state still valid).
 
-use crate::abi_encode::{decode_uint256, encode_call};
+use crate::abi_encode::{decode_address, decode_uint256, encode_call};
 use crate::backend::{EncodedCall, ExecutionBackend, FunctionSpec};
 use crate::u256::{u256_add, u256_lt, u256_to_decimal};
 use std::cell::RefCell;
@@ -13,15 +13,27 @@ use std::cell::RefCell;
 pub trait Invariant {
     fn name(&self) -> &str;
 
-    /// Called after every call in a sequence. Returns `Some(message)` if the
-    /// property is currently violated.
-    fn check(&self, backend: &mut dyn ExecutionBackend) -> Option<String>;
+    /// Called after every call in a sequence, given the call that was just
+    /// executed. Returns `Some(message)` if the property is currently
+    /// violated. `last_call` matters for invariants that need to know *who*
+    /// made the change, not just what the resulting state is — e.g.
+    /// [`AccessControlInvariant`] checking whether a privileged state
+    /// change was actually made by a privileged caller.
+    fn check(&self, backend: &mut dyn ExecutionBackend, last_call: &EncodedCall) -> Option<String>;
 
-    /// Forget any state remembered from a previous sequence run (see
-    /// [`crate::sequence::run_sequence`]). Default no-op for stateless
-    /// invariants (e.g. [`ConservationInvariant`], which recomputes
-    /// everything fresh on each check).
-    fn reset(&self) {}
+    /// Called once at the start of each sequence run (see
+    /// [`crate::sequence::run_sequence`]), before any calls execute, with
+    /// the backend already in its genesis/deployed state. Lets a stateful
+    /// invariant seed its baseline from the contract's real
+    /// constructor-time state instead of starting from "unknown" — without
+    /// this, an invariant that only remembers "the value as of the last
+    /// check" would miss a violation on the very first call of a sequence,
+    /// since it would have nothing yet to compare against. Default no-op
+    /// for stateless invariants (e.g. [`ConservationInvariant`], which
+    /// recomputes everything fresh on each check).
+    fn reset(&self, backend: &mut dyn ExecutionBackend) {
+        let _ = backend;
+    }
 }
 
 const ZERO_ADDR: [u8; 20] = [0u8; 20];
@@ -62,11 +74,27 @@ impl Invariant for MonotonicInvariant {
         &self.label
     }
 
-    fn reset(&self) {
-        *self.last_seen.borrow_mut() = None;
+    fn reset(&self, backend: &mut dyn ExecutionBackend) {
+        // Seed with the real genesis value (state right after deployment,
+        // before any fuzzed calls) rather than `None`. Without this, a
+        // decrease on the very first call of a sequence would have nothing
+        // to compare against and would silently become the new baseline
+        // instead of being flagged — e.g. a constructor that mints an
+        // initial totalSupply, immediately followed by a buggy call that
+        // reduces it, needs the constructor's value as the reference point.
+        let outcome = backend.call(&read_call(&self.read_fn, &[]));
+        *self.last_seen.borrow_mut() = if outcome.reverted {
+            None
+        } else {
+            Some(decode_uint256(&outcome.return_data))
+        };
     }
 
-    fn check(&self, backend: &mut dyn ExecutionBackend) -> Option<String> {
+    fn check(
+        &self,
+        backend: &mut dyn ExecutionBackend,
+        _last_call: &EncodedCall,
+    ) -> Option<String> {
         let outcome = backend.call(&read_call(&self.read_fn, &[]));
         if outcome.reverted {
             return None;
@@ -121,7 +149,11 @@ impl Invariant for ConservationInvariant {
         &self.label
     }
 
-    fn check(&self, backend: &mut dyn ExecutionBackend) -> Option<String> {
+    fn check(
+        &self,
+        backend: &mut dyn ExecutionBackend,
+        _last_call: &EncodedCall,
+    ) -> Option<String> {
         let ts_outcome = backend.call(&read_call(&self.total_supply_fn, &[]));
         if ts_outcome.reverted {
             return None;
@@ -149,4 +181,85 @@ impl Invariant for ConservationInvariant {
         }
         None
     }
+}
+
+/// Ownership-transfer authorization check, targeting the extremely common
+/// OpenZeppelin-`Ownable` shape: `owner()` (view, no args, returns address)
+/// plus a guarded function (typically `transferOwnership(address)`) that's
+/// supposed to only succeed when called by the current owner. If ownership
+/// changes as a result of a call to the guarded function, and the caller of
+/// that call wasn't the owner *before* the change, that's a missing
+/// access-control check — a `transferOwnership`-style privileged setter
+/// that forgot its `onlyOwner` modifier hands full control to whoever calls
+/// it, one of the most common real-world vulnerability classes.
+pub struct AccessControlInvariant {
+    label: String,
+    owner_fn: FunctionSpec,
+    guarded_fn: FunctionSpec,
+    last_owner: RefCell<Option<[u8; 20]>>,
+}
+
+impl AccessControlInvariant {
+    pub fn new(label: impl Into<String>, owner_fn: FunctionSpec, guarded_fn: FunctionSpec) -> Self {
+        Self {
+            label: label.into(),
+            owner_fn,
+            guarded_fn,
+            last_owner: RefCell::new(None),
+        }
+    }
+
+    fn read_owner(&self, backend: &mut dyn ExecutionBackend) -> Option<[u8; 20]> {
+        let outcome = backend.call(&read_call(&self.owner_fn, &[]));
+        if outcome.reverted {
+            None
+        } else {
+            Some(decode_address(&outcome.return_data))
+        }
+    }
+}
+
+impl Invariant for AccessControlInvariant {
+    fn name(&self) -> &str {
+        &self.label
+    }
+
+    fn reset(&self, backend: &mut dyn ExecutionBackend) {
+        let owner = self.read_owner(backend);
+        *self.last_owner.borrow_mut() = owner;
+    }
+
+    fn check(&self, backend: &mut dyn ExecutionBackend, last_call: &EncodedCall) -> Option<String> {
+        // Only the guarded function is supposed to be able to change
+        // ownership. For every other call, just keep the baseline synced
+        // to current state so a later check against the guarded function
+        // compares against an up-to-date "before" value rather than a
+        // stale one from several calls ago.
+        if last_call.function.selector != self.guarded_fn.selector {
+            if let Some(owner) = self.read_owner(backend) {
+                *self.last_owner.borrow_mut() = Some(owner);
+            }
+            return None;
+        }
+
+        let prev_owner = *self.last_owner.borrow();
+        let current_owner = self.read_owner(backend)?;
+
+        let violated = match prev_owner {
+            Some(prev) if current_owner != prev && last_call.caller != prev => Some(format!(
+                "{}: owner changed from 0x{} to 0x{} via a call from non-owner 0x{}",
+                self.label,
+                hex_addr(&prev),
+                hex_addr(&current_owner),
+                hex_addr(&last_call.caller)
+            )),
+            _ => None,
+        };
+        *self.last_owner.borrow_mut() = Some(current_owner);
+        violated
+    }
+}
+
+fn hex_addr(addr: &[u8; 20]) -> String {
+    addr.iter().map(|b| format!("{:02x}", b)).collect()
 }

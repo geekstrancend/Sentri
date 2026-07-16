@@ -84,12 +84,12 @@ pub fn run_sequence(
     // function ran, or a later sequence would be compared against a stale
     // value from an unrelated earlier run.
     for invariant in invariants {
-        invariant.reset();
+        invariant.reset(backend);
     }
     for (step_idx, call) in sequence.0.iter().enumerate() {
         backend.call(call);
         for invariant in invariants {
-            if let Some(message) = invariant.check(backend) {
+            if let Some(message) = invariant.check(backend, call) {
                 return Some(Violation {
                     invariant_name: invariant.name().to_string(),
                     message,

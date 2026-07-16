@@ -23,7 +23,7 @@ pub mod u256;
 mod testing;
 
 pub use backend::{CallOutcome, EncodedCall, ExecutionBackend, FunctionSpec, ParamKind};
-pub use invariant::{ConservationInvariant, Invariant, MonotonicInvariant};
+pub use invariant::{AccessControlInvariant, ConservationInvariant, Invariant, MonotonicInvariant};
 pub use poc::format_poc;
 pub use sequence::{generate_random_sequence, run_sequence, CallSequence, Violation};
 pub use shrink::shrink;
@@ -240,6 +240,88 @@ mod tests {
         assert!(
             result.is_none(),
             "mint-only sequences must never violate conservation"
+        );
+    }
+
+    #[test]
+    fn catches_access_control_violation() {
+        let functions = testing::ownable_functions();
+        let owner_fn = functions
+            .iter()
+            .find(|f| f.selector == testing::OWNER)
+            .unwrap()
+            .clone();
+        let transfer_fn = functions
+            .iter()
+            .find(|f| f.selector == testing::TRANSFER_OWNERSHIP)
+            .unwrap()
+            .clone();
+
+        let invariants: Vec<Box<dyn Invariant>> = vec![Box::new(AccessControlInvariant::new(
+            "ownership transfer authorization",
+            owner_fn,
+            transfer_fn,
+        ))];
+
+        // Actor pool deliberately excludes testing::GENESIS_OWNER, so any
+        // successful transferOwnership in this run is necessarily from a
+        // non-owner — MockBackend's TRANSFER_OWNERSHIP has no caller check
+        // at all, so this must always find a violation.
+        let config = FuzzConfig {
+            seed: 3,
+            max_runs: 50,
+            sequence_depth: 4,
+            actors: vec![[1u8; 20], [2u8; 20]],
+        };
+
+        let violation = fuzz(
+            || Box::new(MockBackend::default()),
+            &functions,
+            invariants,
+            config,
+        )
+        .expect("MockBackend's transferOwnership has no caller check — the fuzzer must find it");
+
+        assert_eq!(violation.invariant_name, "ownership transfer authorization");
+        assert!(violation.message.contains("non-owner"));
+    }
+
+    #[test]
+    fn no_false_positive_when_ownership_transfer_is_actually_guarded() {
+        let functions = testing::ownable_functions_safe();
+        let owner_fn = functions
+            .iter()
+            .find(|f| f.selector == testing::OWNER)
+            .unwrap()
+            .clone();
+        let transfer_fn = functions
+            .iter()
+            .find(|f| f.selector == testing::SAFE_TRANSFER_OWNERSHIP)
+            .unwrap()
+            .clone();
+
+        let invariants: Vec<Box<dyn Invariant>> = vec![Box::new(AccessControlInvariant::new(
+            "ownership transfer authorization",
+            owner_fn,
+            transfer_fn,
+        ))];
+
+        let config = FuzzConfig {
+            seed: 11,
+            max_runs: 150,
+            sequence_depth: 6,
+            actors: vec![[1u8; 20], [2u8; 20]],
+        };
+
+        let result = fuzz(
+            || Box::new(MockBackend::default()),
+            &functions,
+            invariants,
+            config,
+        );
+        assert!(
+            result.is_none(),
+            "a correctly owner-gated transferOwnership must never be flagged"
         );
     }
 }

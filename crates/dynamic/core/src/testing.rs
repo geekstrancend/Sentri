@@ -28,6 +28,20 @@ pub const BUGGY_CREDIT: [u8; 4] = [0x11, 0x00, 0x00, 0x00];
 pub const TOTAL_SUPPLY: [u8; 4] = [0x12, 0x00, 0x00, 0x00];
 pub const BALANCE_OF: [u8; 4] = [0x13, 0x00, 0x00, 0x00];
 
+pub const OWNER: [u8; 4] = [0x20, 0x00, 0x00, 0x00];
+/// Reassigns ownership with no caller check at all — the "missing
+/// onlyOwner modifier" bug shape that [`crate::invariant::AccessControlInvariant`]
+/// exists to catch.
+pub const TRANSFER_OWNERSHIP: [u8; 4] = [0x21, 0x00, 0x00, 0x00];
+/// The correctly-guarded counterpart: reverts unless the caller is the
+/// current owner, used to prove the invariant doesn't false-positive on a
+/// contract that actually enforces access control.
+pub const SAFE_TRANSFER_OWNERSHIP: [u8; 4] = [0x22, 0x00, 0x00, 0x00];
+/// The deployer-equivalent address `MockState` initializes `owner` to —
+/// distinct from the `[1u8;20]..[4u8;20]` actor addresses tests use as
+/// "attacker" candidates, so "did a non-owner succeed" is unambiguous.
+pub const GENESIS_OWNER: [u8; 20] = [0xAA; 20];
+
 pub fn counter_functions() -> Vec<FunctionSpec> {
     vec![
         FunctionSpec::new("increment", INCR, vec![], true),
@@ -55,11 +69,47 @@ pub fn token_functions() -> Vec<FunctionSpec> {
     ]
 }
 
-#[derive(Clone, Default)]
+pub fn ownable_functions() -> Vec<FunctionSpec> {
+    vec![
+        FunctionSpec::new("owner", OWNER, vec![], false),
+        FunctionSpec::new(
+            "transferOwnership",
+            TRANSFER_OWNERSHIP,
+            vec![ParamKind::Address],
+            true,
+        ),
+    ]
+}
+
+pub fn ownable_functions_safe() -> Vec<FunctionSpec> {
+    vec![
+        FunctionSpec::new("owner", OWNER, vec![], false),
+        FunctionSpec::new(
+            "transferOwnership",
+            SAFE_TRANSFER_OWNERSHIP,
+            vec![ParamKind::Address],
+            true,
+        ),
+    ]
+}
+
+#[derive(Clone)]
 struct MockState {
     counter: u128,
     balances: HashMap<[u8; 20], u128>,
     total_supply: u128,
+    owner: [u8; 20],
+}
+
+impl Default for MockState {
+    fn default() -> Self {
+        Self {
+            counter: 0,
+            balances: HashMap::new(),
+            total_supply: 0,
+            owner: GENESIS_OWNER,
+        }
+    }
 }
 
 #[derive(Default)]
@@ -165,6 +215,35 @@ impl ExecutionBackend for MockBackend {
                 CallOutcome {
                     reverted: false,
                     return_data: u128_to_word(bal),
+                }
+            }
+            OWNER => {
+                let mut word = vec![0u8; 32];
+                word[12..32].copy_from_slice(&self.state.owner);
+                CallOutcome {
+                    reverted: false,
+                    return_data: word,
+                }
+            }
+            TRANSFER_OWNERSHIP => {
+                // Bug: no check that call.caller == self.state.owner.
+                self.state.owner = addr_from_calldata(&call.calldata);
+                CallOutcome {
+                    reverted: false,
+                    return_data: vec![],
+                }
+            }
+            SAFE_TRANSFER_OWNERSHIP => {
+                if call.caller != self.state.owner {
+                    return CallOutcome {
+                        reverted: true,
+                        return_data: vec![],
+                    };
+                }
+                self.state.owner = addr_from_calldata(&call.calldata);
+                CallOutcome {
+                    reverted: false,
+                    return_data: vec![],
                 }
             }
             _ => CallOutcome {

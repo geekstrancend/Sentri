@@ -33,6 +33,16 @@ pub fn decode_uint256(return_data: &[u8]) -> [u8; 32] {
     out
 }
 
+/// Decodes a right-aligned 20-byte address from a 32-byte ABI word (or
+/// shorter/malformed return data — right-aligns and zero-pads rather than
+/// panicking, same defensive posture as [`decode_uint256`]).
+pub fn decode_address(return_data: &[u8]) -> [u8; 20] {
+    let word = decode_uint256(return_data);
+    let mut out = [0u8; 20];
+    out.copy_from_slice(&word[12..32]);
+    out
+}
+
 /// Edge-value-biased random argument generation: property fuzzers
 /// (Foundry/Echidna included) find far more real bugs by weighting
 /// generation toward boundary values (0, 1, max) than by sampling
@@ -134,6 +144,14 @@ mod tests {
         let decoded = decode_uint256(&[5]);
         assert_eq!(decoded[31], 5);
         assert_eq!(&decoded[..31], &[0u8; 31]);
+    }
+
+    #[test]
+    fn decode_address_extracts_last_20_bytes_of_a_32_byte_word() {
+        let mut word = [0u8; 32];
+        let addr = [0xAB; 20];
+        word[12..32].copy_from_slice(&addr);
+        assert_eq!(decode_address(&word), addr);
     }
 
     #[test]

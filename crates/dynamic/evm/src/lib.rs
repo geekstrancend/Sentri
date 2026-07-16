@@ -37,7 +37,9 @@ pub fn auto_detect_invariants(
     functions: &[FunctionSpec],
     actors: &[[u8; 20]],
 ) -> Vec<Box<dyn Invariant>> {
-    use sentri_dynamic_core::{ConservationInvariant, MonotonicInvariant};
+    use sentri_dynamic_core::{
+        AccessControlInvariant, ConservationInvariant, MonotonicInvariant, ParamKind,
+    };
 
     let mut invariants: Vec<Box<dyn Invariant>> = Vec::new();
 
@@ -53,6 +55,27 @@ pub fn auto_detect_invariants(
             ts.clone(),
             bo.clone(),
             actors.to_vec(),
+        )));
+    }
+
+    // OpenZeppelin-Ownable-shaped: owner() view + a single-address mutating
+    // setter conventionally named transferOwnership. Every real-world
+    // Ownable clone uses that exact selector, so matching on the name
+    // (rather than trying to infer "this is the privileged setter" from
+    // shape alone, which would be far too broad) keeps false positives
+    // near zero while still catching the single most common real
+    // access-control bug: a transferOwnership that forgot onlyOwner.
+    let owner_fn = functions
+        .iter()
+        .find(|f| f.name == "owner" && f.inputs.is_empty());
+    let transfer_ownership_fn = functions
+        .iter()
+        .find(|f| f.name == "transferOwnership" && f.inputs == vec![ParamKind::Address]);
+    if let (Some(owner_fn), Some(transfer_fn)) = (owner_fn, transfer_ownership_fn) {
+        invariants.push(Box::new(AccessControlInvariant::new(
+            "transferOwnership authorization",
+            owner_fn.clone(),
+            transfer_fn.clone(),
         )));
     }
 
@@ -173,6 +196,47 @@ mod tests {
         let functions = vec![view_fn("frobnicate", vec![])];
         assert!(auto_detect_invariants(&functions, &[]).is_empty());
     }
+
+    #[test]
+    fn detects_ownable_access_control_when_both_functions_present() {
+        let functions = vec![
+            view_fn("owner", vec![]),
+            FunctionSpec::new(
+                "transferOwnership",
+                [0u8; 4],
+                vec![ParamKind::Address],
+                true,
+            ),
+        ];
+        let invariants = auto_detect_invariants(&functions, &[]);
+        assert!(invariants
+            .iter()
+            .any(|i| i.name().contains("transferOwnership authorization")));
+    }
+
+    #[test]
+    fn skips_access_control_when_transfer_ownership_takes_the_wrong_args() {
+        // A same-named function with a different signature (e.g. a
+        // two-step transferOwnership(address,bool) variant) shouldn't be
+        // matched — the invariant's caller-comparison logic specifically
+        // assumes a single address argument.
+        let functions = vec![
+            view_fn("owner", vec![]),
+            FunctionSpec::new(
+                "transferOwnership",
+                [0u8; 4],
+                vec![ParamKind::Address, ParamKind::Bool],
+                true,
+            ),
+        ];
+        assert!(auto_detect_invariants(&functions, &[]).is_empty());
+    }
+
+    #[test]
+    fn skips_access_control_when_only_owner_is_present() {
+        let functions = vec![view_fn("owner", vec![])];
+        assert!(auto_detect_invariants(&functions, &[]).is_empty());
+    }
 }
 
 /// The one thing none of the offline tests elsewhere in this workspace can
@@ -237,6 +301,53 @@ contract VulnerableToken {
             violation.invariant_name,
             "ERC20 conservation: sum(balanceOf) == totalSupply()"
         );
+        assert!(!violation.sequence.is_empty());
+    }
+
+    /// Deliberately vulnerable: `transferOwnership` is missing its
+    /// `onlyOwner` check — the single most common real-world access-control
+    /// bug shape, and the exact thing a forgotten modifier looks like in
+    /// production code.
+    const VULNERABLE_OWNABLE_SOURCE: &str = r#"
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract VulnerableOwnable {
+    address public owner;
+
+    constructor() {
+        owner = msg.sender;
+    }
+
+    function transferOwnership(address newOwner) public {
+        owner = newOwner;
+    }
+}
+"#;
+
+    #[test]
+    fn revm_backend_catches_a_real_missing_only_owner_bug_end_to_end() {
+        if sentri_utils::SolcManager::new().is_err() {
+            eprintln!("skipping revm_backend_catches_a_real_missing_only_owner_bug_end_to_end: solc unavailable in this environment");
+            return;
+        }
+
+        let config = FuzzConfig {
+            seed: 2,
+            max_runs: 200,
+            sequence_depth: 4,
+            actors: vec![[1u8; 20], [2u8; 20], [3u8; 20]],
+        };
+
+        let violation = match fuzz_solidity_source(VULNERABLE_OWNABLE_SOURCE, config) {
+            Ok(Some(v)) => v,
+            Ok(None) => panic!(
+                "fuzzer ran to completion without finding VulnerableOwnable's known missing-onlyOwner bug"
+            ),
+            Err(e) => panic!("fuzz_solidity_source failed unexpectedly: {e:#}"),
+        };
+
+        assert_eq!(violation.invariant_name, "transferOwnership authorization");
         assert!(!violation.sequence.is_empty());
     }
 }
