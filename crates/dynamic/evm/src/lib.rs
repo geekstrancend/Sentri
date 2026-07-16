@@ -12,6 +12,8 @@
 
 #[cfg(feature = "revm-backend")]
 pub mod backend;
+#[cfg(feature = "revm-backend")]
+pub mod reentrancy_inspector;
 pub mod rpc;
 pub mod solc_bridge;
 pub mod types;
@@ -452,5 +454,122 @@ contract VulnerableOwnable {
 
         assert_eq!(violation.invariant_name, "transferOwnership authorization");
         assert!(!violation.sequence.is_empty());
+    }
+
+    /// A classic reentrancy pair: `VulnerableBank.withdraw` sends ETH to the
+    /// caller *before* zeroing their balance (a checks-effects-interactions
+    /// violation), and `Attacker.receive` re-enters `withdraw` to drain more
+    /// than it deposited. Real Solidity, compiled and executed — this is the
+    /// proof that the `ReentrancyInspector` produces correct traces from
+    /// live EVM execution and that `detect_reentrancy` flags them.
+    const REENTRANCY_SOURCE: &str = r#"
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract VulnerableBank {
+    mapping(address => uint256) public balanceOf;
+
+    function deposit() external payable {
+        balanceOf[msg.sender] += msg.value;
+    }
+
+    function withdraw() external {
+        uint256 amount = balanceOf[msg.sender];
+        require(amount > 0, "no balance");
+        (bool ok, ) = msg.sender.call{value: amount}("");
+        require(ok, "send failed");
+        balanceOf[msg.sender] = 0; // effect after interaction: the bug
+    }
+}
+
+contract Attacker {
+    VulnerableBank public bank;
+    uint256 public reenters;
+
+    constructor(address payable b) {
+        bank = VulnerableBank(b);
+    }
+
+    function attack() external payable {
+        bank.deposit{value: msg.value}();
+        bank.withdraw();
+    }
+
+    receive() external payable {
+        if (reenters < 1) {
+            reenters++;
+            bank.withdraw();
+        }
+    }
+}
+"#;
+
+    /// Pulls one named contract's creation bytecode out of solc's
+    /// combined-json output (which keys entries as `"path.sol:Name"`).
+    fn init_code_for(output: &sentri_utils::SolcOutput, name: &str) -> Vec<u8> {
+        let suffix = format!(":{name}");
+        let entry = output
+            .contracts
+            .iter()
+            .find(|(k, _)| k.ends_with(&suffix))
+            .unwrap_or_else(|| panic!("contract {name} not found in solc output"))
+            .1;
+        solc_bridge::compiled_contract_from_solc_entry(entry)
+            .expect("named contract should have parseable bytecode")
+            .init_code
+    }
+
+    #[test]
+    fn revm_backend_catches_real_reentrancy_end_to_end() {
+        use crate::backend::RevmBackend;
+        use sentri_dynamic_core::detect_reentrancy;
+
+        let Ok(solc) = sentri_utils::SolcManager::new() else {
+            eprintln!("skipping revm_backend_catches_real_reentrancy_end_to_end: solc unavailable in this environment");
+            return;
+        };
+        let output = solc
+            .get_ast_for_source(REENTRANCY_SOURCE, "reentrancy.sol")
+            .expect("reentrancy source should compile");
+
+        let bank_init = init_code_for(&output, "VulnerableBank");
+        let attacker_init = init_code_for(&output, "Attacker");
+
+        // Deploy the bank as the primary contract.
+        let deployer = [0xAAu8; 20];
+        let mut backend =
+            RevmBackend::deploy(bank_init, deployer).expect("bank deployment should succeed");
+        let bank_addr = backend.contract_address();
+
+        // Deploy the attacker into the same state, passing the bank address
+        // as its constructor argument (ABI-encoded: left-padded to 32 bytes).
+        let mut attacker_init_with_arg = attacker_init;
+        let mut arg_word = [0u8; 32];
+        arg_word[12..32].copy_from_slice(&bank_addr);
+        attacker_init_with_arg.extend_from_slice(&arg_word);
+        let attacker_addr = backend
+            .deploy_secondary(attacker_init_with_arg, deployer)
+            .expect("attacker deployment should succeed");
+
+        // Fund an EOA to originate the attack transaction.
+        let eoa = [0x11u8; 20];
+        backend.fund_actors(&[eoa]);
+
+        // attack() is payable: the value funds the initial deposit that the
+        // attacker then re-entrantly over-withdraws.
+        let attack_selector = solc_bridge::selector_for("attack", &[]);
+        let outcome =
+            backend.call_address(attacker_addr, attack_selector.to_vec(), eoa, 1_000_000u128);
+        assert!(
+            !outcome.reverted,
+            "the attack transaction itself should succeed (that's what makes it an exploit)"
+        );
+
+        let report = detect_reentrancy(backend.last_call_trace())
+            .expect("the inspector trace of a real reentrancy attack must be flagged");
+        assert_eq!(
+            report.address, bank_addr,
+            "the re-entered contract should be identified as the bank"
+        );
     }
 }

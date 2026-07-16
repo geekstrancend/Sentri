@@ -1,21 +1,24 @@
 //! `revm`-backed [`ExecutionBackend`] for real Solidity bytecode.
 //!
-//! Compiles cleanly under CI (verified: this crate was written in a
-//! network-isolated environment that couldn't fetch `revm` itself, so this
-//! file's first real compile happened in CI). What's still unproven: no
-//! test yet deploys an actual (deliberately vulnerable) Solidity contract
-//! through this backend and confirms the fuzzer catches a real violation
-//! end-to-end — the revm equivalent of the MockBackend proof in
-//! `sentri-dynamic-core`. That's the next thing to add before leaning on
-//! this in anger.
+//! Every call runs under the [`ReentrancyInspector`], so `last_call_trace`
+//! returns the real call/storage structure of the execution — that's what
+//! makes [`sentri_dynamic_core::ReentrancyInvariant`] fire on actual
+//! compiled contracts, not just the synthetic-trace mock proof in
+//! `sentri-dynamic-core`.
+//!
+//! UNVERIFIED OFFLINE: this crate is written where `revm` can't be fetched,
+//! so the exact `revm = 14` API used here (the inspector wiring via
+//! `with_external_context`/`inspector_handle_register`, `CallInputs`/
+//! `Interpreter` field names) is validated by CI, not locally.
 
+use crate::reentrancy_inspector::ReentrancyInspector;
 use crate::types::CompiledContract;
 use revm::db::InMemoryDB;
 use revm::primitives::{
     AccountInfo, Address, Bytecode, Bytes, ExecutionResult, Output, TransactTo, U256,
 };
-use revm::Evm;
-use sentri_dynamic_core::{CallOutcome, EncodedCall, ExecutionBackend};
+use revm::{inspector_handle_register, Evm};
+use sentri_dynamic_core::{CallOutcome, EncodedCall, ExecutionBackend, TraceEvent};
 
 /// A deployed contract instance plus the in-memory state it lives in.
 /// `snapshot`/`revert_to` clone the whole DB rather than diffing it — state
@@ -25,6 +28,10 @@ pub struct RevmBackend {
     db: InMemoryDB,
     contract_address: Address,
     snapshots: Vec<InMemoryDB>,
+    /// The execution trace of the most recent [`RevmBackend::call`],
+    /// produced by the [`ReentrancyInspector`], for
+    /// [`sentri_dynamic_core::detect_reentrancy`].
+    last_trace: Vec<TraceEvent>,
 }
 
 impl RevmBackend {
@@ -81,6 +88,7 @@ impl RevmBackend {
             db,
             contract_address,
             snapshots: Vec::new(),
+            last_trace: Vec::new(),
         })
     }
 
@@ -102,6 +110,7 @@ impl RevmBackend {
             db,
             contract_address: address,
             snapshots: Vec::new(),
+            last_trace: Vec::new(),
         }
     }
 
@@ -122,18 +131,82 @@ impl RevmBackend {
     pub fn contract_address(&self) -> [u8; 20] {
         self.contract_address.into_array()
     }
-}
 
-impl ExecutionBackend for RevmBackend {
-    fn call(&mut self, call: &EncodedCall) -> CallOutcome {
+    /// Deploy a second contract into the *same* state as the primary one
+    /// (e.g. an attacker contract that needs to interact with the contract
+    /// under test), returning its address. `init_code` should already have
+    /// any ABI-encoded constructor arguments appended.
+    pub fn deploy_secondary(
+        &mut self,
+        init_code: Vec<u8>,
+        deployer: [u8; 20],
+    ) -> anyhow::Result<[u8; 20]> {
+        let deployer_addr = Address::from(deployer);
+        self.db.insert_account_info(
+            deployer_addr,
+            AccountInfo {
+                balance: U256::from(u128::MAX),
+                ..Default::default()
+            },
+        );
+
         let db = std::mem::take(&mut self.db);
         let mut evm = Evm::builder()
             .with_db(db)
             .modify_tx_env(|tx| {
-                tx.caller = Address::from(call.caller);
-                tx.transact_to = TransactTo::Call(self.contract_address);
-                tx.data = Bytes::from(call.calldata.clone());
-                tx.value = U256::from(call.value);
+                tx.caller = deployer_addr;
+                tx.transact_to = TransactTo::Create;
+                tx.data = Bytes::from(init_code);
+                tx.value = U256::ZERO;
+            })
+            .build();
+
+        let result = evm
+            .transact_commit()
+            .map_err(|e| anyhow::anyhow!("secondary deployment failed: {e:?}"));
+        self.db = evm.context.evm.db.clone();
+
+        match result? {
+            ExecutionResult::Success {
+                output: Output::Create(_, Some(addr)),
+                ..
+            } => Ok(addr.into_array()),
+            ExecutionResult::Success { .. } => {
+                anyhow::bail!("secondary deployment returned no contract address")
+            }
+            ExecutionResult::Revert { output, .. } => {
+                anyhow::bail!("secondary constructor reverted: 0x{}", hex::encode(output))
+            }
+            ExecutionResult::Halt { reason, .. } => {
+                anyhow::bail!("secondary constructor halted: {reason:?}")
+            }
+        }
+    }
+
+    /// Execute a call to an arbitrary `target` address (not just the primary
+    /// contract), recording its trace. The trait-level
+    /// [`ExecutionBackend::call`] is this against the primary contract.
+    pub fn call_address(
+        &mut self,
+        target: [u8; 20],
+        calldata: Vec<u8>,
+        caller: [u8; 20],
+        value: u128,
+    ) -> CallOutcome {
+        let db = std::mem::take(&mut self.db);
+        // Run with the reentrancy inspector as the external context so this
+        // call's full call/storage structure is recorded. `transact_commit`
+        // requires the inspector handler to be registered, which
+        // `inspector_handle_register` does.
+        let mut evm = Evm::builder()
+            .with_db(db)
+            .with_external_context(ReentrancyInspector::default())
+            .append_handler_register(inspector_handle_register)
+            .modify_tx_env(|tx| {
+                tx.caller = Address::from(caller);
+                tx.transact_to = TransactTo::Call(Address::from(target));
+                tx.data = Bytes::from(calldata);
+                tx.value = U256::from(value);
             })
             .build();
 
@@ -157,8 +230,20 @@ impl ExecutionBackend for RevmBackend {
             },
         };
 
+        self.last_trace = evm.context.external.take_events();
         self.db = evm.context.evm.db.clone();
         outcome
+    }
+}
+
+impl ExecutionBackend for RevmBackend {
+    fn call(&mut self, call: &EncodedCall) -> CallOutcome {
+        self.call_address(
+            self.contract_address.into_array(),
+            call.calldata.clone(),
+            call.caller,
+            call.value,
+        )
     }
 
     fn snapshot(&mut self) -> u64 {
@@ -170,6 +255,10 @@ impl ExecutionBackend for RevmBackend {
         if let Some(state) = self.snapshots.get(snapshot as usize) {
             self.db = state.clone();
         }
+    }
+
+    fn last_call_trace(&self) -> &[TraceEvent] {
+        &self.last_trace
     }
 }
 
