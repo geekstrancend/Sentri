@@ -1,0 +1,37 @@
+[package]
+name = "sentri-dynamic-evm"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+description = "Sentri: revm-backed dynamic invariant fuzzing for EVM/Solidity contracts."
+
+keywords = ["sentri", "evm", "fuzzing", "invariant", "security"]
+categories = ["development-tools", "development-tools::testing"]
+readme = "README.md"
+documentation = "https://docs.rs/sentri-dynamic-evm"
+
+[features]
+# Not on by default: plain `cargo check`/`cargo metadata` (what IDE
+# tooling like rust-analyzer calls constantly) must not require fetching
+# `revm` just to typecheck the ABI/bytecode parsing bridge. Consumers that
+# actually need the real execution backend (the CLI, this crate's own
+# revm-backend tests) opt in explicitly with `--features revm-backend`.
+default = []
+revm-backend = ["dep:revm"]
+
+[dependencies]
+sentri-dynamic-core.workspace = true
+sentri-core.workspace = true
+sentri-utils.workspace = true
+anyhow.workspace = true
+serde_json.workspace = true
+rand.workspace = true
+revm = { workspace = true, optional = true }
+sha3.workspace = true
+hex.workspace = true
+
+[dev-dependencies]
