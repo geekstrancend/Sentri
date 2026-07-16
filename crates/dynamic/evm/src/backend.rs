@@ -29,7 +29,6 @@ use sentri_dynamic_core::{CallOutcome, EncodedCall, ExecutionBackend};
 pub struct RevmBackend {
     db: InMemoryDB,
     contract_address: Address,
-    default_caller: Address,
     snapshots: Vec<InMemoryDB>,
 }
 
@@ -81,12 +80,11 @@ impl RevmBackend {
         // calls with a nonzero value don't spuriously revert on
         // insufficient balance — that's not the class of bug this engine
         // is trying to find.
-        let db = evm.context.evm.db;
+        let db = evm.context.evm.db.clone();
 
         Ok(Self {
             db,
             contract_address,
-            default_caller: deployer_addr,
             snapshots: Vec::new(),
         })
     }
@@ -143,7 +141,7 @@ impl ExecutionBackend for RevmBackend {
             },
         };
 
-        self.db = evm.context.evm.db;
+        self.db = evm.context.evm.db.clone();
         outcome
     }
 
@@ -163,10 +161,10 @@ impl ExecutionBackend for RevmBackend {
 /// `sentri_dynamic_core::fuzz` calls this many times (once per attempt,
 /// more during shrinking) — each call redeploys from the same creation
 /// bytecode so every attempt starts from an identical genesis state.
-pub fn backend_factory(
-    contract: &CompiledContract,
-    actors: &[[u8; 20]],
-) -> impl Fn() -> Box<dyn ExecutionBackend> + '_ {
+pub fn backend_factory<'a>(
+    contract: &'a CompiledContract,
+    actors: &'a [[u8; 20]],
+) -> impl Fn() -> Box<dyn ExecutionBackend> + 'a {
     move || {
         let deployer = actors.first().copied().unwrap_or([0xAAu8; 20]);
         let mut backend = RevmBackend::deploy(contract.init_code.clone(), deployer)
