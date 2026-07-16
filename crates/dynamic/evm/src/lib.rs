@@ -174,3 +174,69 @@ mod tests {
         assert!(auto_detect_invariants(&functions, &[]).is_empty());
     }
 }
+
+/// The one thing none of the offline tests elsewhere in this workspace can
+/// prove: that the *real* revm/solc pipeline — actual compiled bytecode,
+/// actual EVM execution — catches a real bug, not just that it type-checks
+/// (see this module's doc comment history for why that was previously the
+/// open question). Needs solc, auto-downloaded by `SolcManager` if not
+/// already present, and therefore network; skips rather than fails if
+/// that's unavailable, matching `sentri-analyzer-evm`'s existing
+/// solc-unavailable fallback convention rather than introducing a new one.
+#[cfg(all(test, feature = "revm-backend"))]
+mod revm_integration_tests {
+    use super::*;
+
+    /// Deliberately vulnerable: `airdrop` credits a recipient's balance
+    /// without minting the corresponding supply, breaking
+    /// `sum(balanceOf) == totalSupply()` — the same "value created out of
+    /// thin air" bug shape as `sentri_dynamic_core`'s MockBackend proof,
+    /// but here as real Solidity compiled to real bytecode.
+    const VULNERABLE_TOKEN_SOURCE: &str = r#"
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract VulnerableToken {
+    mapping(address => uint256) public balanceOf;
+    uint256 public totalSupply;
+
+    function mint(address to, uint256 amount) public {
+        balanceOf[to] += amount;
+        totalSupply += amount;
+    }
+
+    function airdrop(address to, uint256 amount) public {
+        balanceOf[to] += amount;
+    }
+}
+"#;
+
+    #[test]
+    fn revm_backend_catches_a_real_conservation_bug_end_to_end() {
+        if sentri_utils::SolcManager::new().is_err() {
+            eprintln!("skipping revm_backend_catches_a_real_conservation_bug_end_to_end: solc unavailable in this environment");
+            return;
+        }
+
+        let config = FuzzConfig {
+            seed: 1,
+            max_runs: 300,
+            sequence_depth: 10,
+            actors: vec![[1u8; 20], [2u8; 20], [3u8; 20]],
+        };
+
+        let violation = match fuzz_solidity_source(VULNERABLE_TOKEN_SOURCE, config) {
+            Ok(Some(v)) => v,
+            Ok(None) => panic!(
+                "fuzzer ran to completion without finding VulnerableToken's known conservation bug"
+            ),
+            Err(e) => panic!("fuzz_solidity_source failed unexpectedly: {e:#}"),
+        };
+
+        assert_eq!(
+            violation.invariant_name,
+            "ERC20 conservation: sum(balanceOf) == totalSupply()"
+        );
+        assert!(!violation.sequence.is_empty());
+    }
+}
