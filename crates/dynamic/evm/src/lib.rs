@@ -18,7 +18,8 @@ pub mod types;
 pub use types::CompiledContract;
 
 #[cfg(feature = "revm-backend")]
-use sentri_dynamic_core::{fuzz, FuzzConfig, Invariant, Violation};
+use sentri_dynamic_core::{fuzz, FuzzConfig, Violation};
+use sentri_dynamic_core::{FunctionSpec, Invariant};
 
 /// Auto-detects standard invariants from a contract's function surface:
 /// currently, ERC20-shaped conservation (`totalSupply()` + `balanceOf(address)`
@@ -28,9 +29,12 @@ use sentri_dynamic_core::{fuzz, FuzzConfig, Invariant, Violation};
 /// Returns an empty list if nothing recognizable is present — dynamic
 /// fuzzing without an oracle can't find anything, so callers should treat
 /// an empty result as "nothing to check yet", not "contract is safe".
-#[cfg(feature = "revm-backend")]
+///
+/// Pure data in, data out — doesn't touch `revm`, so unlike the rest of
+/// this crate it's built and tested unconditionally (see the tests module
+/// below), not gated behind the `revm-backend` feature.
 pub fn auto_detect_invariants(
-    functions: &[sentri_dynamic_core::FunctionSpec],
+    functions: &[FunctionSpec],
     actors: &[[u8; 20]],
 ) -> Vec<Box<dyn Invariant>> {
     use sentri_dynamic_core::{ConservationInvariant, MonotonicInvariant};
@@ -68,7 +72,7 @@ pub fn auto_detect_invariants(
         let lower = f.name.to_lowercase();
         if MONOTONIC_NAME_HINTS
             .iter()
-            .any(|hint| lower.contains(&hint.to_lowercase()))
+            .any(|hint| lower.contains(hint.to_lowercase().as_str()))
         {
             invariants.push(Box::new(MonotonicInvariant::new(
                 format!("{} monotonicity", f.name),
@@ -111,6 +115,62 @@ pub fn fuzz_solidity_source(source: &str, config: FuzzConfig) -> anyhow::Result<
         );
     }
 
-    let factory = backend::backend_factory(&contract, &config.actors);
+    // `backend_factory` borrows `actors` for as long as the returned
+    // closure lives; `config` is about to be moved into `fuzz` below, so
+    // the factory needs its own copy rather than borrowing config.actors
+    // directly (a borrow of config.actors can't outlive config itself
+    // being consumed in the very same call).
+    let actors = config.actors.clone();
+    let factory = backend::backend_factory(&contract, &actors);
     Ok(fuzz(factory, &contract.functions, invariants, config))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use sentri_dynamic_core::ParamKind;
+
+    fn view_fn(name: &str, inputs: Vec<ParamKind>) -> FunctionSpec {
+        FunctionSpec::new(name, [0u8; 4], inputs, false)
+    }
+
+    #[test]
+    fn detects_erc20_conservation_when_both_functions_present() {
+        let functions = vec![
+            view_fn("totalSupply", vec![]),
+            view_fn("balanceOf", vec![ParamKind::Address]),
+        ];
+        let invariants = auto_detect_invariants(&functions, &[[1u8; 20]]);
+        assert!(invariants.iter().any(|i| i.name().contains("conservation")));
+    }
+
+    #[test]
+    fn skips_conservation_when_only_one_of_the_pair_is_present() {
+        let functions = vec![view_fn("totalSupply", vec![])];
+        let invariants = auto_detect_invariants(&functions, &[[1u8; 20]]);
+        assert!(!invariants.iter().any(|i| i.name().contains("conservation")));
+    }
+
+    #[test]
+    fn detects_monotonic_hints_case_insensitively() {
+        let functions = vec![view_fn("TotalAssets", vec![])];
+        let invariants = auto_detect_invariants(&functions, &[]);
+        assert!(invariants.iter().any(|i| i.name().contains("monotonicity")));
+    }
+
+    #[test]
+    fn ignores_mutating_functions_and_functions_with_arguments_for_monotonic_hints() {
+        let functions = vec![
+            FunctionSpec::new("totalAssets", [0u8; 4], vec![], true), // mutates -> not a getter
+            view_fn("checkpointFor", vec![ParamKind::Address]), // takes args -> not a plain accumulator getter
+        ];
+        let invariants = auto_detect_invariants(&functions, &[]);
+        assert!(invariants.is_empty());
+    }
+
+    #[test]
+    fn returns_empty_on_unrecognized_abi() {
+        let functions = vec![view_fn("frobnicate", vec![])];
+        assert!(auto_detect_invariants(&functions, &[]).is_empty());
+    }
 }
