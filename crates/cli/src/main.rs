@@ -251,6 +251,13 @@ struct FuzzArgs {
     /// Output file.
     #[arg(long)]
     file: Option<PathBuf>,
+
+    /// Run the dynamic/coverage-guided invariant fuzzer (deploys the
+    /// contract in-memory via revm, generates call sequences, and checks
+    /// auto-detected invariants after every call) instead of the default
+    /// source-mutation crash fuzzer. EVM only for now.
+    #[arg(long)]
+    dynamic: bool,
 }
 
 /// Arguments for the `report` subcommand.
@@ -2291,7 +2298,96 @@ fn run_detector_precision_fuzzers(iterations_per_fuzzer: usize) -> sentri_core::
     combined
 }
 
+/// Handle `sentri fuzz --dynamic`: real revm-backed execution instead of
+/// the source-mutation crash fuzzer above. Deploys each contract,
+/// auto-detects invariants from its ABI (ERC20-shaped conservation,
+/// monotonic accumulator getters), generates random call sequences, and on
+/// the first violation, shrinks it to a minimal reproduction and prints a
+/// proof-of-concept call trace.
+fn cmd_dynamic_fuzz(args: FuzzArgs, quiet: bool, verbose: bool) -> Result<()> {
+    if !matches!(args.chain, ChainArg::Evm) {
+        return Err(anyhow::anyhow!(
+            "--dynamic fuzzing currently only supports --chain evm (Solana/Move/Soroban need their own execution backends, not yet built)"
+        ));
+    }
+    if !args.path.exists() {
+        return Err(anyhow::anyhow!("Path not found: {}", args.path.display()));
+    }
+
+    let files = if args.path.is_dir() {
+        let mut files = Vec::new();
+        collect_source_files(&args.path, "sol", &mut files)?;
+        files
+    } else {
+        vec![args.path.clone()]
+    };
+    if files.is_empty() {
+        if !quiet {
+            eprintln!(
+                "⚠ No .sol files found under {}; nothing to fuzz",
+                args.path.display()
+            );
+        }
+        return Ok(());
+    }
+
+    // Fixed actor pool: address arguments and callers are drawn only from
+    // here (see sentri_dynamic_core::abi_encode's random_word for why an
+    // unbounded address universe breaks conservation-style invariants).
+    let actors: Vec<[u8; 20]> = (1u8..=4).map(|i| [i; 20]).collect();
+    let config = sentri_dynamic_core::FuzzConfig {
+        seed: args.seed.unwrap_or(0),
+        max_runs: args.iterations as usize,
+        sequence_depth: args.depth,
+        actors,
+    };
+
+    let mut found_violation = false;
+    for file in &files {
+        let source = std::fs::read_to_string(file)
+            .map_err(|e| anyhow::anyhow!("failed to read {}: {e}", file.display()))?;
+
+        if !quiet {
+            eprintln!(
+                "▶ Dynamically fuzzing {} (revm, {} runs, depth {})...",
+                file.display(),
+                config.max_runs,
+                config.sequence_depth
+            );
+        }
+
+        match sentri_dynamic_evm::fuzz_solidity_source(&source, config.clone()) {
+            Ok(Some(violation)) => {
+                found_violation = true;
+                println!("\n✗ {}", file.display());
+                println!("{}", sentri_dynamic_core::format_poc(&violation));
+            }
+            Ok(None) => {
+                if !quiet {
+                    eprintln!("  ✓ no violation found in {} runs", config.max_runs);
+                }
+            }
+            Err(e) => {
+                if verbose {
+                    eprintln!("  ⚠ skipped: {e:#}");
+                } else if !quiet {
+                    eprintln!("  ⚠ skipped: {e}");
+                }
+            }
+        }
+    }
+
+    if found_violation {
+        std::process::exit(1);
+    }
+    Ok(())
+}
+
 fn cmd_fuzz(args: FuzzArgs, quiet: bool, verbose: bool) -> Result<()> {
+    if args.dynamic {
+        return cmd_dynamic_fuzz(args, quiet, verbose);
+    }
+
     let chain_name = match args.chain {
         ChainArg::Evm => "EVM",
         ChainArg::Solana => "Solana",
