@@ -175,7 +175,10 @@ pub fn probe_deployed_contract(bytecode: Vec<u8>, contract_address: [u8; 20]) ->
     ) -> bool {
         fns.iter().all(|f| {
             let mut calldata = f.selector.to_vec();
-            calldata.extend(std::iter::repeat(0u8).take(32 * f.inputs.len()));
+            // Zero-fill one 32-byte word per argument (probing with default
+            // args; we only care whether the selector exists, i.e. doesn't
+            // revert on an unknown-function dispatch).
+            calldata.resize(4 + 32 * f.inputs.len(), 0u8);
             let outcome = backend.call(&EncodedCall {
                 function: f.clone(),
                 calldata,
@@ -522,7 +525,8 @@ contract Attacker {
     #[test]
     fn revm_backend_catches_real_reentrancy_end_to_end() {
         use crate::backend::RevmBackend;
-        use sentri_dynamic_core::detect_reentrancy;
+        // ExecutionBackend brings the `last_call_trace` trait method into scope.
+        use sentri_dynamic_core::{detect_reentrancy, ExecutionBackend};
 
         let Ok(solc) = sentri_utils::SolcManager::new() else {
             eprintln!("skipping revm_backend_catches_real_reentrancy_end_to_end: solc unavailable in this environment");
