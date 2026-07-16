@@ -80,13 +80,13 @@ fn random_word<R: Rng>(rng: &mut R, kind: ParamKind, actors: &[[u8; 20]]) -> [u8
 fn random_uint256<R: Rng>(rng: &mut R) -> [u8; 32] {
     let roll: u8 = rng.gen_range(0..10);
     match roll {
-        0 => [0u8; 32],                        // zero
+        0 => [0u8; 32], // zero
         1 => {
             let mut w = [0u8; 32];
             w[31] = 1;
             w
         } // one
-        2 => [0xFFu8; 32],                      // u256::MAX
+        2 => [0xFFu8; 32], // u256::MAX
         3 => {
             let mut w = [0u8; 32];
             w[0] = 0x80;
@@ -115,7 +115,12 @@ mod tests {
 
     #[test]
     fn encode_call_lays_out_selector_then_words() {
-        let f = FunctionSpec::new("f", [0xAA, 0xBB, 0xCC, 0xDD], vec![ParamKind::Uint256], true);
+        let f = FunctionSpec::new(
+            "f",
+            [0xAA, 0xBB, 0xCC, 0xDD],
+            vec![ParamKind::Uint256],
+            true,
+        );
         let mut word = [0u8; 32];
         word[31] = 7;
         let encoded = encode_call(&f, &[word]);
@@ -145,8 +150,14 @@ mod tests {
                 saw_max = true;
             }
         }
-        assert!(saw_zero, "edge-biased generator should hit zero over 200 samples");
-        assert!(saw_max, "edge-biased generator should hit u256::MAX over 200 samples");
+        assert!(
+            saw_zero,
+            "edge-biased generator should hit zero over 200 samples"
+        );
+        assert!(
+            saw_max,
+            "edge-biased generator should hit u256::MAX over 200 samples"
+        );
     }
 
     #[test]

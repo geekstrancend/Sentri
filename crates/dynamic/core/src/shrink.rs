@@ -13,7 +13,11 @@ use crate::sequence::{run_sequence, CallSequence};
 /// reproduces), which is the standard ddmin-style shrink loop — O(n^2) in
 /// the worst case, which is acceptable here since sequences are bounded by
 /// the configured fuzz depth (tens of calls, not thousands).
-pub fn shrink<F>(fresh_backend: F, seq: &CallSequence, invariants: &[Box<dyn Invariant>]) -> CallSequence
+pub fn shrink<F>(
+    fresh_backend: F,
+    seq: &CallSequence,
+    invariants: &[Box<dyn Invariant>],
+) -> CallSequence
 where
     F: Fn() -> Box<dyn ExecutionBackend>,
 {
@@ -55,9 +59,21 @@ mod tests {
     #[test]
     fn shrinks_a_long_irrelevant_sequence_down_to_the_single_triggering_call() {
         let functions = testing::counter_functions();
-        let incr = functions.iter().find(|f| f.selector == INCR).unwrap().clone();
-        let decr = functions.iter().find(|f| f.selector == DECR).unwrap().clone();
-        let value_fn = functions.iter().find(|f| f.selector == testing::VALUE).unwrap().clone();
+        let incr = functions
+            .iter()
+            .find(|f| f.selector == INCR)
+            .unwrap()
+            .clone();
+        let decr = functions
+            .iter()
+            .find(|f| f.selector == DECR)
+            .unwrap()
+            .clone();
+        let value_fn = functions
+            .iter()
+            .find(|f| f.selector == testing::VALUE)
+            .unwrap()
+            .clone();
 
         let call_of = |f: &crate::backend::FunctionSpec| EncodedCall {
             function: f.clone(),
@@ -79,7 +95,8 @@ mod tests {
         }
         let seq = CallSequence(calls);
 
-        let invariants: Vec<Box<dyn Invariant>> = vec![Box::new(MonotonicInvariant::new("value", value_fn))];
+        let invariants: Vec<Box<dyn Invariant>> =
+            vec![Box::new(MonotonicInvariant::new("value", value_fn))];
         let fresh = || -> Box<dyn ExecutionBackend> { Box::new(MockBackend::default()) };
 
         // Sanity check: the full sequence really does trigger the violation

@@ -16,10 +16,10 @@
 //! and fix whatever the compiler flags — this is the one piece of this
 //! change that needs that pass.
 
+use crate::types::CompiledContract;
 use revm::db::InMemoryDB;
 use revm::primitives::{AccountInfo, Address, Bytes, ExecutionResult, Output, TransactTo, U256};
 use revm::Evm;
-use crate::types::CompiledContract;
 use sentri_dynamic_core::{CallOutcome, EncodedCall, ExecutionBackend};
 
 /// A deployed contract instance plus the in-memory state it lives in.
@@ -131,12 +131,12 @@ impl ExecutionBackend for RevmBackend {
                 reverted: false,
                 return_data: data.to_vec(),
             },
-            Ok(ExecutionResult::Success { .. }) | Ok(ExecutionResult::Revert { .. }) | Ok(ExecutionResult::Halt { .. }) => {
-                CallOutcome {
-                    reverted: true,
-                    return_data: Vec::new(),
-                }
-            }
+            Ok(ExecutionResult::Success { .. })
+            | Ok(ExecutionResult::Revert { .. })
+            | Ok(ExecutionResult::Halt { .. }) => CallOutcome {
+                reverted: true,
+                return_data: Vec::new(),
+            },
             Err(_) => CallOutcome {
                 reverted: true,
                 return_data: Vec::new(),

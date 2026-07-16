@@ -37,7 +37,9 @@ pub fn auto_detect_invariants(
 
     let mut invariants: Vec<Box<dyn Invariant>> = Vec::new();
 
-    let total_supply = functions.iter().find(|f| f.name == "totalSupply" && f.inputs.is_empty());
+    let total_supply = functions
+        .iter()
+        .find(|f| f.name == "totalSupply" && f.inputs.is_empty());
     let balance_of = functions
         .iter()
         .find(|f| f.name == "balanceOf" && f.inputs.len() == 1);
@@ -64,8 +66,14 @@ pub fn auto_detect_invariants(
             continue;
         }
         let lower = f.name.to_lowercase();
-        if MONOTONIC_NAME_HINTS.iter().any(|hint| lower.contains(&hint.to_lowercase())) {
-            invariants.push(Box::new(MonotonicInvariant::new(format!("{} monotonicity", f.name), f.clone())));
+        if MONOTONIC_NAME_HINTS
+            .iter()
+            .any(|hint| lower.contains(&hint.to_lowercase()))
+        {
+            invariants.push(Box::new(MonotonicInvariant::new(
+                format!("{} monotonicity", f.name),
+                f.clone(),
+            )));
         }
     }
 

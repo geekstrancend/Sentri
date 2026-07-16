@@ -11,7 +11,11 @@ pub fn format_poc(violation: &Violation) -> String {
         violation.invariant_name,
         violation.message,
         violation.sequence.len(),
-        if violation.sequence.len() == 1 { "" } else { "s" }
+        if violation.sequence.len() == 1 {
+            ""
+        } else {
+            "s"
+        }
     ));
     for (i, call) in violation.sequence.0.iter().enumerate() {
         let args_hex = if call.calldata.len() > 4 {

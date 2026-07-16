@@ -2323,7 +2323,10 @@ fn cmd_dynamic_fuzz(args: FuzzArgs, quiet: bool, verbose: bool) -> Result<()> {
     };
     if files.is_empty() {
         if !quiet {
-            eprintln!("⚠ No .sol files found under {}; nothing to fuzz", args.path.display());
+            eprintln!(
+                "⚠ No .sol files found under {}; nothing to fuzz",
+                args.path.display()
+            );
         }
         return Ok(());
     }

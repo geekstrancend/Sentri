@@ -71,7 +71,8 @@ pub fn fuzz(
     let mut rng = SmallRng::seed_from_u64(config.seed);
 
     for _ in 0..config.max_runs {
-        let seq = generate_random_sequence(&mut rng, functions, &config.actors, config.sequence_depth);
+        let seq =
+            generate_random_sequence(&mut rng, functions, &config.actors, config.sequence_depth);
         if seq.is_empty() {
             continue;
         }
@@ -86,7 +87,9 @@ pub fn fuzz(
         // Re-run the shrunk sequence to get a Violation object whose
         // `sequence` field matches what shrink actually produced — `shrink`
         // itself only returns the CallSequence, not a fresh Violation.
-        return Some(run_sequence(replay_backend.as_mut(), &shrunk, &invariants).unwrap_or(violation));
+        return Some(
+            run_sequence(replay_backend.as_mut(), &shrunk, &invariants).unwrap_or(violation),
+        );
     }
     None
 }
@@ -99,8 +102,13 @@ mod tests {
     #[test]
     fn catches_monotonic_violation_and_shrinks_it() {
         let functions = testing::counter_functions();
-        let value_fn = functions.iter().find(|f| f.selector == testing::VALUE).unwrap().clone();
-        let invariants: Vec<Box<dyn Invariant>> = vec![Box::new(MonotonicInvariant::new("counter value", value_fn))];
+        let value_fn = functions
+            .iter()
+            .find(|f| f.selector == testing::VALUE)
+            .unwrap()
+            .clone();
+        let invariants: Vec<Box<dyn Invariant>> =
+            vec![Box::new(MonotonicInvariant::new("counter value", value_fn))];
 
         let config = FuzzConfig {
             seed: 7,
@@ -143,7 +151,11 @@ mod tests {
             .find(|f| f.selector == testing::TOTAL_SUPPLY)
             .unwrap()
             .clone();
-        let balance_of_fn = functions.iter().find(|f| f.selector == testing::BALANCE_OF).unwrap().clone();
+        let balance_of_fn = functions
+            .iter()
+            .find(|f| f.selector == testing::BALANCE_OF)
+            .unwrap()
+            .clone();
         let actors = vec![[1u8; 20], [2u8; 20], [3u8; 20]];
         let invariants: Vec<Box<dyn Invariant>> = vec![Box::new(ConservationInvariant::new(
             "token conservation",
@@ -181,11 +193,29 @@ mod tests {
             .find(|f| f.selector == testing::MINT)
             .unwrap()];
         let mut all = mint_only;
-        all.push(testing::token_functions().into_iter().find(|f| f.selector == testing::TOTAL_SUPPLY).unwrap());
-        all.push(testing::token_functions().into_iter().find(|f| f.selector == testing::BALANCE_OF).unwrap());
+        all.push(
+            testing::token_functions()
+                .into_iter()
+                .find(|f| f.selector == testing::TOTAL_SUPPLY)
+                .unwrap(),
+        );
+        all.push(
+            testing::token_functions()
+                .into_iter()
+                .find(|f| f.selector == testing::BALANCE_OF)
+                .unwrap(),
+        );
 
-        let total_supply_fn = all.iter().find(|f| f.selector == testing::TOTAL_SUPPLY).unwrap().clone();
-        let balance_of_fn = all.iter().find(|f| f.selector == testing::BALANCE_OF).unwrap().clone();
+        let total_supply_fn = all
+            .iter()
+            .find(|f| f.selector == testing::TOTAL_SUPPLY)
+            .unwrap()
+            .clone();
+        let balance_of_fn = all
+            .iter()
+            .find(|f| f.selector == testing::BALANCE_OF)
+            .unwrap()
+            .clone();
         let actors = vec![[1u8; 20], [2u8; 20]];
         let invariants: Vec<Box<dyn Invariant>> = vec![Box::new(ConservationInvariant::new(
             "token conservation",
@@ -201,7 +231,15 @@ mod tests {
             actors,
         };
 
-        let result = fuzz(|| Box::new(MockBackend::default()), &all, invariants, config);
-        assert!(result.is_none(), "mint-only sequences must never violate conservation");
+        let result = fuzz(
+            || Box::new(MockBackend::default()),
+            &all,
+            invariants,
+            config,
+        );
+        assert!(
+            result.is_none(),
+            "mint-only sequences must never violate conservation"
+        );
     }
 }

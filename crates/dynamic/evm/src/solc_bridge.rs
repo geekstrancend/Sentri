@@ -59,7 +59,11 @@ pub fn parse_abi(abi: &serde_json::Value) -> Vec<FunctionSpec> {
         let Some(name) = entry.get("name").and_then(|n| n.as_str()) else {
             continue;
         };
-        let inputs_json = entry.get("inputs").and_then(|i| i.as_array()).cloned().unwrap_or_default();
+        let inputs_json = entry
+            .get("inputs")
+            .and_then(|i| i.as_array())
+            .cloned()
+            .unwrap_or_default();
 
         let solidity_types: Vec<String> = inputs_json
             .iter()
@@ -84,7 +88,10 @@ pub fn parse_abi(abi: &serde_json::Value) -> Vec<FunctionSpec> {
             continue;
         }
 
-        let state_mutability = entry.get("stateMutability").and_then(|s| s.as_str()).unwrap_or("nonpayable");
+        let state_mutability = entry
+            .get("stateMutability")
+            .and_then(|s| s.as_str())
+            .unwrap_or("nonpayable");
         let mutates_state = !matches!(state_mutability, "view" | "pure");
         let payable = state_mutability == "payable";
 
@@ -116,10 +123,15 @@ pub fn parse_bytecode(bin: &str) -> anyhow::Result<Vec<u8>> {
 /// (keyed by `"path.sol:ContractName"`). solc's `--combined-json` output
 /// represents `abi` either as a nested JSON array or as a JSON-encoded
 /// string depending on version — both are handled here.
-pub fn compiled_contract_from_solc_entry(entry: &serde_json::Value) -> anyhow::Result<CompiledContract> {
-    let abi_value = entry.get("abi").ok_or_else(|| anyhow::anyhow!("solc output missing 'abi' field"))?;
+pub fn compiled_contract_from_solc_entry(
+    entry: &serde_json::Value,
+) -> anyhow::Result<CompiledContract> {
+    let abi_value = entry
+        .get("abi")
+        .ok_or_else(|| anyhow::anyhow!("solc output missing 'abi' field"))?;
     let abi = match abi_value {
-        serde_json::Value::String(s) => serde_json::from_str(s).map_err(|e| anyhow::anyhow!("failed to parse ABI string: {e}"))?,
+        serde_json::Value::String(s) => serde_json::from_str(s)
+            .map_err(|e| anyhow::anyhow!("failed to parse ABI string: {e}"))?,
         other => other.clone(),
     };
 
@@ -157,7 +169,10 @@ mod tests {
         // the keccak256 signature hashing here is correct without needing
         // a live solc/node to cross-check against.
         assert_eq!(selector_for("deposit", &[]), [0xd0, 0xe3, 0x0d, 0xb0]);
-        assert_eq!(selector_for("withdraw", &["uint256"]), [0x2e, 0x1a, 0x7d, 0x4d]);
+        assert_eq!(
+            selector_for("withdraw", &["uint256"]),
+            [0x2e, 0x1a, 0x7d, 0x4d]
+        );
     }
 
     #[test]
@@ -170,8 +185,14 @@ mod tests {
         assert!(names.contains(&"balanceOf"));
         assert!(names.contains(&"transfer"));
         assert!(names.contains(&"deposit"));
-        assert!(!names.contains(&"Transfer"), "events must not be parsed as callable functions");
-        assert!(!names.contains(&"unsupported"), "functions with unsupported param types must be skipped, not mis-encoded");
+        assert!(
+            !names.contains(&"Transfer"),
+            "events must not be parsed as callable functions"
+        );
+        assert!(
+            !names.contains(&"unsupported"),
+            "functions with unsupported param types must be skipped, not mis-encoded"
+        );
     }
 
     #[test]
@@ -180,7 +201,10 @@ mod tests {
         let functions = parse_abi(&abi);
 
         let total_supply = functions.iter().find(|f| f.name == "totalSupply").unwrap();
-        assert!(!total_supply.mutates_state, "view functions must not be treated as mutators");
+        assert!(
+            !total_supply.mutates_state,
+            "view functions must not be treated as mutators"
+        );
 
         let transfer = functions.iter().find(|f| f.name == "transfer").unwrap();
         assert!(transfer.mutates_state);
@@ -193,8 +217,14 @@ mod tests {
 
     #[test]
     fn parse_bytecode_handles_0x_prefix_and_rejects_empty() {
-        assert_eq!(parse_bytecode("0xdeadbeef").unwrap(), vec![0xde, 0xad, 0xbe, 0xef]);
-        assert_eq!(parse_bytecode("deadbeef").unwrap(), vec![0xde, 0xad, 0xbe, 0xef]);
+        assert_eq!(
+            parse_bytecode("0xdeadbeef").unwrap(),
+            vec![0xde, 0xad, 0xbe, 0xef]
+        );
+        assert_eq!(
+            parse_bytecode("deadbeef").unwrap(),
+            vec![0xde, 0xad, 0xbe, 0xef]
+        );
         assert!(parse_bytecode("").is_err());
     }
 

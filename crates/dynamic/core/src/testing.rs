@@ -38,7 +38,12 @@ pub fn counter_functions() -> Vec<FunctionSpec> {
 
 pub fn token_functions() -> Vec<FunctionSpec> {
     vec![
-        FunctionSpec::new("mint", MINT, vec![ParamKind::Address, ParamKind::Uint256], true),
+        FunctionSpec::new(
+            "mint",
+            MINT,
+            vec![ParamKind::Address, ParamKind::Uint256],
+            true,
+        ),
         FunctionSpec::new(
             "buggyCredit",
             BUGGY_CREDIT,
