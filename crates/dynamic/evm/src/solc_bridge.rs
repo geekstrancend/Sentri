@@ -3,15 +3,15 @@
 //! chain-agnostic [`FunctionSpec`]/[`CompiledContract`] shapes the dynamic
 //! fuzzer needs.
 //!
-//! UNVERIFIED IN THIS CHANGE (same caveat as `backend.rs`): no solc binary
-//! and no network to fetch one were available while writing this, so the
-//! JSON-shape assumptions below (`contracts[fqn].abi`, `.bin`, both
-//! sometimes JSON-encoded-as-a-string depending on solc version) are based
-//! on solc's documented `--combined-json` format, not a live sample from
-//! this exact toolchain. The pure parsing logic (JSON -> FunctionSpec, hex
-//! -> bytes, signature -> selector) has its own unit tests below using a
-//! hand-written ABI JSON fixture, so at least the *parsing* is proven
-//! correct independent of solc.
+//! The parsing logic (JSON -> FunctionSpec, hex -> bytes, signature ->
+//! selector) is proven correct by the unit tests below, including a
+//! cross-check against WETH9's real selector constants. What's still
+//! unverified: those tests use a hand-written ABI JSON fixture, not a live
+//! sample from an actual `solc --combined-json abi,bin` run, so the shape
+//! assumptions here (`contracts[fqn].abi` sometimes being a JSON-encoded
+//! string depending on solc version, the exact `bin` field name) haven't
+//! been checked against a real compiler yet — see `backend.rs`'s doc
+//! comment for the end-to-end test that would close this out.
 
 use crate::types::CompiledContract;
 use sentri_dynamic_core::{FunctionSpec, ParamKind};

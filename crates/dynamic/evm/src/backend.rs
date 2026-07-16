@@ -1,20 +1,13 @@
 //! `revm`-backed [`ExecutionBackend`] for real Solidity bytecode.
 //!
-//! UNVERIFIED IN THIS CHANGE: this file could not be compiled in the
-//! environment it was written in (no network access to fetch the `revm`
-//! crate, which is a declared-but-previously-unused workspace dependency —
-//! see the crate README). The `revm` public API shown here (the
-//! `Evm::builder()` / `with_db` / `modify_tx_env` / `TransactTo` /
-//! `ExecutionResult` idioms) has been stable across a wide range of recent
-//! revm versions, but exact type/method names for the pinned `revm = "14"`
-//! have not been checked against real docs. Before relying on this:
-//!
-//! ```text
-//! cargo build -p sentri-dynamic-evm
-//! ```
-//!
-//! and fix whatever the compiler flags — this is the one piece of this
-//! change that needs that pass.
+//! Compiles cleanly under CI (verified: this crate was written in a
+//! network-isolated environment that couldn't fetch `revm` itself, so this
+//! file's first real compile happened in CI). What's still unproven: no
+//! test yet deploys an actual (deliberately vulnerable) Solidity contract
+//! through this backend and confirms the fuzzer catches a real violation
+//! end-to-end — the revm equivalent of the MockBackend proof in
+//! `sentri-dynamic-core`. That's the next thing to add before leaning on
+//! this in anger.
 
 use crate::types::CompiledContract;
 use revm::db::InMemoryDB;
