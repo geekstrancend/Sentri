@@ -8,7 +8,7 @@
 
 use crate::abi_encode::{encode_call, random_args};
 use crate::backend::{EncodedCall, ExecutionBackend, FunctionSpec};
-use crate::invariant::Invariant;
+use crate::invariant::{CheckContext, Invariant};
 use rand::Rng;
 
 #[derive(Debug, Clone, Default)]
@@ -88,8 +88,17 @@ pub fn run_sequence(
     }
     for (step_idx, call) in sequence.0.iter().enumerate() {
         backend.call(call);
+        // Capture the mutating call's trace *now*, before any invariant's
+        // read-only calls overwrite the backend's last-trace buffer — so a
+        // trace-based invariant sees this call's execution regardless of
+        // the order invariants run in.
+        let trace = backend.last_call_trace().to_vec();
+        let ctx = CheckContext {
+            last_call: call,
+            trace: &trace,
+        };
         for invariant in invariants {
-            if let Some(message) = invariant.check(backend, call) {
+            if let Some(message) = invariant.check(backend, &ctx) {
                 return Some(Violation {
                     invariant_name: invariant.name().to_string(),
                     message,

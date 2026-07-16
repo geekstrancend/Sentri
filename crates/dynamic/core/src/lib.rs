@@ -17,16 +17,21 @@ pub mod invariant;
 pub mod poc;
 pub mod sequence;
 pub mod shrink;
+pub mod trace;
 pub mod u256;
 
 #[cfg(test)]
 mod testing;
 
 pub use backend::{CallOutcome, EncodedCall, ExecutionBackend, FunctionSpec, ParamKind};
-pub use invariant::{AccessControlInvariant, ConservationInvariant, Invariant, MonotonicInvariant};
+pub use invariant::{
+    AccessControlInvariant, CheckContext, ConservationInvariant, Invariant, MonotonicInvariant,
+    ReentrancyInvariant,
+};
 pub use poc::format_poc;
 pub use sequence::{generate_random_sequence, run_sequence, CallSequence, Violation};
 pub use shrink::shrink;
+pub use trace::{detect_reentrancy, ReentrancyReport, TraceEvent};
 
 use rand::rngs::SmallRng;
 use rand::SeedableRng;
@@ -322,6 +327,56 @@ mod tests {
         assert!(
             result.is_none(),
             "a correctly owner-gated transferOwnership must never be flagged"
+        );
+    }
+
+    #[test]
+    fn catches_reentrancy_from_the_call_trace() {
+        let functions = testing::vault_functions_vulnerable();
+        let invariants: Vec<Box<dyn Invariant>> =
+            vec![Box::new(ReentrancyInvariant::new("reentrancy"))];
+
+        let config = FuzzConfig {
+            seed: 1,
+            max_runs: 20,
+            sequence_depth: 3,
+            actors: vec![[1u8; 20], [2u8; 20]],
+        };
+
+        let violation = fuzz(
+            || Box::new(MockBackend::default()),
+            &functions,
+            invariants,
+            config,
+        )
+        .expect("the vulnerable withdraw's trace shows exploitable reentrancy — must be caught");
+
+        assert_eq!(violation.invariant_name, "reentrancy");
+        assert!(violation.message.contains("re-entered"));
+    }
+
+    #[test]
+    fn no_reentrancy_false_positive_on_guarded_or_cei_vaults() {
+        let functions = testing::vault_functions_safe();
+        let invariants: Vec<Box<dyn Invariant>> =
+            vec![Box::new(ReentrancyInvariant::new("reentrancy"))];
+
+        let config = FuzzConfig {
+            seed: 4,
+            max_runs: 200,
+            sequence_depth: 6,
+            actors: vec![[1u8; 20], [2u8; 20]],
+        };
+
+        let result = fuzz(
+            || Box::new(MockBackend::default()),
+            &functions,
+            invariants,
+            config,
+        );
+        assert!(
+            result.is_none(),
+            "guarded and CEI-correct withdraws must never be flagged as reentrancy"
         );
     }
 }

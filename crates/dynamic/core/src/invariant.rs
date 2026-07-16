@@ -7,19 +7,32 @@
 
 use crate::abi_encode::{decode_address, decode_uint256, encode_call};
 use crate::backend::{EncodedCall, ExecutionBackend, FunctionSpec};
+use crate::trace::{detect_reentrancy, TraceEvent};
 use crate::u256::{u256_add, u256_lt, u256_to_decimal};
 use std::cell::RefCell;
+
+/// Everything an [`Invariant::check`] needs about the call that just
+/// executed, beyond the backend's current state. Bundling these into one
+/// struct means adding a new observation later (extra trace detail, gas,
+/// events) doesn't churn every invariant's signature.
+pub struct CheckContext<'a> {
+    /// The mutating call that was just executed.
+    pub last_call: &'a EncodedCall,
+    /// The execution trace of that call (empty on backends that can't
+    /// observe execution structure — see
+    /// [`ExecutionBackend::last_call_trace`]). Captured once, right after
+    /// the mutating call, so it isn't clobbered by the read-only calls
+    /// other invariants issue during their own checks.
+    pub trace: &'a [TraceEvent],
+}
 
 pub trait Invariant {
     fn name(&self) -> &str;
 
-    /// Called after every call in a sequence, given the call that was just
-    /// executed. Returns `Some(message)` if the property is currently
-    /// violated. `last_call` matters for invariants that need to know *who*
-    /// made the change, not just what the resulting state is — e.g.
-    /// [`AccessControlInvariant`] checking whether a privileged state
-    /// change was actually made by a privileged caller.
-    fn check(&self, backend: &mut dyn ExecutionBackend, last_call: &EncodedCall) -> Option<String>;
+    /// Called after every call in a sequence, given a [`CheckContext`]
+    /// describing the call that was just executed. Returns `Some(message)`
+    /// if the property is currently violated.
+    fn check(&self, backend: &mut dyn ExecutionBackend, ctx: &CheckContext) -> Option<String>;
 
     /// Called once at the start of each sequence run (see
     /// [`crate::sequence::run_sequence`]), before any calls execute, with
@@ -90,11 +103,7 @@ impl Invariant for MonotonicInvariant {
         };
     }
 
-    fn check(
-        &self,
-        backend: &mut dyn ExecutionBackend,
-        _last_call: &EncodedCall,
-    ) -> Option<String> {
+    fn check(&self, backend: &mut dyn ExecutionBackend, _ctx: &CheckContext) -> Option<String> {
         let outcome = backend.call(&read_call(&self.read_fn, &[]));
         if outcome.reverted {
             return None;
@@ -149,11 +158,7 @@ impl Invariant for ConservationInvariant {
         &self.label
     }
 
-    fn check(
-        &self,
-        backend: &mut dyn ExecutionBackend,
-        _last_call: &EncodedCall,
-    ) -> Option<String> {
+    fn check(&self, backend: &mut dyn ExecutionBackend, _ctx: &CheckContext) -> Option<String> {
         let ts_outcome = backend.call(&read_call(&self.total_supply_fn, &[]));
         if ts_outcome.reverted {
             return None;
@@ -229,13 +234,13 @@ impl Invariant for AccessControlInvariant {
         *self.last_owner.borrow_mut() = owner;
     }
 
-    fn check(&self, backend: &mut dyn ExecutionBackend, last_call: &EncodedCall) -> Option<String> {
+    fn check(&self, backend: &mut dyn ExecutionBackend, ctx: &CheckContext) -> Option<String> {
         // Only the guarded function is supposed to be able to change
         // ownership. For every other call, just keep the baseline synced
         // to current state so a later check against the guarded function
         // compares against an up-to-date "before" value rather than a
         // stale one from several calls ago.
-        if last_call.function.selector != self.guarded_fn.selector {
+        if ctx.last_call.function.selector != self.guarded_fn.selector {
             if let Some(owner) = self.read_owner(backend) {
                 *self.last_owner.borrow_mut() = Some(owner);
             }
@@ -246,12 +251,12 @@ impl Invariant for AccessControlInvariant {
         let current_owner = self.read_owner(backend)?;
 
         let violated = match prev_owner {
-            Some(prev) if current_owner != prev && last_call.caller != prev => Some(format!(
+            Some(prev) if current_owner != prev && ctx.last_call.caller != prev => Some(format!(
                 "{}: owner changed from 0x{} to 0x{} via a call from non-owner 0x{}",
                 self.label,
                 hex_addr(&prev),
                 hex_addr(&current_owner),
-                hex_addr(&last_call.caller)
+                hex_addr(&ctx.last_call.caller)
             )),
             _ => None,
         };
@@ -262,4 +267,45 @@ impl Invariant for AccessControlInvariant {
 
 fn hex_addr(addr: &[u8; 20]) -> String {
     addr.iter().map(|b| format!("{:02x}", b)).collect()
+}
+
+/// Reentrancy detector. Unlike the state-comparison invariants, this one
+/// reads nothing from the backend after the fact — it inspects the
+/// execution *trace* of the call that just ran (see [`crate::trace`]) and
+/// flags the classic exploitable-reentrancy pattern: a contract re-entered
+/// by a non-reverting nested call that then writes its own storage after
+/// the re-entry (a checks-effects-interactions violation).
+///
+/// It fires only when the trace actually shows re-entry, so it's a no-op on
+/// backends that don't produce traces, and on runs where no re-entrant
+/// contract was ever in the call path. Triggering it in practice requires a
+/// re-entrant contract to be exercised (see the `revm` backend's reentrancy
+/// probe) — a purely EOA-driven call sequence can never produce re-entry,
+/// which is exactly why this is trace-based rather than state-based.
+pub struct ReentrancyInvariant {
+    label: String,
+}
+
+impl ReentrancyInvariant {
+    pub fn new(label: impl Into<String>) -> Self {
+        Self {
+            label: label.into(),
+        }
+    }
+}
+
+impl Invariant for ReentrancyInvariant {
+    fn name(&self) -> &str {
+        &self.label
+    }
+
+    fn check(&self, _backend: &mut dyn ExecutionBackend, ctx: &CheckContext) -> Option<String> {
+        detect_reentrancy(ctx.trace).map(|report| {
+            format!(
+                "{}: contract 0x{} was re-entered and wrote its own storage after the re-entry (checks-effects-interactions violation)",
+                self.label,
+                hex_addr(&report.address)
+            )
+        })
+    }
 }

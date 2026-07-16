@@ -80,4 +80,15 @@ pub trait ExecutionBackend {
 
     /// Restore state to a previously taken snapshot.
     fn revert_to(&mut self, snapshot: u64);
+
+    /// The execution trace of the most recent [`ExecutionBackend::call`],
+    /// for reentrancy analysis (see [`crate::trace`]). Backends that can't
+    /// observe execution structure return an empty slice (the default), in
+    /// which case [`crate::trace::detect_reentrancy`] simply never fires —
+    /// reentrancy checking is a no-op rather than an error on such a
+    /// backend. The `revm` backend overrides this via an execution
+    /// inspector.
+    fn last_call_trace(&self) -> &[crate::trace::TraceEvent] {
+        &[]
+    }
 }

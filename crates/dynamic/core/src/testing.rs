@@ -9,6 +9,7 @@
 //! one mock implementation instead of a bespoke one per test file.
 
 use crate::backend::{CallOutcome, EncodedCall, ExecutionBackend, FunctionSpec, ParamKind};
+use crate::trace::TraceEvent;
 use std::collections::HashMap;
 
 pub const INCR: [u8; 4] = [0x01, 0x00, 0x00, 0x00];
@@ -41,6 +42,23 @@ pub const SAFE_TRANSFER_OWNERSHIP: [u8; 4] = [0x22, 0x00, 0x00, 0x00];
 /// distinct from the `[1u8;20]..[4u8;20]` actor addresses tests use as
 /// "attacker" candidates, so "did a non-owner succeed" is unambiguous.
 pub const GENESIS_OWNER: [u8; 20] = [0xAA; 20];
+
+/// A vault `withdraw` that sends ETH to the caller *before* zeroing their
+/// balance — the classic reentrancy bug. Its synthetic trace shows the
+/// vault re-entered by a non-reverting nested call, with the balance write
+/// happening after the re-entry.
+pub const WITHDRAW_VULN: [u8; 4] = [0x30, 0x00, 0x00, 0x00];
+/// A `withdraw` protected by a `nonReentrant` guard: its trace shows the
+/// re-entrant inner call reverting.
+pub const WITHDRAW_GUARDED: [u8; 4] = [0x31, 0x00, 0x00, 0x00];
+/// A checks-effects-interactions-correct `withdraw`: its trace writes state
+/// before the external call, so the re-entry finds nothing to exploit.
+pub const WITHDRAW_CEI: [u8; 4] = [0x32, 0x00, 0x00, 0x00];
+
+/// The vault contract's own address in the synthetic reentrancy traces.
+pub const VAULT_ADDR: [u8; 20] = [0xC0; 20];
+/// The attacker contract's address in the synthetic reentrancy traces.
+pub const ATTACKER_ADDR: [u8; 20] = [0xA7; 20];
 
 pub fn counter_functions() -> Vec<FunctionSpec> {
     vec![
@@ -93,6 +111,21 @@ pub fn ownable_functions_safe() -> Vec<FunctionSpec> {
     ]
 }
 
+/// A vault whose only mutating entry point is the reentrancy-vulnerable
+/// `withdraw`.
+pub fn vault_functions_vulnerable() -> Vec<FunctionSpec> {
+    vec![FunctionSpec::new("withdraw", WITHDRAW_VULN, vec![], true)]
+}
+
+/// The two safe vault variants (guarded and CEI-correct), for proving the
+/// reentrancy invariant doesn't false-positive.
+pub fn vault_functions_safe() -> Vec<FunctionSpec> {
+    vec![
+        FunctionSpec::new("withdrawGuarded", WITHDRAW_GUARDED, vec![], true),
+        FunctionSpec::new("withdrawCei", WITHDRAW_CEI, vec![], true),
+    ]
+}
+
 #[derive(Clone)]
 struct MockState {
     counter: u128,
@@ -116,6 +149,74 @@ impl Default for MockState {
 pub struct MockBackend {
     state: MockState,
     snapshots: Vec<MockState>,
+    last_trace: Vec<TraceEvent>,
+}
+
+/// The synthetic execution trace for a reentrancy-vulnerable withdraw:
+/// vault re-entered by a non-reverting nested call, balance written after.
+fn vulnerable_withdraw_trace() -> Vec<TraceEvent> {
+    vec![
+        TraceEvent::CallBegin {
+            address: VAULT_ADDR,
+        },
+        TraceEvent::CallBegin {
+            address: ATTACKER_ADDR,
+        },
+        TraceEvent::CallBegin {
+            address: VAULT_ADDR,
+        },
+        TraceEvent::StorageWrite {
+            address: VAULT_ADDR,
+        },
+        TraceEvent::CallEnd { reverted: false },
+        TraceEvent::CallEnd { reverted: false },
+        TraceEvent::StorageWrite {
+            address: VAULT_ADDR,
+        },
+        TraceEvent::CallEnd { reverted: false },
+    ]
+}
+
+/// A guarded withdraw: the re-entrant inner frame reverts.
+fn guarded_withdraw_trace() -> Vec<TraceEvent> {
+    vec![
+        TraceEvent::CallBegin {
+            address: VAULT_ADDR,
+        },
+        TraceEvent::CallBegin {
+            address: ATTACKER_ADDR,
+        },
+        TraceEvent::CallBegin {
+            address: VAULT_ADDR,
+        },
+        TraceEvent::CallEnd { reverted: true },
+        TraceEvent::CallEnd { reverted: false },
+        TraceEvent::StorageWrite {
+            address: VAULT_ADDR,
+        },
+        TraceEvent::CallEnd { reverted: false },
+    ]
+}
+
+/// A CEI-correct withdraw: state is written before the external call.
+fn cei_withdraw_trace() -> Vec<TraceEvent> {
+    vec![
+        TraceEvent::CallBegin {
+            address: VAULT_ADDR,
+        },
+        TraceEvent::StorageWrite {
+            address: VAULT_ADDR,
+        },
+        TraceEvent::CallBegin {
+            address: ATTACKER_ADDR,
+        },
+        TraceEvent::CallBegin {
+            address: VAULT_ADDR,
+        },
+        TraceEvent::CallEnd { reverted: false },
+        TraceEvent::CallEnd { reverted: false },
+        TraceEvent::CallEnd { reverted: false },
+    ]
 }
 
 fn word_to_u128(word: &[u8]) -> u128 {
@@ -140,6 +241,15 @@ fn addr_from_calldata(calldata: &[u8]) -> [u8; 20] {
 impl ExecutionBackend for MockBackend {
     fn call(&mut self, call: &EncodedCall) -> CallOutcome {
         let selector: [u8; 4] = call.calldata[0..4].try_into().unwrap_or([0; 4]);
+        // Default: a trivial single-frame trace, so a stale reentrancy
+        // trace from an earlier vault call never lingers into an unrelated
+        // (e.g. read-only) call.
+        self.last_trace = vec![
+            TraceEvent::CallBegin {
+                address: VAULT_ADDR,
+            },
+            TraceEvent::CallEnd { reverted: false },
+        ];
         match selector {
             INCR => {
                 self.state.counter = self.state.counter.saturating_add(1);
@@ -246,6 +356,27 @@ impl ExecutionBackend for MockBackend {
                     return_data: vec![],
                 }
             }
+            WITHDRAW_VULN => {
+                self.last_trace = vulnerable_withdraw_trace();
+                CallOutcome {
+                    reverted: false,
+                    return_data: vec![],
+                }
+            }
+            WITHDRAW_GUARDED => {
+                self.last_trace = guarded_withdraw_trace();
+                CallOutcome {
+                    reverted: false,
+                    return_data: vec![],
+                }
+            }
+            WITHDRAW_CEI => {
+                self.last_trace = cei_withdraw_trace();
+                CallOutcome {
+                    reverted: false,
+                    return_data: vec![],
+                }
+            }
             _ => CallOutcome {
                 reverted: true,
                 return_data: vec![],
@@ -262,5 +393,9 @@ impl ExecutionBackend for MockBackend {
         if let Some(state) = self.snapshots.get(snapshot as usize) {
             self.state = state.clone();
         }
+    }
+
+    fn last_call_trace(&self) -> &[TraceEvent] {
+        &self.last_trace
     }
 }
