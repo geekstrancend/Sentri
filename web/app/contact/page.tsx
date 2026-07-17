@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { MarketingNav } from '@/components/layout/MarketingNav'
+import { AmbientBackground } from '@/components/ui/AmbientBackground'
 import { MarketingFooter } from '@/components/layout/MarketingFooter'
 import { Button } from '@/components/ui/Button'
 import { Mail, MessageSquare, Building2, CheckCircle2, ArrowRight, ShieldCheck, ChevronDown } from 'lucide-react'
@@ -39,8 +40,9 @@ export default function ContactPage() {
 
       <main className="flex-1">
         {/* Hero */}
-        <section className="px-6 py-20 border-b border-outline-variant bg-surface-container-lowest">
-          <div className="max-w-5xl mx-auto">
+        <section className="relative isolate overflow-hidden px-6 py-20 border-b border-outline-variant bg-surface-container-lowest">
+          <AmbientBackground spotlight={false} />
+          <div className="relative z-10 max-w-5xl mx-auto">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo/8 border border-indigo/20 mb-6">
               <MessageSquare size={14} className="text-on-secondary-container" />
               <span className="text-label-sm text-on-secondary-container">CONTACT SALES</span>

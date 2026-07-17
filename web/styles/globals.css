@@ -388,6 +388,64 @@
 .reveal-delay-2.is-visible,
 .reveal-delay-3.is-visible { opacity: 1; transform: translateY(0); }
 
+/* Stagger a grid/list's children in on scroll: the container gets `.reveal-stagger`
+   + a useReveal ref; children rise in sequence when it enters the viewport.
+   Following reading order, ~55ms apart (MD stagger guidance). */
+.reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity var(--dur-enter) var(--ease-out-expo),
+    transform var(--dur-enter) var(--ease-out-expo);
+}
+.reveal-stagger.is-visible > * {
+  opacity: 1;
+  transform: none;
+}
+.reveal-stagger.is-visible > *:nth-child(1) { transition-delay: 0.04s; }
+.reveal-stagger.is-visible > *:nth-child(2) { transition-delay: 0.10s; }
+.reveal-stagger.is-visible > *:nth-child(3) { transition-delay: 0.16s; }
+.reveal-stagger.is-visible > *:nth-child(4) { transition-delay: 0.22s; }
+.reveal-stagger.is-visible > *:nth-child(5) { transition-delay: 0.28s; }
+.reveal-stagger.is-visible > *:nth-child(6) { transition-delay: 0.34s; }
+.reveal-stagger.is-visible > *:nth-child(7) { transition-delay: 0.40s; }
+.reveal-stagger.is-visible > *:nth-child(8) { transition-delay: 0.46s; }
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal-stagger > * {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* Signature "blueprint" framing — a dashed hairline that says spec/schematic,
+   echoing the reference's dashed panels. Corner ticks reinforce the drafting
+   feel without extra markup. */
+.panel-dashed {
+  border: 1px dashed color-mix(in srgb, var(--on-surface) 20%, transparent);
+  position: relative;
+}
+.panel-dashed::before,
+.panel-dashed::after {
+  content: '';
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  border-color: var(--indigo);
+  border-style: solid;
+  opacity: 0.7;
+}
+.panel-dashed::before {
+  top: -1px;
+  left: -1px;
+  border-width: 1px 0 0 1px;
+}
+.panel-dashed::after {
+  bottom: -1px;
+  right: -1px;
+  border-width: 0 1px 1px 0;
+}
+
 /* Stagger delays for entrance animations following reading order */
 .stagger-1 { animation-delay: 0.06s; }
 .stagger-2 { animation-delay: 0.12s; }

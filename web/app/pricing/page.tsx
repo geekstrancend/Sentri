@@ -238,7 +238,7 @@ export default function PricingPage() {
         {/* ── Plan cards ── */}
         <section className="pb-20">
           <Container>
-            <div ref={cardsRef} className="reveal mx-auto grid max-w-5xl grid-cols-1 gap-5 md:grid-cols-3">
+            <div ref={cardsRef} className="reveal-stagger mx-auto grid max-w-5xl grid-cols-1 gap-5 md:grid-cols-3">
               {PLANS.map((plan) => {
                 const price = getPrice(plan.monthlyPrice)
                 return (

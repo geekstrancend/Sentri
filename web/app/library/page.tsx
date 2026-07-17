@@ -9,6 +9,7 @@ import { SeverityBadge } from '@/components/ui/SeverityBadge'
 import { AuthModal } from '@/components/ui/AuthModal'
 import { Container } from '@/components/ui/Section'
 import { Badge } from '@/components/ui/Badge'
+import { AmbientBackground } from '@/components/ui/AmbientBackground'
 import clsx from 'clsx'
 
 type Severity = 'critical' | 'high' | 'medium' | 'low'
@@ -100,8 +101,9 @@ export default function LibraryPage() {
 
       <main id="main" className="flex-1">
         {/* ── Hero ── */}
-        <section className="border-b border-outline-variant bg-surface-container-lowest py-14">
-          <Container>
+        <section className="relative isolate overflow-hidden border-b border-outline-variant bg-surface-container-lowest py-14">
+          <AmbientBackground spotlight={false} />
+          <Container className="relative z-10">
             <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
               <div>
                 <Badge tone="indigo" icon={<BookOpen size={13} />}>

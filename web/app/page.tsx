@@ -127,9 +127,10 @@ export default function HomePage() {
               </div>
             </div>
 
-            {/* Terminal */}
+            {/* Terminal — framed like a schematic panel (dashed + corner ticks) */}
             <div className="animate-fade-in-up stagger-3 lg:justify-self-end">
-              <div className="glass-panel rounded-2xl p-2 shadow-card-lg">
+              <div className="panel-dashed rounded-2xl p-2.5">
+              <div className="glass-panel rounded-xl p-2 shadow-card-lg">
                 <div className="flex items-center gap-2 px-3 py-2">
                   <span className="h-3 w-3 rounded-full bg-critical/70" />
                   <span className="h-3 w-3 rounded-full bg-high/70" />
@@ -152,6 +153,7 @@ export default function HomePage() {
                     ]}
                   />
                 </div>
+              </div>
               </div>
             </div>
           </Container>
@@ -208,7 +210,7 @@ export default function HomePage() {
               description="Static analysis, dynamic fuzzing, and CI enforcement — working from the same detector library."
             />
 
-            <div ref={featuresRef} className="reveal grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
+            <div ref={featuresRef} className="reveal-stagger grid grid-cols-1 gap-5 md:grid-cols-2 lg:grid-cols-3">
               <Card
                 interactive
                 className="group relative overflow-hidden p-8 lg:col-span-2"
@@ -265,7 +267,7 @@ export default function HomePage() {
               eyebrow="How it works"
               title="From code to coverage in minutes"
             />
-            <div ref={stepsRef} className="reveal grid grid-cols-1 gap-5 md:grid-cols-3">
+            <div ref={stepsRef} className="reveal-stagger grid grid-cols-1 gap-5 md:grid-cols-3">
               {[
                 { step: '01', icon: <GitBranch size={20} />, title: 'Connect your repo', description: 'Link GitHub, GitLab, or point the CLI at a directory. Solidity, Rust (Anchor), and Move supported.' },
                 { step: '02', icon: <Eye size={20} />, title: 'Deep scan & fuzz', description: '72 detectors run alongside dynamic invariant fuzzing and full data-flow analysis on every function.' },
@@ -296,7 +298,7 @@ export default function HomePage() {
               title="We study every major hack so you don't have to"
               description="Every invariant maps to a real-world exploit. Sentri would have flagged these before deployment."
             />
-            <div ref={exploitsRef} className="reveal grid grid-cols-1 gap-5 md:grid-cols-3">
+            <div ref={exploitsRef} className="reveal-stagger grid grid-cols-1 gap-5 md:grid-cols-3">
               {EXPLOITS.map((exploit) => (
                 <Card key={exploit.protocol} interactive className="relative overflow-hidden p-7">
                   <div className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-critical via-critical/40 to-transparent" />
@@ -406,7 +408,7 @@ export default function HomePage() {
               title="Plans for every stage"
               description="From indie developers to enterprise security teams."
             />
-            <div ref={pricingRef} className="reveal mx-auto grid max-w-5xl grid-cols-1 gap-5 md:grid-cols-3">
+            <div ref={pricingRef} className="reveal-stagger mx-auto grid max-w-5xl grid-cols-1 gap-5 md:grid-cols-3">
               <PricingCard
                 name="Starter"
                 price="$0"
