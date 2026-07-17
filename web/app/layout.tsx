@@ -1,23 +1,12 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, JetBrains_Mono } from 'next/font/google'
+import { GeistSans } from 'geist/font/sans'
+import { GeistMono } from 'geist/font/mono'
 import '../styles/globals.css'
 import { AuthProvider } from './providers'
 
-// Inter carries all UI and prose; JetBrains Mono is the "technical voice"
-// (code, labels, data, terminal). See DESIGN.md §3.
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
-  weight: ['400', '500', '600', '700'],
-})
-
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-jet',
-  weight: ['400', '500', '600'],
-})
+// Geist carries all UI and prose; Geist Mono is the "technical voice"
+// (code, labels, data, terminal, ASCII). See DESIGN.md §3. Self-hosted and
+// variable — no network fetch at build, no FOIT.
 
 const SITE_URL = 'https://sentri.dev'
 
@@ -67,7 +56,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${inter.variable} ${jetbrainsMono.variable}`}
+      className={`dark ${GeistSans.variable} ${GeistMono.variable}`}
       suppressHydrationWarning
     >
       <body>

@@ -10,10 +10,11 @@
 
 @layer base {
   :root {
-    /* Fonts (--font-inter / --font-jet are provided by next/font in app/layout.tsx) */
-    --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    /* Fonts — Geist / Geist Mono, self-hosted via the `geist` package and
+       wired in app/layout.tsx. */
+    --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
       'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    --font-mono: var(--font-jet), ui-monospace, 'SF Mono', Menlo, Consolas,
+    --font-mono: var(--font-geist-mono), ui-monospace, 'SF Mono', Menlo, Consolas,
       'Liberation Mono', monospace;
 
     /* Surfaces — elevation ramp (never pure black) */
@@ -415,6 +416,34 @@
   opacity: 0.12;
   mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 40%, transparent 100%);
   -webkit-mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 40%, transparent 100%);
+}
+
+/* ─────────────── ASCII texture ───────────────
+   The signature surface: a tiled field of monospace glyphs, echoing the
+   terminal output the product actually emits. Built as an inline SVG tile
+   rather than a bitmap so it stays crisp at any DPI and costs no request.
+   Kept far below the text contrast floor — it reads as texture, not noise. */
+.bg-ascii {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='168'%3E%3Cg font-family='monospace' font-size='12' fill='%23a4b3ff'%3E%3Ctext x='2' y='14'%3E01 .. :: 1101 +- 0x1f .: %3C/text%3E%3Ctext x='2' y='38'%3E:: 0xff -- 001 .: =+ 10 %3C/text%3E%3Ctext x='2' y='62'%3E1001 .: ++ :: 0b11 .. -%3C/text%3E%3Ctext x='2' y='86'%3E.. -+ 0x00 :: 110 =. 01%3C/text%3E%3Ctext x='2' y='110'%3E:+ 011 .. 0xde :: -- 1%3C/text%3E%3Ctext x='2' y='134'%3E10 :: .- 0101 .: ++ 0x%3C/text%3E%3Ctext x='2' y='158'%3E.: ++ 11 :: 0xad -- 00%3C/text%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat;
+  opacity: 0.055;
+  mask-image: radial-gradient(ellipse 75% 65% at 50% 35%, #000 30%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 75% 65% at 50% 35%, #000 30%, transparent 100%);
+}
+
+/* Slow vertical drift — the field reads as a live scan rather than wallpaper.
+   Transform-only, and frozen under prefers-reduced-motion. */
+@keyframes ascii-drift {
+  from { background-position: 0 0; }
+  to { background-position: 0 168px; }
+}
+.bg-ascii-drift {
+  animation: ascii-drift 90s linear infinite;
+}
+
+/* Dashed hairline — blueprint/spec framing for feature surfaces. */
+.rule-dashed {
+  border: 1px dashed color-mix(in srgb, var(--on-surface) 22%, transparent);
 }
 
 .gradient-text {

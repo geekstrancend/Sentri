@@ -251,7 +251,8 @@ export default function HomePage() {
         </section>
 
         {/* ───────────────────────── How it works ───────────────────────── */}
-        <section className="border-y border-outline-variant bg-surface-container-lowest py-16 sm:py-24">
+        <section className="relative overflow-hidden border-y border-outline-variant bg-surface-container-lowest py-16 sm:py-24">
+          <AmbientBackground spotlight={false} />
           <Container>
             <SectionHeading
               align="center"
@@ -318,7 +319,8 @@ export default function HomePage() {
         </section>
 
         {/* ───────────────────────── Reports ───────────────────────── */}
-        <section className="border-y border-outline-variant bg-surface-container-lowest py-16 sm:py-24">
+        <section className="relative overflow-hidden border-y border-outline-variant bg-surface-container-lowest py-16 sm:py-24">
+          <AmbientBackground spotlight={false} />
           <Container>
             <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-2">
               <div ref={reportsLeftRef} className="reveal">
@@ -469,7 +471,7 @@ export default function HomePage() {
         <section ref={ctaRef} className="reveal pb-24">
           <Container>
             <div className="relative overflow-hidden rounded-3xl border border-indigo/30 bg-gradient-to-br from-indigo/10 via-surface-container-low to-surface-container-lowest p-10 text-center sm:p-16">
-              <AmbientBackground grid spotlight={false} />
+              <AmbientBackground spotlight={false} />
               <div className="pointer-events-none absolute -top-32 left-1/2 h-[380px] w-[600px] -translate-x-1/2 rounded-full bg-indigo/15 blur-3xl" />
               <div className="relative">
                 <Badge tone="indigo" icon={<ShieldCheck size={13} />} className="mx-auto">

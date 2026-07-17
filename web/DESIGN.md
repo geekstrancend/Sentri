@@ -45,18 +45,22 @@ and focus, never as decoration.
 1. **Substance is the aesthetic.** Real terminal output, real finding cards,
    real numbers are the hero visuals. Design frames them; it doesn't replace
    them.
-2. **Two voices: sans + mono.** Inter carries UI and prose (calm, legible).
-   JetBrains Mono is the _technical voice_ — labels, code, data, badges,
-   terminal, chain names. The mono/sans duality **is** the brand personality;
-   we don't need a decorative serif to be distinctive.
-3. **Motion means something.** Every animation expresses cause→effect or
+2. **Two voices: sans + mono.** Geist carries UI and prose (calm, legible,
+   engineered). Geist Mono is the _technical voice_ — labels, code, data,
+   badges, terminal, chain names. The mono/sans duality **is** the brand
+   personality; we don't need a decorative serif to be distinctive.
+3. **The surface is a terminal.** The signature texture is a tiled field of
+   monospace glyphs (`.bg-ascii`) drifting slowly behind the content — the
+   product's own output, used as wallpaper. It sits far below the contrast
+   floor: texture, never noise.
+4. **Motion means something.** Every animation expresses cause→effect or
    spatial continuity (entrance from below = deeper, staggered reveals track
-   reading order). No motion that's purely ornamental. Always honors
-   `prefers-reduced-motion`.
-4. **Elevation is a system, not vibes.** A fixed surface + shadow + glow scale.
+   reading order). Ambient motion stays slow and near-subliminal. No motion
+   that's purely ornamental. Always honors `prefers-reduced-motion`.
+5. **Elevation is a system, not vibes.** A fixed surface + shadow + glow scale.
    Cards, popovers, and modals each sit at a defined tier; shadows are never
    ad-hoc.
-5. **Accessible by construction.** ≥4.5:1 text contrast on every surface,
+6. **Accessible by construction.** ≥4.5:1 text contrast on every surface,
    visible focus rings, semantic tokens (never raw hex in components),
    keyboard-complete, color never the sole signal (severity always pairs a
    label).
