@@ -418,6 +418,34 @@
   }
 }
 
+/* Scanline sweep — a light bar drifting down a panel, evoking the product's
+   own "scanning". Used on the hero terminal. Transform/opacity only. */
+@keyframes scan-sweep {
+  0% { transform: translateY(-8%); opacity: 0; }
+  8% { opacity: 0.9; }
+  92% { opacity: 0.9; }
+  100% { transform: translateY(108%); opacity: 0; }
+}
+.scanline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 46%;
+  pointer-events: none;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    color-mix(in srgb, var(--indigo) 12%, transparent) 55%,
+    color-mix(in srgb, var(--indigo-bright) 22%, transparent) 92%,
+    transparent
+  );
+  mix-blend-mode: screen;
+  animation: scan-sweep 4.5s var(--ease-out-quart) infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .scanline { animation: none; opacity: 0; }
+}
+
 /* Signature "blueprint" framing — a dashed hairline that says spec/schematic,
    echoing the reference's dashed panels. Corner ticks reinforce the drafting
    feel without extra markup. */

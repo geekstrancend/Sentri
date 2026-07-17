@@ -1,6 +1,9 @@
+'use client'
+
 import { ReactNode } from 'react'
 import clsx from 'clsx'
 import { Badge } from './Badge'
+import { useReveal } from '../hooks/useReveal'
 
 interface ContainerProps {
   children: ReactNode
@@ -43,10 +46,12 @@ export function SectionHeading({
   align = 'left',
   className,
 }: SectionHeadingProps) {
+  const ref = useReveal()
   return (
     <div
+      ref={ref}
       className={clsx(
-        'flex flex-col gap-4',
+        'reveal flex flex-col gap-4',
         align === 'center' && 'items-center text-center',
         className,
       )}

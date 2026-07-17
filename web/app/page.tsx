@@ -130,7 +130,8 @@ export default function HomePage() {
             {/* Terminal — framed like a schematic panel (dashed + corner ticks) */}
             <div className="animate-fade-in-up stagger-3 lg:justify-self-end">
               <div className="panel-dashed rounded-2xl p-2.5">
-              <div className="glass-panel rounded-xl p-2 shadow-card-lg">
+              <div className="glass-panel relative overflow-hidden rounded-xl p-2 shadow-card-lg">
+                <div className="scanline" aria-hidden />
                 <div className="flex items-center gap-2 px-3 py-2">
                   <span className="h-3 w-3 rounded-full bg-critical/70" />
                   <span className="h-3 w-3 rounded-full bg-high/70" />
