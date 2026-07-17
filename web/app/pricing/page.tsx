@@ -1,65 +1,81 @@
 'use client'
 
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import Link from 'next/link'
-import { Check, X, ArrowRight, ChevronDown, ShieldCheck } from 'lucide-react'
+import { Check, Minus, ChevronDown } from 'lucide-react'
 import { useReveal } from '@/components/hooks/useReveal'
 import { MarketingNav } from '@/components/layout/MarketingNav'
 import { MarketingFooter } from '@/components/layout/MarketingFooter'
 import { Button } from '@/components/ui/Button'
 import { AuthModal } from '@/components/ui/AuthModal'
+import { Container, SectionHeading } from '@/components/ui/Section'
+import { Badge } from '@/components/ui/Badge'
+import { AmbientBackground } from '@/components/ui/AmbientBackground'
 import clsx from 'clsx'
 
 type BillingCycle = 'monthly' | 'annual'
+type PlanId = 'starter' | 'pro' | 'enterprise'
 
-const PLANS = [
+const PLANS: {
+  id: PlanId
+  name: string
+  description: string
+  monthlyPrice: number | null
+  cta: string
+  ctaVariant: 'primary' | 'secondary'
+  featured: boolean
+  highlights: string[]
+}[] = [
   {
     id: 'starter',
     name: 'Starter',
-    description: 'For indie auditors & early-stage projects',
+    description: 'For indie auditors and early-stage projects',
     monthlyPrice: 0,
-    cta: 'Get Started Free',
-    ctaVariant: 'secondary' as const,
+    cta: 'Get started free',
+    ctaVariant: 'secondary',
     featured: false,
-    badge: null,
+    highlights: ['5 scans per month', 'Public detector library', 'PDF report export'],
   },
   {
     id: 'pro',
     name: 'Professional',
     description: 'For teams shipping to production',
     monthlyPrice: 499,
-    cta: 'Start Free Trial',
-    ctaVariant: 'primary' as const,
+    cta: 'Start free trial',
+    ctaVariant: 'primary',
     featured: true,
-    badge: 'MOST POPULAR',
+    highlights: ['Unlimited scans', 'Full detector library + AI co-auditor', 'CI/CD and REST API'],
   },
   {
     id: 'enterprise',
     name: 'Enterprise',
     description: 'For organisations securing billions',
     monthlyPrice: null,
-    cta: 'Contact Sales',
-    ctaVariant: 'secondary' as const,
+    cta: 'Contact sales',
+    ctaVariant: 'secondary',
     featured: false,
-    badge: null,
+    highlights: ['On-prem deployment', 'Private detector repo', '24/7 advisor + SLA'],
   },
 ]
 
-const COMPARISON_ROWS = [
+const COMPARISON_ROWS: {
+  category: string
+  rows: { feature: string; starter: string | boolean; pro: string | boolean; enterprise: string | boolean }[]
+}[] = [
   {
     category: 'Scans',
     rows: [
       { feature: 'Scans per month', starter: '5', pro: 'Unlimited', enterprise: 'Unlimited' },
-      { feature: 'Scan depth', starter: 'Standard', pro: 'Deep', enterprise: 'Deep + Custom' },
+      { feature: 'Scan depth', starter: 'Standard', pro: 'Deep', enterprise: 'Deep + custom' },
       { feature: 'Parallel scan jobs', starter: '1', pro: '10', enterprise: 'Unlimited' },
     ],
   },
   {
-    category: 'Security Engine',
+    category: 'Security engine',
     rows: [
-      { feature: 'Invariant library access', starter: 'Public only', pro: 'Full', enterprise: 'Full + Custom' },
-      { feature: 'Symbolic execution', starter: false, pro: true, enterprise: true },
-      { feature: 'AI Co-Auditor', starter: false, pro: true, enterprise: true },
+      { feature: 'Detector library access', starter: 'Public only', pro: 'Full', enterprise: 'Full + custom' },
+      { feature: 'Dynamic invariant fuzzing', starter: false, pro: true, enterprise: true },
+      { feature: 'AI co-auditor', starter: false, pro: true, enterprise: true },
       { feature: 'Self-improving engine', starter: false, pro: true, enterprise: true },
     ],
   },
@@ -77,8 +93,8 @@ const COMPARISON_ROWS = [
     rows: [
       { feature: 'PDF report export', starter: true, pro: true, enterprise: true },
       { feature: 'Shareable report links', starter: true, pro: true, enterprise: true },
+      { feature: 'Minimal reproductions', starter: false, pro: true, enterprise: true },
       { feature: 'White-label reports', starter: false, pro: false, enterprise: true },
-      { feature: 'Formal verification proofs', starter: false, pro: true, enterprise: true },
     ],
   },
   {
@@ -95,7 +111,7 @@ const COMPARISON_ROWS = [
     rows: [
       { feature: 'Cloud hosted', starter: true, pro: true, enterprise: true },
       { feature: 'On-premises deployment', starter: false, pro: false, enterprise: true },
-      { feature: 'Private invariant repository', starter: false, pro: false, enterprise: true },
+      { feature: 'Private detector repository', starter: false, pro: false, enterprise: true },
       { feature: 'SLA guarantee', starter: false, pro: false, enterprise: true },
     ],
   },
@@ -104,33 +120,48 @@ const COMPARISON_ROWS = [
 const FAQS = [
   {
     q: 'What counts as a "scan"?',
-    a: 'A scan is one analysis run on a set of contracts. You can include multiple Solidity, Rust, or Move files in a single scan. Sentri runs all 50+ invariant checks plus symbolic execution in one pass.',
+    a: 'A scan is one analysis run over a set of contracts. You can include multiple Solidity, Rust, or Move files in a single scan. Sentri runs the full detector library plus dynamic invariant fuzzing in one pass.',
   },
   {
     q: 'Can I try Professional features before paying?',
-    a: 'Yes — the Professional plan includes a 14-day free trial with full access to the AI Co-Auditor, unlimited scans, and CI/CD integrations. No credit card required to start.',
+    a: 'Yes. Professional includes a 14-day free trial with full access to the AI co-auditor, unlimited scans, and CI/CD integrations. No credit card required to start.',
   },
   {
     q: 'Which chains are supported?',
-    a: 'Sentri currently supports EVM-compatible chains (Ethereum, Arbitrum, Base, Polygon, Optimism, Avalanche, BNB Chain), Solana (Anchor programs), and Move-based chains (Aptos, Sui). More chains are added regularly.',
+    a: 'EVM-compatible chains (Ethereum, Arbitrum, Base, Polygon, Optimism, Avalanche, BNB Chain), Solana (Anchor programs), Move-based chains (Aptos, Sui), and Soroban (Stellar). More are added regularly.',
   },
   {
     q: 'How does annual billing work?',
-    a: 'Annual billing is charged once per year at a 20% discount off the monthly rate. You receive one invoice per year and can cancel before renewal for a prorated refund.',
+    a: 'Annual billing is charged once per year at 20% off the monthly rate. You get one invoice per year and can cancel before renewal for a prorated refund.',
   },
   {
     q: 'What is the Enterprise SLA?',
-    a: 'Enterprise customers receive a 99.9% uptime SLA for the scanning API and a maximum 4-hour response time for P1 security incidents. Custom SLAs are available on request.',
+    a: 'Enterprise includes a 99.9% uptime SLA for the scanning API and a 4-hour maximum response time for P1 security incidents. Custom SLAs are available on request.',
   },
   {
     q: 'Can I use Sentri for client audit work?',
-    a: 'Yes. The Professional plan allows you to generate reports for up to 10 separate client protocols per month. Enterprise customers have unlimited client workspaces and white-label reporting.',
+    a: 'Yes. Professional lets you generate reports for up to 10 separate client protocols per month. Enterprise has unlimited client workspaces and white-label reporting.',
   },
 ]
 
 function CellValue({ value }: { value: string | boolean }) {
-  if (value === true) return <Check size={16} className="text-low mx-auto" />
-  if (value === false) return <X size={14} className="text-outline mx-auto" />
+  // Never rely on color alone: booleans use a distinct icon + screen-reader text.
+  if (value === true) {
+    return (
+      <>
+        <Check size={16} className="mx-auto text-signal" aria-hidden />
+        <span className="sr-only">Included</span>
+      </>
+    )
+  }
+  if (value === false) {
+    return (
+      <>
+        <Minus size={14} className="mx-auto text-outline" aria-hidden />
+        <span className="sr-only">Not included</span>
+      </>
+    )
+  }
   return <span className="text-body-md text-on-surface-variant">{value}</span>
 }
 
@@ -150,196 +181,291 @@ export default function PricingPage() {
     return billing === 'annual' ? Math.round(monthlyPrice * 0.8) : monthlyPrice
   }
 
+  const openSignup = () => {
+    setAuthTab('signup')
+    setAuthOpen(true)
+  }
+
   return (
-    <div className="min-h-screen bg-surface flex flex-col">
+    <div className="flex min-h-dvh flex-col bg-surface">
       <MarketingNav />
 
-      <main className="flex-1">
-        {/* Hero */}
-        <section className="px-6 py-20 max-w-5xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo/8 border border-indigo/20 mb-6">
-            <span className="text-label-sm text-on-secondary-container">SIMPLE, TRANSPARENT PRICING</span>
-          </div>
-          <h1 className="font-fraunces text-5xl font-[700] text-on-surface mb-4 leading-[64px]">
-            Plans for every stage
-          </h1>
-          <p className="text-body-lg text-outline max-w-xl mx-auto mb-10">
-            Start free. Scale when you&apos;re ready. No hidden fees.
-          </p>
+      <main id="main" className="flex-1">
+        {/* ── Hero ── */}
+        <section className="relative overflow-hidden">
+          <AmbientBackground />
+          <Container className="py-16 text-center sm:py-20">
+            <div className="animate-fade-in-up flex justify-center">
+              <Badge tone="indigo">Simple, transparent pricing</Badge>
+            </div>
+            <h1 className="animate-fade-in-up stagger-1 mx-auto mt-6 max-w-3xl text-display-md text-on-surface text-balance">
+              Plans for every stage
+            </h1>
+            <p className="animate-fade-in-up stagger-2 mx-auto mt-5 max-w-xl text-body-lg text-on-surface-variant">
+              Start free. Scale when you&apos;re ready. No hidden fees.
+            </p>
 
-          {/* Billing toggle */}
-          <div className="inline-flex items-center gap-1 p-1 bg-surface-container-low border border-outline-variant rounded-lg">
-            <button
-              onClick={() => setBilling('monthly')}
-              className={clsx(
-                'px-4 py-1.5 rounded text-sm font-[600] transition-colors',
-                billing === 'monthly' ? 'bg-surface-container text-on-surface' : 'text-outline hover:text-on-surface',
-              )}
+            {/* Billing toggle */}
+            <div
+              className="animate-fade-in-up stagger-3 mt-10 inline-flex items-center gap-1 rounded-xl border border-outline-variant bg-surface-container-low p-1"
+              role="group"
+              aria-label="Billing cycle"
             >
-              Monthly
-            </button>
-            <button
-              onClick={() => setBilling('annual')}
-              className={clsx(
-                'px-4 py-1.5 rounded text-sm font-[600] transition-colors flex items-center gap-2',
-                billing === 'annual' ? 'bg-surface-container text-on-surface' : 'text-outline hover:text-on-surface',
-              )}
-            >
-              Annual
-              <span className="text-xs text-low bg-low/10 border border-low/20 px-1.5 py-0.5 rounded font-mono">-20%</span>
-            </button>
-          </div>
-        </section>
-
-        {/* Pricing cards */}
-        <section className="px-6 pb-20 max-w-5xl mx-auto">
-          <div ref={cardsRef} className="grid grid-cols-1 md:grid-cols-3 gap-6 reveal">
-            {PLANS.map((plan) => {
-              const price = getPrice(plan.monthlyPrice)
-              return (
-                <div
-                  key={plan.id}
+              {(['monthly', 'annual'] as const).map((cycle) => (
+                <button
+                  key={cycle}
+                  onClick={() => setBilling(cycle)}
+                  aria-pressed={billing === cycle}
                   className={clsx(
-                    'relative rounded-xl p-8 flex flex-col',
-                    plan.featured
-                      ? 'bg-indigo/5 border-2 border-indigo animate-border-glow'
-                      : 'bg-surface-container-low border border-outline-variant lift-on-hover',
+                    'flex items-center gap-2 rounded-lg px-4 py-1.5 text-sm font-[600] transition-colors',
+                    billing === cycle
+                      ? 'bg-surface-container-high text-on-surface'
+                      : 'text-outline hover:text-on-surface',
                   )}
                 >
-                  {plan.badge && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-secondary-container border border-indigo text-on-secondary-container px-3 py-1 rounded-full text-label-sm whitespace-nowrap">
-                      {plan.badge}
-                    </div>
+                  {cycle === 'monthly' ? 'Monthly' : 'Annual'}
+                  {cycle === 'annual' && (
+                    <span className="rounded border border-signal-border bg-signal-bg px-1.5 py-0.5 font-mono text-[0.65rem] text-signal">
+                      −20%
+                    </span>
                   )}
-                  <div className="mb-6">
-                    <span className={clsx('text-label-sm block mb-2', plan.featured ? 'text-on-secondary-container' : 'text-outline')}>{plan.name}</span>
-                    <div className="flex items-end gap-1 mb-2">
+                </button>
+              ))}
+            </div>
+          </Container>
+        </section>
+
+        {/* ── Plan cards ── */}
+        <section className="pb-20">
+          <Container>
+            <div ref={cardsRef} className="reveal mx-auto grid max-w-5xl grid-cols-1 gap-5 md:grid-cols-3">
+              {PLANS.map((plan) => {
+                const price = getPrice(plan.monthlyPrice)
+                return (
+                  <div
+                    key={plan.id}
+                    className={clsx(
+                      'relative flex flex-col rounded-2xl p-8',
+                      plan.featured
+                        ? 'border-2 border-indigo bg-indigo/[0.06] animate-border-glow'
+                        : 'border border-outline-variant bg-surface-container-low/70 lift-on-hover',
+                    )}
+                  >
+                    {plan.featured && (
+                      <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                        <Badge tone="indigo">Most popular</Badge>
+                      </div>
+                    )}
+
+                    <span className="text-label-sm text-on-surface-variant">{plan.name}</span>
+
+                    <div className="mt-3 flex items-end gap-1">
                       {price === null ? (
-                        <span className="font-fraunces text-4xl font-[700] text-on-surface">Custom</span>
+                        <span className="font-mono text-4xl font-[700] text-on-surface">Custom</span>
                       ) : (
                         <>
-                          <span className="font-fraunces text-5xl font-[700] text-on-surface">${price}</span>
-                          <span className="text-outline text-body-md mb-1.5">/mo</span>
+                          <span className="font-mono text-5xl font-[700] tracking-tight text-on-surface">
+                            ${price}
+                          </span>
+                          <span className="mb-1.5 text-body-md text-outline">/mo</span>
                         </>
                       )}
                     </div>
-                    {billing === 'annual' && price !== null && price > 0 && (
-                      <p className="text-xs text-low">Billed ${price * 12}/year</p>
-                    )}
-                    <p className="text-body-md text-outline mt-2">{plan.description}</p>
-                  </div>
-                  <div className={clsx('border-t mb-6', plan.featured ? 'border-indigo/30' : 'border-outline-variant')} />
-                  <div className="flex-1" />
-                  {plan.id === 'starter' ? (
-                    <Button variant={plan.ctaVariant} fullWidth onClick={() => { setAuthTab('signup'); setAuthOpen(true) }}>
-                      {plan.cta}
-                    </Button>
-                  ) : plan.id === 'pro' ? (
-                    <Button variant={plan.ctaVariant} fullWidth onClick={() => { setAuthTab('signup'); setAuthOpen(true) }}>
-                      {plan.cta}
-                    </Button>
-                  ) : (
-                    <Link href="/contact"><Button variant={plan.ctaVariant} fullWidth>{plan.cta}</Button></Link>
-                  )}
-                  <p className="text-center text-xs text-outline mt-3">
-                    {plan.id === 'starter' ? 'No credit card required' : plan.id === 'pro' ? '14-day free trial included' : 'Custom contract & SLA'}
-                  </p>
-                </div>
-              )
-            })}
-          </div>
-        </section>
 
-        {/* Feature comparison table */}
-        <section className="px-6 py-24 bg-surface-container-lowest border-y border-outline-variant">
-          <div className="max-w-5xl mx-auto">
-            <div className="text-center mb-12">
-              <h2 className="font-fraunces text-3xl font-[600] text-on-surface mb-3">Full Feature Comparison</h2>
-              <p className="text-body-md text-outline">See exactly what&apos;s included at each tier</p>
-            </div>
-            <div ref={tableRef} className="reveal">
-              {/* Header */}
-              <div className="grid grid-cols-4 gap-4 mb-4 sticky top-[73px] bg-surface-container-lowest py-4 z-10">
-                <div />
-                {PLANS.map((plan) => (
-                  <div key={plan.id} className={clsx('text-center py-2 rounded-lg', plan.featured && 'bg-indigo/5 border border-indigo/20')}>
-                    <span className={clsx('text-label-sm block', plan.featured ? 'text-on-secondary-container' : 'text-on-surface')}>{plan.name}</span>
-                  </div>
-                ))}
-              </div>
+                    {/* Reserve the line so cards don't shift when toggling billing */}
+                    <p className="mt-1 min-h-5 text-xs text-signal">
+                      {billing === 'annual' && price !== null && price > 0
+                        ? `Billed $${price * 12}/year`
+                        : ' '}
+                    </p>
 
-              {COMPARISON_ROWS.map((group) => (
-                <div key={group.category} className="mb-6">
-                  <div className="text-label-sm text-outline bg-surface-container-low border border-outline-variant rounded-t-lg px-4 py-2.5">
-                    {group.category}
-                  </div>
-                  {group.rows.map((row, i) => (
+                    <p className="mt-2 text-body-md text-outline">{plan.description}</p>
+
                     <div
-                      key={row.feature}
                       className={clsx(
-                        'grid grid-cols-4 gap-4 px-4 py-3 border-x border-b border-outline-variant',
-                        i === group.rows.length - 1 && 'rounded-b-lg',
-                        i % 2 === 0 ? 'bg-surface-container-lowest' : 'bg-surface-container-low/40',
+                        'my-6 h-px',
+                        plan.featured ? 'bg-indigo/30' : 'bg-outline-variant',
                       )}
-                    >
-                      <span className="text-body-md text-on-surface-variant">{row.feature}</span>
-                      <div className="text-center"><CellValue value={row.starter} /></div>
-                      <div className="text-center"><CellValue value={row.pro} /></div>
-                      <div className="text-center"><CellValue value={row.enterprise} /></div>
+                    />
+
+                    <ul className="mb-8 space-y-3">
+                      {plan.highlights.map((h) => (
+                        <li key={h} className="flex items-start gap-2.5">
+                          <Check size={15} className="mt-0.5 flex-shrink-0 text-signal" />
+                          <span className="text-body-md text-on-surface-variant">{h}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    <div className="mt-auto">
+                      {plan.id === 'enterprise' ? (
+                        <Link href="/contact" className="block">
+                          <Button variant={plan.ctaVariant} fullWidth>
+                            {plan.cta}
+                          </Button>
+                        </Link>
+                      ) : (
+                        <Button variant={plan.ctaVariant} fullWidth onClick={openSignup}>
+                          {plan.cta}
+                        </Button>
+                      )}
+                      <p className="mt-3 text-center text-xs text-outline">
+                        {plan.id === 'starter'
+                          ? 'No credit card required'
+                          : plan.id === 'pro'
+                            ? '14-day free trial included'
+                            : 'Custom contract & SLA'}
+                      </p>
                     </div>
-                  ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* FAQ */}
-        <section className="px-6 py-24 max-w-3xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="font-fraunces text-3xl font-[600] text-on-surface mb-3">Frequently Asked Questions</h2>
-            <p className="text-body-md text-outline">Everything you need to know about Sentri&apos;s plans</p>
-          </div>
-          <div ref={faqRef} className="space-y-3 reveal">
-            {FAQS.map((faq, i) => (
-              <div key={i} className="bg-surface-container-low border border-outline-variant rounded-xl overflow-hidden">
-                <button
-                  onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-surface-container transition-colors"
-                >
-                  <span className="font-fraunces text-base font-[600] text-on-surface pr-4">{faq.q}</span>
-                  <ChevronDown
-                    size={18}
-                    className={clsx('text-outline flex-shrink-0 transition-transform duration-200', openFaq === i && 'rotate-180')}
-                  />
-                </button>
-                {openFaq === i && (
-                  <div className="px-6 pb-5">
-                    <p className="text-body-md text-outline leading-6">{faq.a}</p>
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
+                )
+              })}
+            </div>
+          </Container>
         </section>
 
-        {/* Bottom CTA */}
-        <section className="px-6 pb-24">
-          <div className="max-w-3xl mx-auto text-center bg-indigo/5 border border-indigo/20 rounded-2xl p-12">
-            <ShieldCheck size={32} className="text-secondary mx-auto mb-4" />
-            <h2 className="font-fraunces text-3xl font-[600] text-on-surface mb-4">Still have questions?</h2>
-            <p className="text-body-lg text-outline mb-8">
-              Talk to our security team and we&apos;ll help you find the right plan for your protocol.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button variant="primary" size="lg" icon={<ArrowRight size={16} />} iconPosition="right" onClick={() => { setAuthTab('signup'); setAuthOpen(true) }}>
-                Start for Free
-              </Button>
-              <Link href="/contact">
-                <Button variant="secondary" size="lg">Contact Sales</Button>
-              </Link>
+        {/* ── Comparison table ── */}
+        <section className="border-y border-outline-variant bg-surface-container-lowest py-20">
+          <Container>
+            <SectionHeading
+              align="center"
+              className="mx-auto mb-12"
+              eyebrow="Compare"
+              title="Every feature, side by side"
+            />
+
+            {/* Wide content scrolls inside its own container — the page never
+                scrolls horizontally. */}
+            <div ref={tableRef} className="reveal -mx-5 overflow-x-auto px-5 sm:mx-0 sm:px-0">
+              <table className="w-full min-w-[640px] border-collapse text-left">
+                <caption className="sr-only">Feature comparison across Sentri plans</caption>
+                <thead>
+                  <tr className="border-b border-outline-variant">
+                    <th scope="col" className="py-4 pr-4 text-label-sm text-outline">
+                      Feature
+                    </th>
+                    {PLANS.map((p) => (
+                      <th
+                        key={p.id}
+                        scope="col"
+                        className={clsx(
+                          'w-[140px] px-4 py-4 text-center text-body-md font-[600]',
+                          p.featured ? 'text-indigo-bright' : 'text-on-surface',
+                        )}
+                      >
+                        {p.name}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {COMPARISON_ROWS.map((group) => (
+                    <Fragment key={group.category}>
+                      <tr>
+                        <th
+                          scope="colgroup"
+                          colSpan={4}
+                          className="pb-2 pt-8 text-left text-label-sm text-indigo-bright"
+                        >
+                          {group.category}
+                        </th>
+                      </tr>
+                      {group.rows.map((row) => (
+                        <tr
+                          key={row.feature}
+                          className="border-b border-outline-variant/60 transition-colors hover:bg-surface-container-low/50"
+                        >
+                          <th
+                            scope="row"
+                            className="py-3.5 pr-4 text-body-md font-[400] text-on-surface-variant"
+                          >
+                            {row.feature}
+                          </th>
+                          <td className="px-4 py-3.5 text-center">
+                            <CellValue value={row.starter} />
+                          </td>
+                          <td
+                            className={clsx(
+                              'px-4 py-3.5 text-center',
+                              'bg-indigo/[0.03]',
+                            )}
+                          >
+                            <CellValue value={row.pro} />
+                          </td>
+                          <td className="px-4 py-3.5 text-center">
+                            <CellValue value={row.enterprise} />
+                          </td>
+                        </tr>
+                      ))}
+                    </Fragment>
+                  ))}
+                </tbody>
+              </table>
             </div>
-          </div>
+          </Container>
+        </section>
+
+        {/* ── FAQ ── */}
+        <section className="py-20">
+          <Container size="prose">
+            <SectionHeading
+              align="center"
+              className="mx-auto mb-12"
+              eyebrow="FAQ"
+              title="Questions, answered"
+            />
+            <div ref={faqRef} className="reveal space-y-3">
+              {FAQS.map((faq, i) => {
+                const open = openFaq === i
+                return (
+                  <div
+                    key={faq.q}
+                    className="overflow-hidden rounded-xl border border-outline-variant bg-surface-container-low/60"
+                  >
+                    <h3>
+                      <button
+                        onClick={() => setOpenFaq(open ? null : i)}
+                        aria-expanded={open}
+                        aria-controls={`faq-panel-${i}`}
+                        id={`faq-trigger-${i}`}
+                        className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left transition-colors hover:bg-surface-container/50"
+                      >
+                        <span className="text-body-md font-[500] text-on-surface">{faq.q}</span>
+                        <ChevronDown
+                          size={16}
+                          aria-hidden
+                          className={clsx(
+                            'flex-shrink-0 text-outline transition-transform duration-200',
+                            open && 'rotate-180',
+                          )}
+                        />
+                      </button>
+                    </h3>
+                    {open && (
+                      <div
+                        id={`faq-panel-${i}`}
+                        role="region"
+                        aria-labelledby={`faq-trigger-${i}`}
+                        className="animate-fade-in px-5 pb-4"
+                      >
+                        <p className="text-body-md leading-6 text-on-surface-variant">{faq.a}</p>
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+
+            <div className="mt-12 text-center">
+              <p className="text-body-md text-outline">
+                Still have questions?{' '}
+                <Link href="/contact" className="text-indigo-bright hover:underline">
+                  Talk to us
+                </Link>
+                .
+              </p>
+            </div>
+          </Container>
         </section>
       </main>
 

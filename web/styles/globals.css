@@ -80,6 +80,21 @@
     border-color: var(--outline-variant);
   }
 
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Anchor targets (docs headings) must clear the sticky header when
+     jumped to, and must not sit under it while scroll-spy tracks them. */
+  :target,
+  h1[id],
+  h2[id],
+  h3[id],
+  h4[id],
+  section[id] {
+    scroll-margin-top: 6rem;
+  }
+
   body {
     @apply bg-surface text-on-surface antialiased;
     font-family: var(--font-sans);
