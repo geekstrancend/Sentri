@@ -1,12 +1,15 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { Search, Plus, BookOpen, Filter, X, ExternalLink } from 'lucide-react'
+import { Search, Plus, BookOpen, X, ExternalLink } from 'lucide-react'
 import { MarketingNav } from '@/components/layout/MarketingNav'
 import { MarketingFooter } from '@/components/layout/MarketingFooter'
 import { Button } from '@/components/ui/Button'
 import { SeverityBadge } from '@/components/ui/SeverityBadge'
 import { AuthModal } from '@/components/ui/AuthModal'
+import { Container } from '@/components/ui/Section'
+import { Badge } from '@/components/ui/Badge'
+import clsx from 'clsx'
 
 type Severity = 'critical' | 'high' | 'medium' | 'low'
 
@@ -27,7 +30,7 @@ const INVARIANTS: Invariant[] = [
   { id: 'EVM-C01', severity: 'critical', title: 'evm_reentrancy_protection', description: 'Verifies all external calls following state changes are protected by a nonReentrant modifier or the CEI pattern is strictly followed throughout the function.', tags: ['CORE', 'CEI-PATTERN'], cvss: 9.1, version: 'v4.0.2', audits: 1200, chain: 'EVM', category: 'Core Safety' },
   { id: 'EVM-C02', severity: 'critical', title: 'evm_self_destruct_removal', description: 'Detects legacy SELFDESTRUCT opcodes which are deprecated post-Cancun and can lead to unexpected state destruction in proxy contracts.', tags: ['POST-CANCUN', 'GOVERNANCE'], cvss: 9.8, version: 'v1.1.0', audits: 12, chain: 'EVM', category: 'Core Safety' },
   { id: 'EVM-C03', severity: 'critical', title: 'evm_missing_post_state_health_check', description: 'Checks that after any flash-loan or large-value swap, a protocol health assertion (e.g. total assets >= total liabilities) is evaluated before the transaction finalises.', tags: ['FLASH-LOAN', 'DEFI'], cvss: 9.6, version: 'v1.0.0', audits: 8, chain: 'EVM', category: 'DeFi' },
-  { id: 'EVM-C04', severity: 'critical', title: 'evm_merkle_root_zero_default', description: 'Ensures no Merkle root is initialised as bytes32(0), which makes all proofs trivially valid—the exact vector used in the $190M Nomad exploit.', tags: ['BRIDGES', 'MERKLE'], cvss: 9.9, version: 'v1.0.1', audits: 5, chain: 'EVM', category: 'Bridges' },
+  { id: 'EVM-C04', severity: 'critical', title: 'evm_merkle_root_zero_default', description: 'Ensures no Merkle root is initialised as bytes32(0), which makes all proofs trivially valid — the exact vector used in the $190M Nomad exploit.', tags: ['BRIDGES', 'MERKLE'], cvss: 9.9, version: 'v1.0.1', audits: 5, chain: 'EVM', category: 'Bridges' },
   { id: 'EVM-H01', severity: 'high', title: 'evm_oracle_heartbeat_freshness', description: 'Validates Oracle responses (Chainlink/Pyth) include an updatedAt timestamp within an acceptable heartbeat window before using the price.', tags: ['DEFI', 'ORACLES'], cvss: 7.5, version: 'v3.2.0', audits: 89, chain: 'EVM', category: 'Oracles' },
   { id: 'EVM-H02', severity: 'high', title: 'evm_cross_chain_arbitrary_message_validation', description: 'Ensures all incoming messages from LayerZero or Axelar endpoints are validated against a known source chain and sender address whitelist.', tags: ['BRIDGES', 'INTEROPERABILITY'], cvss: 8.8, version: 'v2.1.0', audits: 42, chain: 'EVM', category: 'Bridges' },
   { id: 'EVM-H03', severity: 'high', title: 'evm_unbacked_synthetic_mint', description: 'Verifies that every minting of a synthetic or wrapped token is backed 1:1 by a corresponding deposit or collateral lock before the mint executes.', tags: ['DEFI', 'TOKENS'], cvss: 8.2, version: 'v1.0.0', audits: 17, chain: 'EVM', category: 'DeFi' },
@@ -42,7 +45,15 @@ const INVARIANTS: Invariant[] = [
 
 const CATEGORIES = ['All', 'Core Safety', 'DeFi', 'Bridges', 'Oracles', 'Governance', 'Standards']
 const CHAINS = ['All', 'EVM', 'Solana', 'Move', 'Generic']
-const SEVERITIES = ['All', 'critical', 'high', 'medium', 'low']
+const SEVERITIES = ['All', 'critical', 'high', 'medium', 'low'] as const
+
+const SEVERITY_CHIP: Record<string, string> = {
+  All: 'bg-indigo/15 border-indigo/30 text-indigo-bright',
+  critical: 'bg-critical-bg border-critical-border text-critical',
+  high: 'bg-high-bg border-high-border text-high',
+  medium: 'bg-medium-bg border-medium-border text-medium',
+  low: 'bg-low-bg border-low-border text-low',
+}
 
 function cvssColor(cvss: number) {
   if (cvss >= 9) return 'text-critical'
@@ -55,13 +66,18 @@ export default function LibraryPage() {
   const [search, setSearch] = useState('')
   const [chain, setChain] = useState('All')
   const [category, setCategory] = useState('All')
-  const [severity, setSeverity] = useState('All')
+  const [severity, setSeverity] = useState<string>('All')
   const [authOpen, setAuthOpen] = useState(false)
 
   const filtered = useMemo(() => {
     return INVARIANTS.filter((inv) => {
-      const q = search.toLowerCase()
-      const matchSearch = !q || inv.title.toLowerCase().includes(q) || inv.description.toLowerCase().includes(q) || inv.tags.some(t => t.toLowerCase().includes(q)) || inv.id.toLowerCase().includes(q)
+      const q = search.trim().toLowerCase()
+      const matchSearch =
+        !q ||
+        inv.title.toLowerCase().includes(q) ||
+        inv.description.toLowerCase().includes(q) ||
+        inv.tags.some((t) => t.toLowerCase().includes(q)) ||
+        inv.id.toLowerCase().includes(q)
       const matchChain = chain === 'All' || inv.chain === chain
       const matchCat = category === 'All' || inv.category === category
       const matchSev = severity === 'All' || inv.severity === severity
@@ -69,116 +85,133 @@ export default function LibraryPage() {
     })
   }, [search, chain, category, severity])
 
-  const hasFilters = search || chain !== 'All' || category !== 'All' || severity !== 'All'
+  const hasFilters = Boolean(search) || chain !== 'All' || category !== 'All' || severity !== 'All'
+
+  const clearAll = () => {
+    setSearch('')
+    setChain('All')
+    setCategory('All')
+    setSeverity('All')
+  }
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col">
+    <div className="flex min-h-dvh flex-col bg-surface">
       <MarketingNav />
 
-      <main className="flex-1">
-        {/* Hero */}
-        <section className="px-6 py-16 border-b border-outline-variant bg-surface-container-lowest">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
+      <main id="main" className="flex-1">
+        {/* ── Hero ── */}
+        <section className="border-b border-outline-variant bg-surface-container-lowest py-14">
+          <Container>
+            <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
               <div>
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo/8 border border-indigo/20 mb-5">
-                  <BookOpen size={14} className="text-on-secondary-container" />
-                  <span className="text-label-sm text-on-secondary-container">INVARIANT LIBRARY</span>
-                </div>
-                <h1 className="font-fraunces text-5xl font-[700] text-on-surface mb-3 leading-[64px]">
-                  Security Invariant Library
+                <Badge tone="indigo" icon={<BookOpen size={13} />}>
+                  Detector library
+                </Badge>
+                <h1 className="mt-5 text-display-md text-on-surface text-balance">
+                  Every check, mapped to a real exploit
                 </h1>
-                <p className="text-body-lg text-outline max-w-2xl">
-                  50+ battle-tested security checks for EVM, Solana, and Move. Every invariant is mapped to a real exploit.
+                <p className="mt-4 max-w-2xl text-body-lg text-on-surface-variant">
+                  Battle-tested detectors for EVM, Solana, Move, and Soroban. Each one exists
+                  because a protocol lost money without it.
                 </p>
               </div>
-              <div className="flex gap-3 flex-shrink-0">
-                <Button variant="secondary" size="sm" icon={<ExternalLink size={14} />} onClick={() => setAuthOpen(true)}>
-                  Request Invariant
+              <div className="flex flex-shrink-0 gap-3">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  icon={<ExternalLink size={14} />}
+                  onClick={() => setAuthOpen(true)}
+                >
+                  Request a detector
                 </Button>
-                <Button variant="primary" size="sm" icon={<Plus size={14} />} onClick={() => setAuthOpen(true)}>
-                  Custom Library
+                <Button
+                  variant="primary"
+                  size="sm"
+                  icon={<Plus size={14} />}
+                  onClick={() => setAuthOpen(true)}
+                >
+                  Custom library
                 </Button>
               </div>
             </div>
-          </div>
+          </Container>
         </section>
 
-        <section className="px-6 py-8 max-w-7xl mx-auto">
-          {/* Search + filter bar */}
-          <div className="flex flex-col lg:flex-row gap-4 mb-6">
+        <Container className="py-8">
+          {/* ── Filters ── */}
+          <div className="mb-6 flex flex-col gap-4 lg:flex-row lg:items-center">
             {/* Search */}
-            <div className="relative flex-1 max-w-md">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-outline" />
+            <div className="relative max-w-md flex-1">
+              <label htmlFor="library-search" className="sr-only">
+                Search detectors
+              </label>
+              <Search
+                size={15}
+                aria-hidden
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-outline"
+              />
               <input
-                type="text"
+                id="library-search"
+                type="search"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by name, tag, or ID…"
-                className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 pl-9 py-2.5 text-body-md text-on-surface placeholder-outline-variant focus:outline-none focus:border-indigo transition-colors"
+                className="w-full rounded-lg border border-outline-variant bg-surface-container-lowest py-2.5 pl-9 pr-9 text-body-md text-on-surface placeholder-outline transition-colors focus:border-indigo focus:outline-none"
               />
               {search && (
                 <button
                   onClick={() => setSearch('')}
                   aria-label="Clear search"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-outline hover:text-on-surface"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-outline transition-colors hover:text-on-surface"
                 >
                   <X size={14} />
                 </button>
               )}
             </div>
 
-            {/* Filter chips */}
-            <div className="flex flex-wrap gap-2 items-center">
-              <Filter size={14} className="text-outline flex-shrink-0" />
-
+            <div className="flex flex-wrap items-center gap-3">
               {/* Severity */}
-              <div className="flex gap-1">
-                {SEVERITIES.map((s) => {
-                  const severityChipClasses: Record<string, string> = {
-                    All: 'bg-indigo/15 border-indigo/30 text-secondary',
-                    critical: 'bg-critical-bg border-critical-border text-critical',
-                    high: 'bg-high-bg border-high-border text-high',
-                    medium: 'bg-medium-bg border-medium-border text-medium',
-                    low: 'bg-low-bg border-low-border text-low',
-                  }
-                  return (
-                    <button
-                      key={s}
-                      onClick={() => setSeverity(s)}
-                      className={`px-3 py-1.5 rounded-full text-xs font-[600] uppercase tracking-wide border transition-colors ${
-                        severity === s
-                          ? severityChipClasses[s]
-                          : 'bg-transparent border-outline-variant text-outline hover:border-outline'
-                      }`}
-                    >
-                      {s === 'All' ? 'All' : s}
-                    </button>
-                  )
-                })}
-              </div>
-
-              {/* Chain */}
-              <div className="flex gap-1">
-                {CHAINS.map((c) => (
+              <div className="flex gap-1" role="group" aria-label="Filter by severity">
+                {SEVERITIES.map((s) => (
                   <button
-                    key={c}
-                    onClick={() => setChain(c)}
-                    className={`px-3 py-1 rounded-full text-xs font-[600] border transition-colors ${
-                      chain === c
-                        ? 'bg-indigo/15 border-indigo/30 text-secondary'
-                        : 'bg-transparent border-outline-variant text-outline hover:border-outline'
-                    }`}
+                    key={s}
+                    onClick={() => setSeverity(s)}
+                    aria-pressed={severity === s}
+                    className={clsx(
+                      'rounded-full border px-3 py-1.5 font-mono text-[0.65rem] font-[600] uppercase tracking-wide transition-colors',
+                      severity === s
+                        ? SEVERITY_CHIP[s]
+                        : 'border-outline-variant bg-transparent text-outline hover:border-outline hover:text-on-surface',
+                    )}
                   >
-                    {c}
+                    {s}
                   </button>
                 ))}
               </div>
 
+              {/* Chain */}
+              <div>
+                <label htmlFor="chain-filter" className="sr-only">
+                  Filter by chain
+                </label>
+                <select
+                  id="chain-filter"
+                  value={chain}
+                  onChange={(e) => setChain(e.target.value)}
+                  className="rounded-lg border border-outline-variant bg-surface-container-lowest px-3 py-2 text-body-md text-on-surface transition-colors focus:border-indigo focus:outline-none"
+                >
+                  {CHAINS.map((c) => (
+                    <option key={c} value={c}>
+                      {c === 'All' ? 'All chains' : c}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {hasFilters && (
                 <button
-                  onClick={() => { setSearch(''); setChain('All'); setCategory('All'); setSeverity('All') }}
-                  className="text-xs text-outline hover:text-on-surface flex items-center gap-1 transition-colors px-2 py-1.5"
+                  onClick={clearAll}
+                  className="flex items-center gap-1 px-2 py-1.5 text-xs text-outline transition-colors hover:text-on-surface"
                 >
                   <X size={12} /> Clear all
                 </button>
@@ -187,93 +220,108 @@ export default function LibraryPage() {
           </div>
 
           {/* Category tabs */}
-          <div className="flex gap-1 mb-8 overflow-x-auto pb-1">
+          <div
+            className="mb-8 flex gap-1 overflow-x-auto pb-1"
+            role="group"
+            aria-label="Filter by category"
+          >
             {CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setCategory(cat)}
-                className={`px-4 py-2 rounded-lg text-body-md font-[500] whitespace-nowrap transition-colors flex-shrink-0 ${
+                aria-pressed={category === cat}
+                className={clsx(
+                  'flex-shrink-0 whitespace-nowrap rounded-lg px-4 py-2 text-body-md font-[500] transition-colors',
                   category === cat
-                    ? 'bg-surface-container text-on-surface'
-                    : 'text-outline hover:text-on-surface hover:bg-surface-container/50'
-                }`}
+                    ? 'bg-surface-container-high text-on-surface'
+                    : 'text-outline hover:bg-surface-container/50 hover:text-on-surface',
+                )}
               >
                 {cat}
               </button>
             ))}
           </div>
 
-          {/* Results count */}
-          <div className="flex items-center justify-between mb-6">
-            <p className="text-body-md text-outline">
-              <span className="text-on-surface font-[600]">{filtered.length}</span> invariants
-              {hasFilters && ' matching filters'}
-            </p>
-          </div>
+          {/* Results count — announced to screen readers as filters change */}
+          <p className="mb-6 text-body-md text-outline" role="status" aria-live="polite">
+            <span className="font-mono font-[600] text-on-surface">{filtered.length}</span>{' '}
+            {filtered.length === 1 ? 'detector' : 'detectors'}
+            {hasFilters && ' matching your filters'}
+          </p>
 
-          {/* Cards grid */}
+          {/* ── Results ── */}
           {filtered.length === 0 ? (
-            <div className="text-center py-20 text-outline">
-              <BookOpen size={40} className="mx-auto mb-4 opacity-30" />
-              <p className="font-fraunces text-xl text-on-surface-variant mb-2">No invariants found</p>
-              <p className="text-body-md">Try adjusting your search or filters</p>
+            <div className="rounded-2xl border border-dashed border-outline-variant py-20 text-center">
+              <BookOpen size={36} className="mx-auto mb-4 text-outline-variant" aria-hidden />
+              <p className="mb-1 text-lg font-[600] text-on-surface">No detectors match</p>
+              <p className="mb-6 text-body-md text-outline">
+                Try a different search term or clear your filters.
+              </p>
+              <Button variant="secondary" size="sm" onClick={clearAll}>
+                Clear all filters
+              </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            <ul className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
               {filtered.map((inv) => (
-                <div key={inv.id} className="bg-surface-container-low border border-outline-variant rounded-xl p-6 lift-on-hover flex flex-col gap-4 group">
-                  {/* Header */}
-                  <div className="flex justify-between items-start gap-2">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs bg-surface-container border border-outline-variant text-outline px-2 py-0.5 rounded font-mono">{inv.id}</span>
-                      <span className="text-xs text-outline bg-surface-container border border-outline-variant px-2 py-0.5 rounded">{inv.chain}</span>
+                <li
+                  key={inv.id}
+                  className="group flex flex-col gap-4 rounded-xl border border-outline-variant bg-surface-container-low/70 p-6 lift-on-hover"
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded border border-outline-variant bg-surface-container px-2 py-0.5 font-mono text-[0.7rem] text-outline">
+                        {inv.id}
+                      </span>
+                      <span className="rounded border border-outline-variant bg-surface-container px-2 py-0.5 font-mono text-[0.7rem] text-outline">
+                        {inv.chain}
+                      </span>
                     </div>
                     <SeverityBadge level={inv.severity} />
                   </div>
 
-                  {/* Title */}
-                  <h3 className="font-mono text-sm font-[600] text-on-surface group-hover:text-secondary transition-colors">{inv.title}</h3>
+                  <h3 className="font-mono text-sm font-[600] text-on-surface transition-colors group-hover:text-indigo-bright">
+                    {inv.title}
+                  </h3>
 
-                  {/* Description */}
-                  <p className="text-body-md text-outline leading-5 line-clamp-3 flex-1">{inv.description}</p>
+                  <p className="line-clamp-3 flex-1 text-body-md leading-5 text-on-surface-variant">
+                    {inv.description}
+                  </p>
 
-                  {/* Tags */}
                   <div className="flex flex-wrap gap-1.5">
                     {inv.tags.map((tag) => (
                       <button
                         key={tag}
                         onClick={() => setSearch(tag.toLowerCase())}
-                        className="text-xs bg-surface-container border border-outline-variant text-outline px-2 py-0.5 rounded hover:border-indigo/50 hover:text-on-surface transition-colors"
+                        className="rounded border border-outline-variant bg-surface-container px-2 py-0.5 font-mono text-[0.65rem] text-outline transition-colors hover:border-indigo/50 hover:text-on-surface"
                       >
                         {tag}
                       </button>
                     ))}
                   </div>
 
-                  {/* Footer */}
-                  <div className="border-t border-outline-variant pt-3 flex justify-between items-center">
-                    <div className="flex items-center gap-4 text-xs">
+                  <div className="flex items-center justify-between border-t border-outline-variant pt-3 font-mono text-xs">
+                    <div className="flex items-center gap-4">
                       <span>
                         <span className="text-outline-variant">CVSS </span>
-                        <span className={`font-[700] ${cvssColor(inv.cvss)}`}>{inv.cvss}</span>
+                        <span className={clsx('font-[700] tabular-nums', cvssColor(inv.cvss))}>
+                          {inv.cvss.toFixed(1)}
+                        </span>
                       </span>
-                      <span>
-                        <span className="text-outline-variant">v </span>
-                        <span className="text-on-surface-variant">{inv.version}</span>
-                      </span>
+                      <span className="text-outline">{inv.version}</span>
                     </div>
-                    <span className="text-xs text-outline">
+                    <span className="tabular-nums text-outline">
                       {inv.audits >= 1000 ? `${(inv.audits / 1000).toFixed(1)}k` : inv.audits} audits
                     </span>
                   </div>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
-        </section>
+        </Container>
       </main>
 
-      <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} defaultTab="signup" />
+      <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} />
       <MarketingFooter />
     </div>
   )
