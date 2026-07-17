@@ -3,9 +3,10 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ShieldCheck, Menu, X } from 'lucide-react'
+import { Menu, X } from 'lucide-react'
 import { Button } from '../ui/Button'
 import { AuthModal } from '../ui/AuthModal'
+import { SentriLogo } from '../ui/SentriLogo'
 import { useScrollProgress } from '../hooks/useScrollProgress'
 import clsx from 'clsx'
 
@@ -74,11 +75,9 @@ export function MarketingNav({ className }: MarketingNavProps) {
           {/* Logo */}
           <Link
             href="/"
-            className="group flex items-center gap-2 rounded-lg outline-none focus-visible:outline-2 focus-visible:outline-indigo"
+            className="group flex items-center gap-2.5 rounded-lg outline-none focus-visible:outline-2 focus-visible:outline-indigo"
           >
-            <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-indigo/30 bg-indigo/10 transition-colors group-hover:bg-indigo/20">
-              <ShieldCheck size={17} className="text-indigo-bright" />
-            </span>
+            <SentriLogo size={26} className="transition-transform duration-200 group-hover:scale-105" />
             <span className="text-[0.95rem] font-[600] tracking-tight text-on-surface">Sentri</span>
           </Link>
 

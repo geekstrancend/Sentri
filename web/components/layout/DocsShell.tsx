@@ -1,12 +1,13 @@
 'use client'
 
 import Link from 'next/link'
-import { Search, X, Menu, ShieldCheck, ArrowLeft, ArrowRight, Github } from 'lucide-react'
+import { Search, X, Menu, ArrowLeft, ArrowRight, Github } from 'lucide-react'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { usePathname } from 'next/navigation'
 import clsx from 'clsx'
 import { useEscapeKey } from '../hooks/useEscapeKey'
 import { Badge } from '../ui/Badge'
+import { SentriLogo } from '../ui/SentriLogo'
 
 interface DocsSidebarItem {
   label: string
@@ -160,9 +161,7 @@ export function DocsShell({
       >
         <div className="flex-shrink-0 border-b border-outline-variant p-4">
           <Link href="/" className="mb-4 flex items-center gap-2">
-            <span className="flex h-7 w-7 items-center justify-center rounded-lg border border-indigo/30 bg-indigo/10">
-              <ShieldCheck size={15} className="text-indigo-bright" />
-            </span>
+            <SentriLogo size={24} />
             <span className="text-sm font-[600] text-on-surface">Sentri</span>
             <span className="text-label-sm text-outline">Docs</span>
           </Link>

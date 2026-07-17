@@ -1,6 +1,7 @@
 import Link from 'next/link'
-import { ShieldCheck, Github, Twitter, ExternalLink } from 'lucide-react'
+import { Github, Twitter, ExternalLink } from 'lucide-react'
 import { Container } from '../ui/Section'
+import { SentriLogo } from '../ui/SentriLogo'
 
 const columns: {
   title: string
@@ -54,10 +55,8 @@ export function MarketingFooter() {
         <div className="mb-16 grid grid-cols-2 gap-10 md:grid-cols-5">
           {/* Brand */}
           <div className="col-span-2 pr-8">
-            <Link href="/" className="mb-4 flex items-center gap-2">
-              <span className="flex h-8 w-8 items-center justify-center rounded-lg border border-indigo/30 bg-indigo/10">
-                <ShieldCheck size={17} className="text-indigo-bright" />
-              </span>
+            <Link href="/" className="mb-4 flex items-center gap-2.5">
+              <SentriLogo size={26} />
               <span className="text-[0.95rem] font-[600] text-on-surface">Sentri</span>
             </Link>
             <p className="mb-6 max-w-xs text-body-md leading-6 text-on-surface-variant">
