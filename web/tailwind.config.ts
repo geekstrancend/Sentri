@@ -9,8 +9,12 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        fraunces: 'var(--font-fraunces), serif',
-        mono: 'var(--font-jetbrains), monospace',
+        sans: 'var(--font-sans)',
+        mono: 'var(--font-mono)',
+        // `fraunces` is aliased to the sans (Inter) stack for backward
+        // compatibility: existing `font-fraunces` headings now render Inter,
+        // matching the current design language (DESIGN.md §3) with no churn.
+        fraunces: 'var(--font-sans)',
       },
       colors: {
         surface: 'var(--surface)',
@@ -49,7 +53,18 @@ const config: Config = {
         'low-bg': 'var(--low-bg)',
         'low-border': 'var(--low-border)',
         indigo: 'var(--indigo)',
+        'indigo-bright': 'var(--indigo-bright)',
         'indigo-container': 'var(--indigo-container)',
+        signal: 'var(--signal)',
+        'signal-bright': 'var(--signal-bright)',
+        'signal-bg': 'var(--signal-bg)',
+        'signal-border': 'var(--signal-border)',
+      },
+      boxShadow: {
+        glow: '0 0 40px -8px rgba(129, 140, 248, 0.35)',
+        'glow-signal': '0 0 40px -8px rgba(74, 222, 128, 0.3)',
+        card: '0 1px 2px rgba(0,0,0,0.4), 0 8px 24px -12px rgba(0,0,0,0.5)',
+        'card-lg': '0 14px 40px -12px rgba(0,0,0,0.55)',
       },
       spacing: {
         xs: '4px',
