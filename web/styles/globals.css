@@ -10,12 +10,13 @@
 
 @layer base {
   :root {
-    /* Fonts — Geist / Geist Mono, self-hosted via the `geist` package and
-       wired in app/layout.tsx. */
+    /* Fonts — wired in app/layout.tsx. Unbounded is display-only. */
     --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
       'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     --font-mono: var(--font-geist-mono), ui-monospace, 'SF Mono', Menlo, Consolas,
       'Liberation Mono', monospace;
+    --font-display: var(--font-display-unbounded), var(--font-geist-sans),
+      ui-sans-serif, system-ui, sans-serif;
 
     /* Surfaces — elevation ramp (never pure black) */
     --surface: #131314;
@@ -161,26 +162,29 @@
 
 @layer components {
   /* ─────────────── Type scale (Inter) ─────────────── */
+  /* Display = Unbounded. It is wide and loud by nature, so it takes tighter
+     line-height and near-zero tracking; the face supplies the personality,
+     not the letter-spacing. */
   .text-display-lg {
-    font-family: var(--font-sans);
-    font-size: clamp(2.5rem, 1.6rem + 3.6vw, 4rem);
-    line-height: 1.02;
-    font-weight: 700;
-    letter-spacing: -0.035em;
-  }
-  .text-display-md {
-    font-family: var(--font-sans);
-    font-size: clamp(2rem, 1.4rem + 2.4vw, 3rem);
-    line-height: 1.05;
+    font-family: var(--font-display);
+    font-size: clamp(2.25rem, 1.3rem + 3.9vw, 4.25rem);
+    line-height: 0.98;
     font-weight: 700;
     letter-spacing: -0.03em;
   }
+  .text-display-md {
+    font-family: var(--font-display);
+    font-size: clamp(1.85rem, 1.25rem + 2.5vw, 3rem);
+    line-height: 1.02;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+  }
   .text-display-sm {
-    font-family: var(--font-sans);
-    font-size: clamp(1.6rem, 1.2rem + 1.6vw, 2.25rem);
+    font-family: var(--font-display);
+    font-size: clamp(1.45rem, 1.1rem + 1.5vw, 2.1rem);
     line-height: 1.1;
     font-weight: 600;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.02em;
   }
   .text-headline-lg {
     @apply text-3xl leading-tight font-[600];
@@ -419,26 +423,12 @@
 }
 
 /* ─────────────── ASCII texture ───────────────
-   The signature surface: a tiled field of monospace glyphs, echoing the
-   terminal output the product actually emits. Built as an inline SVG tile
-   rather than a bitmap so it stays crisp at any DPI and costs no request.
-   Kept far below the text contrast floor — it reads as texture, not noise. */
-.bg-ascii {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='260' height='168'%3E%3Cg font-family='monospace' font-size='12' fill='%23a4b3ff'%3E%3Ctext x='2' y='14'%3E01 .. :: 1101 +- 0x1f .: %3C/text%3E%3Ctext x='2' y='38'%3E:: 0xff -- 001 .: =+ 10 %3C/text%3E%3Ctext x='2' y='62'%3E1001 .: ++ :: 0b11 .. -%3C/text%3E%3Ctext x='2' y='86'%3E.. -+ 0x00 :: 110 =. 01%3C/text%3E%3Ctext x='2' y='110'%3E:+ 011 .. 0xde :: -- 1%3C/text%3E%3Ctext x='2' y='134'%3E10 :: .- 0101 .: ++ 0x%3C/text%3E%3Ctext x='2' y='158'%3E.: ++ 11 :: 0xad -- 00%3C/text%3E%3C/g%3E%3C/svg%3E");
-  background-repeat: repeat;
-  opacity: 0.055;
-  mask-image: radial-gradient(ellipse 75% 65% at 50% 35%, #000 30%, transparent 100%);
-  -webkit-mask-image: radial-gradient(ellipse 75% 65% at 50% 35%, #000 30%, transparent 100%);
-}
-
-/* Slow vertical drift — the field reads as a live scan rather than wallpaper.
-   Transform-only, and frozen under prefers-reduced-motion. */
-@keyframes ascii-drift {
-  from { background-position: 0 0; }
-  to { background-position: 0 168px; }
-}
-.bg-ascii-drift {
-  animation: ascii-drift 90s linear infinite;
+   The signature surface is rendered as real monospace text by <AsciiField>.
+   This radial mask fades that field toward the edges so it reads as depth,
+   not wallpaper, and never competes with foreground copy. */
+.ascii-mask {
+  -webkit-mask-image: radial-gradient(ellipse 85% 75% at 50% 40%, #000 20%, transparent 78%);
+  mask-image: radial-gradient(ellipse 85% 75% at 50% 40%, #000 20%, transparent 78%);
 }
 
 /* Dashed hairline — blueprint/spec framing for feature surfaces. */

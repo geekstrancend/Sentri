@@ -11,6 +11,7 @@ const config: Config = {
       fontFamily: {
         sans: 'var(--font-sans)',
         mono: 'var(--font-mono)',
+        display: 'var(--font-display)',
         // `fraunces` is aliased to the sans (Geist) stack for backward
         // compatibility: existing `font-fraunces` headings now render Geist,
         // matching the current design language (DESIGN.md §3) with no churn.

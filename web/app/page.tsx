@@ -72,11 +72,16 @@ export default function HomePage() {
 
       <main id="main" className="flex-1">
         {/* ───────────────────────── Hero ───────────────────────── */}
-        <section id="product" className="relative overflow-hidden">
+        <section id="product" className="relative isolate overflow-hidden">
           <AmbientBackground />
-          <Container className="grid grid-cols-1 items-center gap-12 py-16 lg:grid-cols-[1.05fr_1fr] lg:py-24">
+          <Container className="relative z-10 grid grid-cols-1 items-center gap-12 py-16 lg:grid-cols-[1.05fr_1fr] lg:py-24">
             {/* Copy */}
-            <div className="max-w-xl">
+            <div className="relative max-w-xl">
+              {/* Soft scrim so body copy stays crisp over the ASCII field. */}
+              <div
+                aria-hidden
+                className="pointer-events-none absolute -inset-x-8 -inset-y-6 -z-[1] bg-[radial-gradient(ellipse_at_center,theme(colors.surface)_45%,transparent_100%)] opacity-80"
+              />
               <div className="animate-fade-in-up">
                 <Badge tone="indigo" icon={<ShieldCheck size={13} />}>
                   Smart contract security engine
@@ -251,9 +256,9 @@ export default function HomePage() {
         </section>
 
         {/* ───────────────────────── How it works ───────────────────────── */}
-        <section className="relative overflow-hidden border-y border-outline-variant bg-surface-container-lowest py-16 sm:py-24">
+        <section className="relative isolate overflow-hidden border-y border-outline-variant bg-surface-container-lowest py-16 sm:py-24">
           <AmbientBackground spotlight={false} />
-          <Container>
+          <Container className="relative z-10">
             <SectionHeading
               align="center"
               className="mx-auto mb-14"
@@ -319,9 +324,9 @@ export default function HomePage() {
         </section>
 
         {/* ───────────────────────── Reports ───────────────────────── */}
-        <section className="relative overflow-hidden border-y border-outline-variant bg-surface-container-lowest py-16 sm:py-24">
+        <section className="relative isolate overflow-hidden border-y border-outline-variant bg-surface-container-lowest py-16 sm:py-24">
           <AmbientBackground spotlight={false} />
-          <Container>
+          <Container className="relative z-10">
             <div className="grid grid-cols-1 items-center gap-14 lg:grid-cols-2">
               <div ref={reportsLeftRef} className="reveal">
                 <SectionHeading
@@ -470,10 +475,10 @@ export default function HomePage() {
         {/* ───────────────────────── Final CTA ───────────────────────── */}
         <section ref={ctaRef} className="reveal pb-24">
           <Container>
-            <div className="relative overflow-hidden rounded-3xl border border-indigo/30 bg-gradient-to-br from-indigo/10 via-surface-container-low to-surface-container-lowest p-10 text-center sm:p-16">
+            <div className="relative isolate overflow-hidden rounded-3xl border border-indigo/30 bg-gradient-to-br from-indigo/10 via-surface-container-low to-surface-container-lowest p-10 text-center sm:p-16">
               <AmbientBackground spotlight={false} />
-              <div className="pointer-events-none absolute -top-32 left-1/2 h-[380px] w-[600px] -translate-x-1/2 rounded-full bg-indigo/15 blur-3xl" />
-              <div className="relative">
+              <div className="pointer-events-none absolute -top-32 left-1/2 z-0 h-[380px] w-[600px] -translate-x-1/2 rounded-full bg-indigo/15 blur-3xl" />
+              <div className="relative z-10">
                 <Badge tone="indigo" icon={<ShieldCheck size={13} />} className="mx-auto">
                   Start securing today
                 </Badge>

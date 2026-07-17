@@ -1,12 +1,22 @@
 import type { Metadata, Viewport } from 'next'
+import { Unbounded } from 'next/font/google'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
 import '../styles/globals.css'
 import { AuthProvider } from './providers'
 
-// Geist carries all UI and prose; Geist Mono is the "technical voice"
-// (code, labels, data, terminal, ASCII). See DESIGN.md §3. Self-hosted and
-// variable — no network fetch at build, no FOIT.
+// Three voices (DESIGN.md §3):
+//   Unbounded  — display only. Wide, mechanical, unmistakable. Used big or
+//                not at all; it is the thing you remember.
+//   Geist      — UI and prose. Quiet, engineered, gets out of the way.
+//   Geist Mono — the technical voice: code, labels, data, terminal, ASCII.
+// Geist is self-hosted (no build-time network fetch, no FOIT).
+const unbounded = Unbounded({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-display-unbounded',
+  weight: ['600', '700', '800'],
+})
 
 const SITE_URL = 'https://sentri.dev'
 
@@ -56,7 +66,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`dark ${GeistSans.variable} ${GeistMono.variable}`}
+      className={`dark ${GeistSans.variable} ${GeistMono.variable} ${unbounded.variable}`}
       suppressHydrationWarning
     >
       <body>

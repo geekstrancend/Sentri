@@ -25,7 +25,10 @@ export function Card({
   return (
     <Tag
       className={clsx(
-        'relative rounded-xl border border-outline-variant bg-surface-container-low/70 backdrop-blur-[2px]',
+        // Nearly opaque so content stays crisp when the card sits over the
+        // ASCII field; the slight translucency + blur keeps it feeling like
+        // glass rather than a flat block.
+        'relative rounded-xl border border-outline-variant bg-surface-container-low/90 backdrop-blur-sm',
         gradientTop && 'card-gradient-border',
         interactive && 'lift-on-hover',
         className,

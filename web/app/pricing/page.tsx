@@ -192,9 +192,9 @@ export default function PricingPage() {
 
       <main id="main" className="flex-1">
         {/* ── Hero ── */}
-        <section className="relative overflow-hidden">
+        <section className="relative isolate overflow-hidden">
           <AmbientBackground />
-          <Container className="py-16 text-center sm:py-20">
+          <Container className="relative z-10 py-16 text-center sm:py-20">
             <div className="animate-fade-in-up flex justify-center">
               <Badge tone="indigo">Simple, transparent pricing</Badge>
             </div>

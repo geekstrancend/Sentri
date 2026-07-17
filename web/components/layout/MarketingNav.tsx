@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation'
 import { ShieldCheck, Menu, X } from 'lucide-react'
 import { Button } from '../ui/Button'
 import { AuthModal } from '../ui/AuthModal'
+import { useScrollProgress } from '../hooks/useScrollProgress'
 import clsx from 'clsx'
 
 interface MarketingNavProps {
@@ -26,6 +27,7 @@ export function MarketingNav({ className }: MarketingNavProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const pathname = usePathname()
+  const progress = useScrollProgress()
 
   // Scroll-aware chrome: the nav gains a stronger glass + hairline once the
   // hero scrolls under it, giving spatial feedback (DESIGN.md §5).
@@ -159,6 +161,13 @@ export function MarketingNav({ className }: MarketingNavProps) {
             </div>
           </div>
         )}
+
+        {/* Read-progress hairline: scale-only, so it costs no layout work. */}
+        <div
+          aria-hidden
+          className="absolute inset-x-0 bottom-0 h-px origin-left bg-gradient-to-r from-indigo via-indigo-bright to-signal"
+          style={{ transform: `scaleX(${progress})` }}
+        />
       </header>
 
       <AuthModal isOpen={authOpen} onClose={() => setAuthOpen(false)} defaultTab={authTab} />
