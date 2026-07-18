@@ -9,6 +9,7 @@ machine-verified and reproducible, not an LLM's opinion.
 | Skill | What it does |
 |-------|--------------|
 | [sentri-audit](sentri-audit/) | Deterministic-first, engine-verified smart-contract audit across EVM · Solana · Move · Soroban. Runs the compiled engine first, then amplifies with LLM attacker lenses whose findings are verified back through the engine before being reported. |
+| [sentri-recon](sentri-recon/) | Pre-audit recon: git-history risk mining + threat model + entry points + synthesized invariants — with the checkable invariants run through the engine, not just listed. |
 
 ## Prerequisite
 
