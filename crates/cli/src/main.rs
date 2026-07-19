@@ -2319,9 +2319,17 @@ fn run_detector_precision_fuzzers(iterations_per_fuzzer: usize) -> sentri_core::
 /// the first violation, shrinks it to a minimal reproduction and prints a
 /// proof-of-concept call trace.
 fn cmd_dynamic_fuzz(args: FuzzArgs, quiet: bool, verbose: bool) -> Result<()> {
+    if matches!(args.chain, ChainArg::Solana) {
+        return Err(anyhow::anyhow!(
+            "--dynamic --chain solana: the Solana execution backend (sentri-dynamic-solana, \
+             account-model invariant fuzzer over a real litesvm SVM) is built and tested, but \
+             the CLI front-end that derives instruction specs + invariants from a program's IDL \
+             is not wired yet. Drive it from the crate API for now (LiteSvmGenesis + fuzz())."
+        ));
+    }
     if !matches!(args.chain, ChainArg::Evm) {
         return Err(anyhow::anyhow!(
-            "--dynamic fuzzing currently only supports --chain evm (Solana/Move/Soroban need their own execution backends, not yet built)"
+            "--dynamic fuzzing currently only supports --chain evm (Move/Soroban need their own execution backends, not yet built)"
         ));
     }
 
