@@ -1,0 +1,52 @@
+[package]
+name = "sentri-dynamic-solana"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+description = "Sentri: dynamic invariant fuzzing for Solana programs (account-model execution + invariant oracles)."
+
+keywords = ["sentri", "solana", "fuzzing", "invariant", "security"]
+categories = ["development-tools", "development-tools::testing"]
+readme = "README.md"
+documentation = "https://docs.rs/sentri-dynamic-solana"
+
+[features]
+# Not on by default: the real execution backend pulls in a Solana SVM
+# (`litesvm`), a heavy dependency. The account-model call types, invariant
+# oracles, sequence generation, shrinking, and PoC formatting are all
+# chain-native and build/test without it — proven against an in-memory mock,
+# exactly like the EVM crate proved its engine before wiring revm.
+default = []
+# Pins the same granular solana-* 2.2 crates litesvm 0.6 uses, so the real
+# backend links against one coherent Solana version (the workspace meta-crate
+# is 1.x and would conflict).
+litesvm-backend = [
+    "dep:litesvm",
+    "dep:solana-account",
+    "dep:solana-instruction",
+    "dep:solana-message",
+    "dep:solana-pubkey",
+    "dep:solana-transaction",
+    "dep:solana-keypair",
+    "dep:solana-signer",
+    "dep:solana-hash",
+]
+
+[dependencies]
+sentri-dynamic-core.workspace = true
+rand.workspace = true
+litesvm = { version = "0.6", optional = true }
+solana-account = { version = "2.2", optional = true }
+solana-instruction = { version = "2.2", optional = true }
+solana-message = { version = "2.2", optional = true }
+solana-pubkey = { version = "2.2", optional = true }
+solana-transaction = { version = "2.2", optional = true }
+solana-keypair = { version = "2.2", optional = true }
+solana-signer = { version = "2.2", optional = true }
+solana-hash = { version = "2.2", optional = true }
+
+[dev-dependencies]
