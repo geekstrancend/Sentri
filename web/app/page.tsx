@@ -6,6 +6,7 @@ import { ShieldCheck, BookOpen, Brain, RefreshCw, ArrowRight, Check, Zap, GitBra
 import { useReveal } from '@/components/hooks/useReveal'
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
 import { AsciiLogo } from '@/components/ui/AsciiLogo'
+import { ParticleField } from '@/components/ui/ParticleField'
 import { MarketingNav } from '@/components/layout/MarketingNav'
 import { MarketingFooter } from '@/components/layout/MarketingFooter'
 import { Button } from '@/components/ui/Button'
@@ -33,6 +34,21 @@ export default function HomePage() {
     <div className="min-h-screen bg-surface flex flex-col">
       <div className="fixed top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-indigo/5 rounded-full blur-3xl pointer-events-none -z-10" />
       <MarketingNav />
+
+      {/* Particle wordmark stage: SENTRI assembles out of drifting dust on
+          load, then dissolves back into it as you scroll into the product
+          hero. Given its own band so it never competes with the copy. */}
+      <section className="relative isolate w-full overflow-hidden h-[52vh] min-h-[360px] max-h-[560px]">
+        <div className="absolute inset-0 bg-grid-pattern opacity-40 pointer-events-none z-0" />
+        <ParticleField className="absolute inset-0 z-0" />
+        <div className="absolute inset-x-0 bottom-8 z-10 flex justify-center px-6">
+          <p className="text-label-sm text-outline tracking-[0.2em] uppercase animate-fade-in-up" style={{ animationDelay: '1.1s' }}>
+            Multi-chain invariant security
+          </p>
+        </div>
+        {/* Fade the band into the hero below so the two read as one surface. */}
+        <div className="absolute inset-x-0 bottom-0 h-24 z-10 pointer-events-none bg-gradient-to-b from-transparent to-surface" />
+      </section>
 
       {/* Hero Section - Two Column Layout */}
       <section id="product" className="relative px-6 py-3 lg:py-4 max-w-7xl mx-auto overflow-hidden">
