@@ -32,14 +32,14 @@ export function MarketingNav({ className }: MarketingNavProps) {
   return (
     <>
       <nav className={clsx(
-        'sticky top-0 z-40 bg-surface-container-lowest/95 backdrop-blur-sm border-b border-outline-variant',
+        'sticky top-0 z-40 bg-surface-2/95 backdrop-blur-sm border-b border-hair',
         className,
       )}>
-        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
+        <div className="max-w-site mx-auto px-7 py-4 flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <ShieldCheck size={20} className="text-secondary" />
-            <span className="font-mono font-[600] text-on-surface text-base tracking-tight">Sentri</span>
+            <ShieldCheck size={20} className="text-acc-text" />
+            <span className="font-mono font-[600] text-text text-base tracking-tight">Sentri</span>
           </Link>
 
           {/* Desktop nav links */}
@@ -51,8 +51,8 @@ export function MarketingNav({ className }: MarketingNavProps) {
                 className={clsx(
                   'text-body-md transition-colors',
                   pathname === link.href.replace('/#', '/') || (link.href !== '/' && pathname?.startsWith(link.href.split('#')[0]))
-                    ? 'text-on-surface font-[500]'
-                    : 'text-outline hover:text-on-surface',
+                    ? 'text-text font-[500]'
+                    : 'text-sec hover:text-text',
                 )}
               >
                 {link.label}
@@ -68,32 +68,32 @@ export function MarketingNav({ className }: MarketingNavProps) {
 
           {/* Mobile hamburger */}
           <button
-            className="md:hidden p-2 -mr-2 hover:bg-surface-container rounded-lg transition-colors"
+            className="md:hidden p-2 -mr-2 hover:bg-panel rounded-lg transition-colors"
             onClick={() => setMobileOpen(!mobileOpen)}
             aria-label="Toggle navigation"
           >
             {mobileOpen
-              ? <X size={20} className="text-on-surface" />
-              : <Menu size={20} className="text-on-surface" />}
+              ? <X size={20} className="text-text" />
+              : <Menu size={20} className="text-text" />}
           </button>
         </div>
 
         {/* Mobile dropdown */}
         {mobileOpen && (
-          <div className="md:hidden border-t border-outline-variant bg-surface-container-lowest">
-            <div className="px-6 py-4 space-y-1">
+          <div className="md:hidden border-t border-hair bg-surface-2">
+            <div className="px-7 py-4 space-y-1">
               {navLinks.map((link) => (
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="flex items-center px-3 py-2.5 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container transition-colors text-body-md"
+                  className="flex items-center px-3 py-2.5 rounded-lg text-sec hover:text-text hover:bg-panel transition-colors text-body-md"
                   onClick={() => setMobileOpen(false)}
                 >
                   {link.label}
                 </Link>
               ))}
             </div>
-            <div className="px-6 pb-4 border-t border-outline-variant pt-4 flex flex-col gap-3">
+            <div className="px-7 pb-4 border-t border-hair pt-4 flex flex-col gap-3">
               <Button variant="secondary" fullWidth onClick={() => { handleLogIn(); setMobileOpen(false) }}>Log In</Button>
               <Button variant="primary" fullWidth onClick={() => { handleStartTrial(); setMobileOpen(false) }}>Start Free Trial</Button>
             </div>

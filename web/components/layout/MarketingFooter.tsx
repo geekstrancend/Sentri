@@ -5,18 +5,18 @@ export function MarketingFooter() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="border-t border-outline-variant bg-surface-container-lowest">
-      <div className="max-w-7xl mx-auto px-6 pt-16 pb-8">
+    <footer className="border-t border-hair bg-surface-2">
+      <div className="max-w-site mx-auto px-7 pt-16 pb-8">
 
         {/* Top grid */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-8 mb-16">
           {/* Brand column */}
           <div className="col-span-2 md:col-span-2 pr-8">
             <Link href="/" className="flex items-center gap-2 mb-4">
-              <ShieldCheck size={20} className="text-secondary" />
-              <span className="font-mono font-[600] text-on-surface text-base">Sentri</span>
+              <ShieldCheck size={20} className="text-acc-text" />
+              <span className="font-mono font-[600] text-text text-base">Sentri</span>
             </Link>
-            <p className="text-outline text-body-md mb-6 leading-6">
+            <p className="text-sec text-body-md mb-6 leading-6">
               The invariant-driven smart contract security platform. Don&apos;t get Hacked.
             </p>
             <div className="flex items-center gap-3">
@@ -24,7 +24,7 @@ export function MarketingFooter() {
                 href="https://github.com/geekstrancend/Sentri"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 flex items-center justify-center rounded-lg bg-surface-container border border-outline-variant text-outline hover:text-on-surface hover:border-indigo transition-colors"
+                className="w-9 h-9 flex items-center justify-center rounded-lg bg-panel border border-hair text-sec hover:text-text hover:border-indigo transition-colors"
                 aria-label="GitHub"
               >
                 <Github size={16} />
@@ -33,7 +33,7 @@ export function MarketingFooter() {
                 href="https://twitter.com/sentrisec"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-9 h-9 flex items-center justify-center rounded-lg bg-surface-container border border-outline-variant text-outline hover:text-on-surface hover:border-indigo transition-colors"
+                className="w-9 h-9 flex items-center justify-center rounded-lg bg-panel border border-hair text-sec hover:text-text hover:border-indigo transition-colors"
                 aria-label="Twitter"
               >
                 <Twitter size={16} />
@@ -43,7 +43,7 @@ export function MarketingFooter() {
 
           {/* Product */}
           <div>
-            <h3 className="text-label-sm text-on-surface mb-5">Product</h3>
+            <h3 className="text-label-sm text-text mb-5">Product</h3>
             <ul className="space-y-3">
               {[
                 { label: 'Features', href: '/#features' },
@@ -52,7 +52,7 @@ export function MarketingFooter() {
                 { label: 'Changelog', href: '/docs' },
               ].map((link) => (
                 <li key={link.href}>
-                  <Link href={link.href} className="block text-outline hover:text-on-surface text-body-md transition-colors">
+                  <Link href={link.href} className="block text-sec hover:text-text text-body-md transition-colors">
                     {link.label}
                   </Link>
                 </li>
@@ -62,7 +62,7 @@ export function MarketingFooter() {
 
           {/* Resources */}
           <div>
-            <h3 className="text-label-sm text-on-surface mb-5">Resources</h3>
+            <h3 className="text-label-sm text-text mb-5">Resources</h3>
             <ul className="space-y-3">
               {[
                 { label: 'Documentation', href: '/docs' },
@@ -76,7 +76,7 @@ export function MarketingFooter() {
                     href={link.href}
                     target={link.external ? '_blank' : undefined}
                     rel={link.external ? 'noopener noreferrer' : undefined}
-                    className="inline-flex items-center gap-1 text-outline hover:text-on-surface text-body-md transition-colors"
+                    className="inline-flex items-center gap-1 text-sec hover:text-text text-body-md transition-colors"
                   >
                     {link.label}
                     {link.external && <ExternalLink size={10} className="opacity-60" />}
@@ -88,7 +88,7 @@ export function MarketingFooter() {
 
           {/* Legal */}
           <div>
-            <h3 className="text-label-sm text-on-surface mb-5">Company</h3>
+            <h3 className="text-label-sm text-text mb-5">Company</h3>
             <ul className="space-y-3">
               {[
                 { label: 'Contact Sales', href: '/contact' },
@@ -101,7 +101,7 @@ export function MarketingFooter() {
                     href={link.href}
                     target={link.external ? '_blank' : undefined}
                     rel={link.external ? 'noopener noreferrer' : undefined}
-                    className="inline-flex items-center gap-1 text-outline hover:text-on-surface text-body-md transition-colors"
+                    className="inline-flex items-center gap-1 text-sec hover:text-text text-body-md transition-colors"
                   >
                     {link.label}
                     {link.external && <ExternalLink size={10} className="opacity-60" />}
@@ -117,13 +117,13 @@ export function MarketingFooter() {
 
         {/* Bottom bar */}
         <div className="flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-outline text-xs">
+          <p className="text-sec text-xs">
             © {currentYear} Sentri Security, Inc. All rights reserved.
           </p>
-          <div className="flex items-center gap-6 text-xs text-outline">
-            <Link href="/privacy" className="hover:text-on-surface transition-colors">Privacy</Link>
-            <Link href="/terms" className="hover:text-on-surface transition-colors">Terms</Link>
-            <a href="mailto:contact@sentri.dev" className="hover:text-on-surface transition-colors">contact@sentri.dev</a>
+          <div className="flex items-center gap-6 text-xs text-sec">
+            <Link href="/privacy" className="hover:text-text transition-colors">Privacy</Link>
+            <Link href="/terms" className="hover:text-text transition-colors">Terms</Link>
+            <a href="mailto:contact@sentri.dev" className="hover:text-text transition-colors">contact@sentri.dev</a>
           </div>
         </div>
       </div>

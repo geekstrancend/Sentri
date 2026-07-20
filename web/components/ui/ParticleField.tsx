@@ -182,12 +182,15 @@ export function ParticleField({
       ctx.globalAlpha = 1
     }
 
-    /** Assemble on entry, then dissolve as the hero scrolls away. */
+    /** Assemble on entry, then dissolve as the page scrolls over the hero.
+     *
+     * Keyed off scroll position rather than the host's own rect: the hero is
+     * `position: sticky`, so its rect.top pins at 0 while stuck and would
+     * report no movement at all. */
     const progressAt = (now: number) => {
       const intro = easeOutCubic(clamp((now - introStart) / introMs, 0, 1))
-      const rect = host.getBoundingClientRect()
-      const travel = Math.max(rect.height, 1)
-      const scrolled = clamp(-rect.top / travel, 0, 1)
+      const travel = Math.max(window.innerHeight * 0.85, 1)
+      const scrolled = clamp(window.scrollY / travel, 0, 1)
       return intro * (1 - scrolled)
     }
 

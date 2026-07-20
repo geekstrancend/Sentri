@@ -4,8 +4,30 @@
 
 @layer base {
   :root {
-    --font-fraunces: Georgia, 'Times New Roman', serif;
-    --font-jetbrains: 'SF Mono', 'Menlo', 'Consolas', 'Liberation Mono', monospace;
+    /* Type faces (loaded via <link> in layout — next/font is incompatible
+       with this project's Turbopack dev server). */
+    --font-display: 'Bricolage Grotesque';
+    --font-body: 'Hanken Grotesk';
+    --font-mono: 'IBM Plex Mono';
+
+    /* Legacy aliases — the older components still reference these. */
+    --font-fraunces: var(--font-display), 'Bricolage Grotesque', system-ui, sans-serif;
+    --font-jetbrains: var(--font-mono), 'IBM Plex Mono', monospace;
+
+    /* ── Editorial surface system ──
+       A flat darkness ladder (bg → surface → panel) separated by hairline
+       borders rather than shadows, so panels read as inked areas on one
+       sheet instead of floating cards. Accent stays Sentri indigo. */
+    --bg: #08090c;
+    --surface-2: #101218;
+    --panel: #171a22;
+    --hair: #23262f;
+    --hair-strong: #313542;
+    --text: #f2f3f7;
+    --sec: #9b9fae;
+    --acc: #818cf8;
+    --acc-text: #a8afff;
+    --on-acc: #08090c;
 
     /* Material Design 3 Base Colors */
     --surface: #131314;
@@ -50,14 +72,19 @@
   }
 
   body {
-    @apply bg-surface text-on-surface font-mono antialiased;
-    font-family: var(--font-jetbrains), monospace;
+    @apply antialiased;
+    background-color: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body), 'Hanken Grotesk', system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    text-rendering: optimizeLegibility;
   }
 
 
 
   h1, h2, h3, h4, h5, h6 {
-    font-family: var(--font-fraunces), serif;
+    font-family: var(--font-display), 'Bricolage Grotesque', system-ui, sans-serif;
   }
 
   /* Focus ring for accessibility */
@@ -105,22 +132,22 @@
   /* Typography utilities */
   .text-display-lg {
     @apply text-5xl leading-[64px] font-[600] tracking-[-0.02em];
-    font-family: var(--font-fraunces), serif;
+    font-family: var(--font-display), 'Bricolage Grotesque', system-ui, sans-serif;
   }
 
   .text-headline-lg {
     @apply text-3xl leading-10 font-[600];
-    font-family: var(--font-fraunces), serif;
+    font-family: var(--font-display), 'Bricolage Grotesque', system-ui, sans-serif;
   }
 
   .text-headline-md {
     @apply text-2xl leading-8 font-[500];
-    font-family: var(--font-fraunces), serif;
+    font-family: var(--font-display), 'Bricolage Grotesque', system-ui, sans-serif;
   }
 
   .text-headline-lg-mobile {
     @apply text-[28px] leading-9 font-[600];
-    font-family: var(--font-fraunces), serif;
+    font-family: var(--font-display), 'Bricolage Grotesque', system-ui, sans-serif;
   }
 
   .text-body-lg {
@@ -359,12 +386,12 @@
 /* ─── Additional type utilities ─── */
 .text-display-md {
   @apply text-4xl leading-[52px] font-[600] tracking-[-0.02em];
-  font-family: var(--font-fraunces), serif;
+  font-family: var(--font-display), 'Bricolage Grotesque', system-ui, sans-serif;
 }
 
 .text-display-sm {
   @apply text-3xl leading-10 font-[600] tracking-[-0.01em];
-  font-family: var(--font-fraunces), serif;
+  font-family: var(--font-display), 'Bricolage Grotesque', system-ui, sans-serif;
 }
 
 .text-body-sm {

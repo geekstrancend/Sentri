@@ -9,10 +9,26 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        fraunces: 'var(--font-fraunces), serif',
-        mono: 'var(--font-jetbrains), monospace',
+        display: ['var(--font-display)', 'Bricolage Grotesque', 'system-ui', 'sans-serif'],
+        body: ['var(--font-body)', 'Hanken Grotesk', 'system-ui', 'sans-serif'],
+        fraunces: 'var(--font-fraunces), sans-serif',
+        mono: ['var(--font-mono)', 'IBM Plex Mono', 'monospace'],
+      },
+      maxWidth: {
+        site: '1200px',
+        narrow: '860px',
       },
       colors: {
+        bg: 'var(--bg)',
+        panel: 'var(--panel)',
+        'surface-2': 'var(--surface-2)',
+        hair: 'var(--hair)',
+        'hair-strong': 'var(--hair-strong)',
+        text: 'var(--text)',
+        sec: 'var(--sec)',
+        acc: 'var(--acc)',
+        'acc-text': 'var(--acc-text)',
+        'on-acc': 'var(--on-acc)',
         surface: 'var(--surface)',
         'surface-dim': 'var(--surface-dim)',
         'surface-bright': 'var(--surface-bright)',
@@ -62,6 +78,8 @@ const config: Config = {
         margin: '24px',
       },
       borderRadius: {
+        card: '18px',
+        pill: '100px',
         xs: '2px',
         sm: '2px',
         DEFAULT: '4px',
