@@ -13,7 +13,9 @@
 //! `litesvm-backend` feature.
 
 pub mod backend;
+pub mod config;
 pub mod fuzz;
+pub mod idl;
 pub mod generator;
 pub mod invariant;
 pub mod model;
@@ -24,9 +26,14 @@ pub mod litesvm_backend;
 #[cfg(test)]
 mod testing;
 
+#[cfg(all(test, feature = "litesvm-backend"))]
+mod litesvm_e2e;
+
 pub use backend::SvmBackend;
+pub use config::{parse_plan, ConfigError, FuzzPlan, GenesisAccount};
 pub use fuzz::{format_poc, fuzz, run_sequence, shrink, FuzzConfig, Step, Violation};
 pub use generator::AccountPool;
+pub use idl::{anchor_discriminator, parse_idl, IdlError, IdlProgram, SkippedInstruction};
 pub use invariant::{AccountOwnerInvariant, SolanaInvariant, TokenConservationInvariant};
 pub use model::{
     AccountMeta, AccountRole, ArgKind, Instruction, InstructionSpec, IxOutcome, Pubkey,
@@ -41,11 +48,11 @@ mod tests {
     };
 
     fn pool() -> AccountPool {
-        AccountPool {
-            signers: vec![crate::testing::AUTHORITY],
-            writable: vec![TOKEN_ACCT_1, TOKEN_ACCT_2, TOKEN_ACCT_3, MINT],
-            readonly: vec![],
-        }
+        AccountPool::new(
+            vec![crate::testing::AUTHORITY],
+            vec![TOKEN_ACCT_1, TOKEN_ACCT_2, TOKEN_ACCT_3, MINT],
+            vec![],
+        )
     }
 
     fn conservation() -> Box<dyn SolanaInvariant> {
@@ -144,11 +151,11 @@ mod tests {
             || Box::new(MockSvm::default()),
             TOKEN_PROGRAM,
             &specs,
-            &AccountPool {
-                signers: vec![crate::testing::AUTHORITY],
-                writable: vec![TOKEN_ACCT_1],
-                readonly: vec![],
-            },
+            &AccountPool::new(
+                vec![crate::testing::AUTHORITY],
+                vec![TOKEN_ACCT_1],
+                vec![],
+            ),
             invariants,
             config,
         )

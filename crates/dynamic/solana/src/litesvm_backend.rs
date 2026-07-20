@@ -43,9 +43,17 @@ fn from_pk(pk: Pubkey) -> SentriPubkey {
 pub struct LiteSvmGenesis {
     programs: Vec<(SentriPubkey, Vec<u8>)>,
     accounts: Vec<(SentriPubkey, u64, Vec<u8>, SentriPubkey)>,
+    spl_programs: bool,
 }
 
 impl LiteSvmGenesis {
+    /// Load the builtin SPL programs (Token, Associated Token, …) into the
+    /// SVM, for targets that CPI into them — or to fuzz SPL Token itself.
+    pub fn with_spl_programs(mut self) -> Self {
+        self.spl_programs = true;
+        self
+    }
+
     /// Deploy a BPF program at `program_id` from its `.so` bytes.
     pub fn program(mut self, program_id: SentriPubkey, bytes: &[u8]) -> Self {
         self.programs.push((program_id, bytes.to_vec()));
@@ -65,11 +73,34 @@ impl LiteSvmGenesis {
         self
     }
 
+    /// Build a genesis from a parsed [`FuzzPlan`]: deploy the program and
+    /// seed every declared account. Accounts that name no owner default to
+    /// being owned by the program under test, which is the common case.
+    pub fn from_plan(
+        plan: &crate::config::FuzzPlan,
+        program_id: SentriPubkey,
+        program_bytes: &[u8],
+    ) -> Self {
+        let mut genesis = Self::default().program(program_id, program_bytes);
+        for a in &plan.accounts {
+            genesis = genesis.account(
+                a.pubkey,
+                a.lamports,
+                a.data.clone(),
+                a.owner.unwrap_or(program_id),
+            );
+        }
+        genesis
+    }
+
     /// Construct a fresh backend from this genesis.
     pub fn build(&self) -> LiteSvmBackend {
         let mut svm = LiteSVM::new()
             .with_sigverify(false)
             .with_blockhash_check(false);
+        if self.spl_programs {
+            svm = svm.with_spl_programs();
+        }
         let fee_payer = Pubkey::new_unique();
         svm.airdrop(&fee_payer, 1_000_000_000)
             .expect("fee payer airdrop must succeed on a fresh SVM");

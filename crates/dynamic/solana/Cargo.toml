@@ -39,6 +39,11 @@ litesvm-backend = [
 [dependencies]
 sentri-dynamic-core.workspace = true
 rand.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+sha2 = "0.10"
+bs58 = "0.5"
 litesvm = { version = "0.6", optional = true }
 solana-account = { version = "2.2", optional = true }
 solana-instruction = { version = "2.2", optional = true }

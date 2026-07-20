@@ -43,6 +43,7 @@ sentri-generator-evm.workspace = true
 sentri-generator-move.workspace = true
 sentri-dynamic-core.workspace = true
 sentri-dynamic-evm = { workspace = true, features = ["revm-backend"] }
+sentri-dynamic-solana = { workspace = true, features = ["litesvm-backend"] }
 hex.workspace = true
 
 [dev-dependencies]

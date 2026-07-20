@@ -20,6 +20,41 @@ minimal proof-of-concept — mirrors the proven EVM engine.
 
 Both come with the minimal reproducing instruction sequence.
 
+## Driving it from the CLI
+
+```bash
+sentri fuzz path/to/idl.json --dynamic --chain solana --plan plan.json
+```
+
+Two inputs, because one is not enough:
+
+- **The Anchor IDL** gives the instruction surface — discriminators, argument
+  types, and each account's signer/writable role. Both IDL layouts are
+  supported: 0.30+ (explicit `discriminator`, `signer`/`writable`) and legacy
+  (no discriminator — recomputed as `sha256("global:<snake_case>")[..8]` — with
+  `isSigner`/`isMut`).
+- **The fuzz plan** (`--plan`) gives what an IDL cannot: the genesis accounts,
+  the account pool, which positions are *pinned*, and the invariants to check.
+  A plan with no invariants is rejected rather than silently reporting a clean
+  run.
+
+Instructions taking non-fixed-width arguments (`String`, `Vec`, structs) can't
+be encoded correctly, so they're excluded and **reported** — partial coverage
+never reads as full coverage.
+
+### Pinning
+
+An IDL names each account position (`mint`, `vault`, `authority`). Pin one and
+that position always resolves to that account:
+
+```json
+"pin": { "mint": "<mint pubkey>" }
+```
+
+This matters for correctness, not just speed. Unpinned, the generator can draw
+a token account for the `mint` slot, and a *correct* program will then appear
+to break conservation — a false positive rather than a finding.
+
 ## Backends
 
 - **Default (no features):** the engine is proven against an in-memory
@@ -31,7 +66,14 @@ Both come with the minimal reproducing instruction sequence.
   the whole thing links against one coherent Solana version. Seed a genesis,
   deploy the program `.so`, and the same invariant search runs over real code.
 
+With `litesvm-backend` enabled, the test suite additionally runs the fuzzer
+against the **real SPL Token program** that litesvm embeds: it asserts a
+`MintTo` genuinely executes and moves supply (so the run isn't vacuous), and
+that fuzzing audited token bytecode reports **no** violation. Catching is
+proven against the mock's buggy airdrop; not-crying-wolf is proven against real
+code.
+
 ```bash
-cargo test  -p sentri-dynamic-solana                        # engine proof (mock)
-cargo build -p sentri-dynamic-solana --features litesvm-backend  # real SVM adapter
+cargo test  -p sentri-dynamic-solana                             # engine proof (mock)
+cargo test  -p sentri-dynamic-solana --features litesvm-backend  # + real SPL Token e2e
 ```

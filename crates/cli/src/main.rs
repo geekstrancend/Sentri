@@ -272,6 +272,12 @@ struct FuzzArgs {
     /// JSON-RPC endpoint to fetch bytecode from when using --address.
     #[arg(long, requires = "address")]
     rpc_url: Option<String>,
+
+    /// Solana fuzz plan (JSON): the genesis accounts, account pool, pins and
+    /// invariants that an IDL cannot express. Required for
+    /// `--dynamic --chain solana`, where `path` is the program's Anchor IDL.
+    #[arg(long)]
+    plan: Option<PathBuf>,
 }
 
 /// Arguments for the `report` subcommand.
@@ -2318,14 +2324,100 @@ fn run_detector_precision_fuzzers(iterations_per_fuzzer: usize) -> sentri_core::
 /// monotonic accumulator getters), generates random call sequences, and on
 /// the first violation, shrinks it to a minimal reproduction and prints a
 /// proof-of-concept call trace.
+/// Handle `sentri fuzz <idl.json> --dynamic --chain solana --plan <plan.json>`.
+///
+/// The IDL supplies the instruction surface; the plan supplies the world
+/// (genesis accounts, pool, pins, invariants). Both are needed: an IDL alone
+/// cannot say which account is the mint or what must stay true.
+fn cmd_dynamic_fuzz_solana(args: FuzzArgs, quiet: bool) -> Result<()> {
+    use sentri_dynamic_solana::litesvm_backend::LiteSvmGenesis;
+
+    let idl_path = args.path.as_ref().ok_or_else(|| {
+        anyhow::anyhow!("--dynamic --chain solana needs the program's Anchor IDL as the path argument")
+    })?;
+    let plan_path = args.plan.as_ref().ok_or_else(|| {
+        anyhow::anyhow!(
+            "--dynamic --chain solana requires --plan <plan.json>: the genesis accounts and \
+             invariants to check. An IDL describes instructions, not what must stay true."
+        )
+    })?;
+
+    let idl_src = std::fs::read_to_string(idl_path)
+        .with_context(|| format!("reading IDL {}", idl_path.display()))?;
+    let program = sentri_dynamic_solana::parse_idl(&idl_src)
+        .with_context(|| format!("parsing IDL {}", idl_path.display()))?;
+
+    let plan_src = std::fs::read_to_string(plan_path)
+        .with_context(|| format!("reading fuzz plan {}", plan_path.display()))?;
+    let plan = sentri_dynamic_solana::parse_plan(&plan_src)
+        .with_context(|| format!("parsing fuzz plan {}", plan_path.display()))?;
+
+    let program_id = plan.program_id.or(program.program_id).ok_or_else(|| {
+        anyhow::anyhow!(
+            "no program id: set `program_id` in the plan, or use an IDL carrying an `address`"
+        )
+    })?;
+
+    let so_path = plan.program_so.as_ref().ok_or_else(|| {
+        anyhow::anyhow!(
+            "the plan must set `program_so` to the compiled program (.so) — dynamic fuzzing \
+             executes real bytecode, it does not simulate it"
+        )
+    })?;
+    let program_bytes = std::fs::read(so_path)
+        .with_context(|| format!("reading program binary {so_path}"))?;
+
+    if program.instructions.is_empty() {
+        return Err(anyhow::anyhow!(
+            "no fuzzable instructions in the IDL (all {} were skipped as non-fixed-width)",
+            program.skipped.len()
+        ));
+    }
+
+    if !quiet {
+        println!(
+            "▶ Dynamically fuzzing {} ({} instructions, litesvm, {} runs, depth {})...",
+            program.name,
+            program.instructions.len(),
+            plan.config.max_runs,
+            plan.config.sequence_depth
+        );
+        // Never let a partial surface read as full coverage.
+        for s in &program.skipped {
+            eprintln!("  ! skipped {}: {}", s.name, s.reason);
+        }
+    }
+
+    let genesis = LiteSvmGenesis::from_plan(&plan, program_id, &program_bytes);
+    let specs = program.instructions.clone();
+
+    match sentri_dynamic_solana::fuzz(
+        || Box::new(genesis.build()),
+        program_id,
+        &specs,
+        &plan.pool,
+        plan.invariants,
+        plan.config.clone(),
+    ) {
+        Some(violation) => {
+            println!("{}", sentri_dynamic_solana::format_poc(&violation));
+            std::process::exit(1);
+        }
+        None => {
+            if !quiet {
+                println!(
+                    "✓ No invariant violations in {} runs (seed {})",
+                    plan.config.max_runs, plan.config.seed
+                );
+            }
+            Ok(())
+        }
+    }
+}
+
 fn cmd_dynamic_fuzz(args: FuzzArgs, quiet: bool, verbose: bool) -> Result<()> {
     if matches!(args.chain, ChainArg::Solana) {
-        return Err(anyhow::anyhow!(
-            "--dynamic --chain solana: the Solana execution backend (sentri-dynamic-solana, \
-             account-model invariant fuzzer over a real litesvm SVM) is built and tested, but \
-             the CLI front-end that derives instruction specs + invariants from a program's IDL \
-             is not wired yet. Drive it from the crate API for now (LiteSvmGenesis + fuzz())."
-        ));
+        return cmd_dynamic_fuzz_solana(args, quiet);
     }
     if !matches!(args.chain, ChainArg::Evm) {
         return Err(anyhow::anyhow!(

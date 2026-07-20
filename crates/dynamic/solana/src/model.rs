@@ -69,6 +69,14 @@ pub struct InstructionSpec {
     /// The account roles this instruction reads/writes, in order. The
     /// generator fills concrete pubkeys from the actor/account pool.
     pub account_roles: Vec<AccountRole>,
+    /// The IDL's name for each account position (`mint`, `vault`,
+    /// `authority`, …), parallel to `account_roles`. Empty when unknown.
+    ///
+    /// Names are what let a run *pin* a position to a specific account. Left
+    /// unpinned, the generator draws any writable account for the `mint`
+    /// slot, which lets a *correct* program corrupt a conservation invariant —
+    /// a false positive, not a finding.
+    pub account_names: Vec<String>,
     /// Whether this instruction mutates on-chain state (drives sequence
     /// generation; read-only instructions are used by invariants, not the
     /// sequence under test).
@@ -80,10 +88,30 @@ pub struct InstructionSpec {
 /// covers the bulk of real instructions.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ArgKind {
-    U64,
     U8,
+    U16,
+    U32,
+    U64,
+    U128,
+    I64,
     Bool,
     Pubkey,
+}
+
+impl ArgKind {
+    /// Encoded width in bytes. Borsh encodes these fixed-width and
+    /// little-endian, so the generator must emit exactly this many bytes or
+    /// the program will misparse every argument after it.
+    pub fn width(self) -> usize {
+        match self {
+            ArgKind::U8 | ArgKind::Bool => 1,
+            ArgKind::U16 => 2,
+            ArgKind::U32 => 4,
+            ArgKind::U64 | ArgKind::I64 => 8,
+            ArgKind::U128 => 16,
+            ArgKind::Pubkey => 32,
+        }
+    }
 }
 
 /// The role an instruction expects an account to play. The generator resolves
@@ -111,7 +139,19 @@ impl InstructionSpec {
             discriminator,
             args,
             account_roles,
+            account_names: Vec::new(),
             mutates_state,
         }
+    }
+
+    /// Attach the IDL's per-position account names, enabling pinning.
+    pub fn with_account_names(mut self, names: Vec<String>) -> Self {
+        self.account_names = names;
+        self
+    }
+
+    /// The IDL name of account position `i`, if known.
+    pub fn account_name(&self, i: usize) -> Option<&str> {
+        self.account_names.get(i).map(String::as_str)
     }
 }
