@@ -116,6 +116,15 @@ export function ParticleHero({
 
     /** Rasterise the wordmark and sample it into particle targets. */
     const build = () => {
+      // The nav is sticky and in-flow, so it occupies the top of the viewport
+      // in both states. Fit the stage to what is actually visible beneath it,
+      // measured rather than hardcoded, or the hero overflows the fold and its
+      // contents sit low by the nav's height.
+      const nav = document.querySelector('nav')
+      const navH = nav ? Math.round(nav.getBoundingClientRect().height) : 0
+      stage.style.height = `calc(100vh - ${navH}px)`
+      stage.style.top = `${navH}px`
+
       const rect = stage.getBoundingClientRect()
       width = rect.width
       height = rect.height
@@ -233,8 +242,10 @@ export function ParticleHero({
     const layout = (p: number) => {
       const size = bigSize + (smallSize - bigSize) * p
       h1.style.fontSize = `${size}px`
-      // The headline lifts to clear the space the wordmark resolves into.
-      copy.style.transform = `translateY(${-p * height * 0.17}px)`
+      // The block is centred by a -50% translate, and the lift rides on top of
+      // it. Both have to live in this one declaration: writing only the lift
+      // would replace the centring and drop the headline half its own height.
+      copy.style.transform = `translateY(calc(-50% - ${p * height * 0.17}px))`
       // Supporting copy arrives only once the word is legible.
       reveal.style.opacity = String(clamp((p - 0.72) / 0.28, 0, 1))
     }
@@ -309,7 +320,7 @@ export function ParticleHero({
   return (
     // The tall section is the scroll runway; the stage inside it pins.
     <section ref={sectionRef} className="relative h-[240vh]">
-      <div ref={stageRef} className="sticky top-0 h-screen overflow-hidden bg-bg">
+      <div ref={stageRef} className="sticky top-0 h-screen overflow-hidden bg-bg will-change-transform">
         <div className="absolute inset-0 bg-grid-pattern opacity-25 pointer-events-none" />
         <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" aria-hidden="true" />
 
