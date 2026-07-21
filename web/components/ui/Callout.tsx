@@ -55,7 +55,7 @@ export function Callout({ type, title, children, className }: CalloutProps) {
           <span className={clsx('text-label-sm', config.titleColor)}>{title}</span>
         </div>
       )}
-      <div className="text-body-md text-on-surface-variant">{children}</div>
+      <div className="text-body-md text-sec">{children}</div>
     </div>
   )
 }

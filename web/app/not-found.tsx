@@ -8,7 +8,7 @@ import { MarketingFooter } from '@/components/layout/MarketingFooter'
 
 export default function NotFound() {
   return (
-    <div className="min-h-screen bg-surface flex flex-col">
+    <div className="min-h-screen bg-bg flex flex-col">
       <MarketingNav />
 
       <main className="flex-1 flex items-center justify-center px-6 py-24 relative">
@@ -21,13 +21,13 @@ export default function NotFound() {
             <span className="text-label-sm text-critical">404 · PAGE NOT FOUND</span>
           </div>
 
-          <h1 className="font-fraunces text-8xl font-[700] text-on-surface mb-2 leading-none tracking-tight">
+          <h1 className="font-display text-8xl font-[700] text-text mb-2 leading-none tracking-tight">
             404
           </h1>
-          <h2 className="font-fraunces text-2xl font-[600] text-on-surface-variant mb-5">
+          <h2 className="font-display text-2xl font-[600] text-sec mb-5">
             Nothing to audit here
           </h2>
-          <p className="text-body-lg text-outline mb-10 leading-7">
+          <p className="text-body-lg text-sec mb-10 leading-7">
             This page doesn&apos;t exist or was moved. Let&apos;s get you somewhere useful.
           </p>
 
@@ -42,9 +42,9 @@ export default function NotFound() {
                 <Link
                   key={link.href}
                   href={link.href}
-                  className="flex items-center justify-center gap-2 px-4 py-3 bg-surface-container-low border border-outline-variant rounded-xl text-body-md text-on-surface-variant hover:border-indigo hover:text-on-surface transition-colors"
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-panel border border-hair rounded-card text-body-md text-sec hover:border-indigo hover:text-text transition-colors"
                 >
-                  <Icon size={16} className="text-secondary" />
+                  <Icon size={16} className="text-acc-text" />
                   {link.label}
                 </Link>
               )
@@ -62,15 +62,15 @@ export default function NotFound() {
             </a>
           </div>
 
-          <div className="bg-surface-container-lowest border border-outline-variant rounded-xl p-4 text-left font-mono text-xs">
+          <div className="bg-surface-2 border border-hair rounded-card p-4 text-left font-mono text-xs">
             <div className="flex gap-1.5 mb-3">
               <div className="w-2 h-2 rounded-full bg-critical" />
               <div className="w-2 h-2 rounded-full bg-high" />
               <div className="w-2 h-2 rounded-full bg-low" />
             </div>
-            <p className="text-outline"><span className="text-low">$</span> sentri check --url /404</p>
+            <p className="text-sec"><span className="text-low">$</span> sentri check --url /404</p>
             <p className="text-critical mt-1">[CRITICAL] Route not found in manifest</p>
-            <p className="text-outline mt-1">[INFO] Suggestion: navigate to /dashboard</p>
+            <p className="text-sec mt-1">[INFO] Suggestion: navigate to /dashboard</p>
             <p className="text-low mt-1">[DONE] Redirecting you to safety... <span className="animate-blink-cursor">▊</span></p>
           </div>
         </div>

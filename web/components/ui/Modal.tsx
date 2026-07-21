@@ -39,7 +39,7 @@ export function Modal({
         aria-modal="true"
         aria-labelledby="modal-title"
         className={clsx(
-          'bg-surface-container-low border border-outline-variant rounded-lg w-full',
+          'bg-panel border border-hair rounded-lg w-full',
           sizeStyles[size],
           'max-h-[90vh] overflow-y-auto',
           'flex flex-col',
@@ -47,12 +47,12 @@ export function Modal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-6 border-b border-outline-variant">
-          <h2 id="modal-title" className="text-headline-md text-on-surface">{title}</h2>
+        <div className="flex items-center justify-between px-6 py-6 border-b border-hair">
+          <h2 id="modal-title" className="text-headline-md text-text">{title}</h2>
           <button
             onClick={onClose}
             aria-label="Close dialog"
-            className="text-outline hover:text-on-surface transition-colors p-2 -m-1"
+            className="text-sec hover:text-text transition-colors p-2 -m-1"
           >
             <X size={20} />
           </button>

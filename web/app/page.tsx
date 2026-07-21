@@ -328,7 +328,7 @@ export default function HomePage() {
                   </div>
                   <span className="text-xs text-low bg-low/10 border border-low/20 px-2 py-1 rounded font-mono">COMPLETE</span>
                 </div>
-                <div className="grid grid-cols-4 gap-px bg-outline-variant rounded-lg overflow-hidden mb-6">
+                <div className="grid grid-cols-4 gap-px bg-hair rounded-lg overflow-hidden mb-6">
                   {[
                     { label: 'CRITICAL', count: 5, color: 'text-critical' },
                     { label: 'HIGH', count: 7, color: 'text-high' },
@@ -394,7 +394,7 @@ export default function HomePage() {
             <Button variant="secondary" fullWidth onClick={() => { setAuthTab('signup'); setAuthOpen(true) }}>Get Started Free</Button>
           </div>
           <div ref={proRef} className="relative bg-indigo/5 border-2 border-indigo rounded-card p-8 reveal lift-on-hover animate-border-glow">
-            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-secondary-container border border-indigo text-acc-text px-3 py-1 rounded-full text-label-sm whitespace-nowrap">MOST POPULAR</div>
+            <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-acc/15 border border-indigo text-acc-text px-3 py-1 rounded-full text-label-sm whitespace-nowrap">MOST POPULAR</div>
             <span className="text-label-sm text-acc-text block mb-3">Professional</span>
             <div className="mb-1"><span className="font-display text-5xl font-[700] text-text">$499</span><span className="text-body-md text-sec ml-2">/mo</span></div>
             <p className="text-body-md text-sec mb-6">For production protocols</p>

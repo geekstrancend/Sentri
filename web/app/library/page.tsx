@@ -72,23 +72,23 @@ export default function LibraryPage() {
   const hasFilters = search || chain !== 'All' || category !== 'All' || severity !== 'All'
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col">
+    <div className="min-h-screen bg-bg flex flex-col">
       <MarketingNav />
 
       <main className="flex-1">
         {/* Hero */}
-        <section className="px-6 py-16 border-b border-outline-variant bg-surface-container-lowest">
-          <div className="max-w-7xl mx-auto">
+        <section className="px-6 py-16 border-b border-hair bg-surface-2">
+          <div className="max-w-site mx-auto">
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-8">
               <div>
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo/8 border border-indigo/20 mb-5">
-                  <BookOpen size={14} className="text-on-secondary-container" />
-                  <span className="text-label-sm text-on-secondary-container">INVARIANT LIBRARY</span>
+                  <BookOpen size={14} className="text-acc-text" />
+                  <span className="text-label-sm text-acc-text">INVARIANT LIBRARY</span>
                 </div>
-                <h1 className="font-fraunces text-5xl font-[700] text-on-surface mb-3 leading-[64px]">
+                <h1 className="font-display text-5xl font-[700] text-text mb-3 leading-[64px]">
                   Security Invariant Library
                 </h1>
-                <p className="text-body-lg text-outline max-w-2xl">
+                <p className="text-body-lg text-sec max-w-2xl">
                   50+ battle-tested security checks for EVM, Solana, and Move. Every invariant is mapped to a real exploit.
                 </p>
               </div>
@@ -104,24 +104,24 @@ export default function LibraryPage() {
           </div>
         </section>
 
-        <section className="px-6 py-8 max-w-7xl mx-auto">
+        <section className="px-6 py-8 max-w-site mx-auto">
           {/* Search + filter bar */}
           <div className="flex flex-col lg:flex-row gap-4 mb-6">
             {/* Search */}
             <div className="relative flex-1 max-w-md">
-              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-outline" />
+              <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-sec" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 placeholder="Search by name, tag, or ID…"
-                className="w-full bg-surface-container-lowest border border-outline-variant rounded-lg px-4 pl-9 py-2.5 text-body-md text-on-surface placeholder-outline-variant focus:outline-none focus:border-indigo transition-colors"
+                className="w-full bg-surface-2 border border-hair rounded-lg px-4 pl-9 py-2.5 text-body-md text-text placeholder-outline-variant focus:outline-none focus:border-indigo transition-colors"
               />
               {search && (
                 <button
                   onClick={() => setSearch('')}
                   aria-label="Clear search"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-outline hover:text-on-surface"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 p-2 text-sec hover:text-text"
                 >
                   <X size={14} />
                 </button>
@@ -130,13 +130,13 @@ export default function LibraryPage() {
 
             {/* Filter chips */}
             <div className="flex flex-wrap gap-2 items-center">
-              <Filter size={14} className="text-outline flex-shrink-0" />
+              <Filter size={14} className="text-sec flex-shrink-0" />
 
               {/* Severity */}
               <div className="flex gap-1">
                 {SEVERITIES.map((s) => {
                   const severityChipClasses: Record<string, string> = {
-                    All: 'bg-indigo/15 border-indigo/30 text-secondary',
+                    All: 'bg-indigo/15 border-indigo/30 text-acc-text',
                     critical: 'bg-critical-bg border-critical-border text-critical',
                     high: 'bg-high-bg border-high-border text-high',
                     medium: 'bg-medium-bg border-medium-border text-medium',
@@ -149,7 +149,7 @@ export default function LibraryPage() {
                       className={`px-3 py-1.5 rounded-full text-xs font-[600] uppercase tracking-wide border transition-colors ${
                         severity === s
                           ? severityChipClasses[s]
-                          : 'bg-transparent border-outline-variant text-outline hover:border-outline'
+                          : 'bg-transparent border-hair text-sec hover:border-hair'
                       }`}
                     >
                       {s === 'All' ? 'All' : s}
@@ -166,8 +166,8 @@ export default function LibraryPage() {
                     onClick={() => setChain(c)}
                     className={`px-3 py-1 rounded-full text-xs font-[600] border transition-colors ${
                       chain === c
-                        ? 'bg-indigo/15 border-indigo/30 text-secondary'
-                        : 'bg-transparent border-outline-variant text-outline hover:border-outline'
+                        ? 'bg-indigo/15 border-indigo/30 text-acc-text'
+                        : 'bg-transparent border-hair text-sec hover:border-hair'
                     }`}
                   >
                     {c}
@@ -178,7 +178,7 @@ export default function LibraryPage() {
               {hasFilters && (
                 <button
                   onClick={() => { setSearch(''); setChain('All'); setCategory('All'); setSeverity('All') }}
-                  className="text-xs text-outline hover:text-on-surface flex items-center gap-1 transition-colors px-2 py-1.5"
+                  className="text-xs text-sec hover:text-text flex items-center gap-1 transition-colors px-2 py-1.5"
                 >
                   <X size={12} /> Clear all
                 </button>
@@ -194,8 +194,8 @@ export default function LibraryPage() {
                 onClick={() => setCategory(cat)}
                 className={`px-4 py-2 rounded-lg text-body-md font-[500] whitespace-nowrap transition-colors flex-shrink-0 ${
                   category === cat
-                    ? 'bg-surface-container text-on-surface'
-                    : 'text-outline hover:text-on-surface hover:bg-surface-container/50'
+                    ? 'bg-panel text-text'
+                    : 'text-sec hover:text-text hover:bg-panel/50'
                 }`}
               >
                 {cat}
@@ -205,37 +205,37 @@ export default function LibraryPage() {
 
           {/* Results count */}
           <div className="flex items-center justify-between mb-6">
-            <p className="text-body-md text-outline">
-              <span className="text-on-surface font-[600]">{filtered.length}</span> invariants
+            <p className="text-body-md text-sec">
+              <span className="text-text font-[600]">{filtered.length}</span> invariants
               {hasFilters && ' matching filters'}
             </p>
           </div>
 
           {/* Cards grid */}
           {filtered.length === 0 ? (
-            <div className="text-center py-20 text-outline">
+            <div className="text-center py-20 text-sec">
               <BookOpen size={40} className="mx-auto mb-4 opacity-30" />
-              <p className="font-fraunces text-xl text-on-surface-variant mb-2">No invariants found</p>
+              <p className="font-display text-xl text-sec mb-2">No invariants found</p>
               <p className="text-body-md">Try adjusting your search or filters</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
               {filtered.map((inv) => (
-                <div key={inv.id} className="bg-surface-container-low border border-outline-variant rounded-xl p-6 lift-on-hover flex flex-col gap-4 group">
+                <div key={inv.id} className="bg-panel border border-hair rounded-card p-6 lift-on-hover flex flex-col gap-4 group">
                   {/* Header */}
                   <div className="flex justify-between items-start gap-2">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs bg-surface-container border border-outline-variant text-outline px-2 py-0.5 rounded font-mono">{inv.id}</span>
-                      <span className="text-xs text-outline bg-surface-container border border-outline-variant px-2 py-0.5 rounded">{inv.chain}</span>
+                      <span className="text-xs bg-panel border border-hair text-sec px-2 py-0.5 rounded font-mono">{inv.id}</span>
+                      <span className="text-xs text-sec bg-panel border border-hair px-2 py-0.5 rounded">{inv.chain}</span>
                     </div>
                     <SeverityBadge level={inv.severity} />
                   </div>
 
                   {/* Title */}
-                  <h3 className="font-mono text-sm font-[600] text-on-surface group-hover:text-secondary transition-colors">{inv.title}</h3>
+                  <h3 className="font-mono text-sm font-[600] text-text group-hover:text-acc-text transition-colors">{inv.title}</h3>
 
                   {/* Description */}
-                  <p className="text-body-md text-outline leading-5 line-clamp-3 flex-1">{inv.description}</p>
+                  <p className="text-body-md text-sec leading-5 line-clamp-3 flex-1">{inv.description}</p>
 
                   {/* Tags */}
                   <div className="flex flex-wrap gap-1.5">
@@ -243,7 +243,7 @@ export default function LibraryPage() {
                       <button
                         key={tag}
                         onClick={() => setSearch(tag.toLowerCase())}
-                        className="text-xs bg-surface-container border border-outline-variant text-outline px-2 py-0.5 rounded hover:border-indigo/50 hover:text-on-surface transition-colors"
+                        className="text-xs bg-panel border border-hair text-sec px-2 py-0.5 rounded hover:border-indigo/50 hover:text-text transition-colors"
                       >
                         {tag}
                       </button>
@@ -251,18 +251,18 @@ export default function LibraryPage() {
                   </div>
 
                   {/* Footer */}
-                  <div className="border-t border-outline-variant pt-3 flex justify-between items-center">
+                  <div className="border-t border-hair pt-3 flex justify-between items-center">
                     <div className="flex items-center gap-4 text-xs">
                       <span>
-                        <span className="text-outline-variant">CVSS </span>
+                        <span className="text-sec">CVSS </span>
                         <span className={`font-[700] ${cvssColor(inv.cvss)}`}>{inv.cvss}</span>
                       </span>
                       <span>
-                        <span className="text-outline-variant">v </span>
-                        <span className="text-on-surface-variant">{inv.version}</span>
+                        <span className="text-sec">v </span>
+                        <span className="text-sec">{inv.version}</span>
                       </span>
                     </div>
-                    <span className="text-xs text-outline">
+                    <span className="text-xs text-sec">
                       {inv.audits >= 1000 ? `${(inv.audits / 1000).toFixed(1)}k` : inv.audits} audits
                     </span>
                   </div>

@@ -38,20 +38,20 @@ export function AppShell({ children, rightPanel, currentPage = 'dashboard', onNe
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
-    <div className="flex h-screen bg-surface overflow-hidden">
+    <div className="flex h-screen bg-bg overflow-hidden">
       {/* ── Sidebar ── */}
       <aside
         className={clsx(
-          'fixed inset-y-0 left-0 z-40 w-60 bg-surface-container-lowest border-r border-outline-variant flex flex-col',
+          'fixed inset-y-0 left-0 z-40 w-60 bg-surface-2 border-r border-hair flex flex-col',
           'transform transition-transform duration-300',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
         )}
       >
         {/* Logo */}
-        <div className="p-4 border-b border-outline-variant">
+        <div className="p-4 border-b border-hair">
           <Link href="/dashboard" className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
-            <ShieldCheck size={18} className="text-secondary" />
-            <span className="font-fraunces text-base font-[600] text-on-surface">Sentri</span>
+            <ShieldCheck size={18} className="text-acc-text" />
+            <span className="font-display text-base font-[600] text-text">Sentri</span>
           </Link>
           <div className="mt-3 flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-low animate-pulse-dot" />
@@ -64,7 +64,7 @@ export function AppShell({ children, rightPanel, currentPage = 'dashboard', onNe
           {onNewScan ? (
             <button
               onClick={onNewScan}
-              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-secondary-container border border-indigo text-on-secondary-container rounded-lg text-body-md font-[600] hover:bg-indigo/90 transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-acc/15 border border-indigo text-acc-text rounded-lg text-body-md font-[600] hover:bg-indigo/90 transition-colors"
             >
               <Plus size={15} />
               New Scan
@@ -72,7 +72,7 @@ export function AppShell({ children, rightPanel, currentPage = 'dashboard', onNe
           ) : (
             <Link
               href="/dashboard/scan"
-              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-secondary-container border border-indigo text-on-secondary-container rounded-lg text-body-md font-[600] hover:bg-indigo/90 transition-colors"
+              className="w-full flex items-center justify-center gap-2 px-3 py-2.5 bg-acc/15 border border-indigo text-acc-text rounded-lg text-body-md font-[600] hover:bg-indigo/90 transition-colors"
             >
               <Plus size={15} />
               New Scan
@@ -93,8 +93,8 @@ export function AppShell({ children, rightPanel, currentPage = 'dashboard', onNe
                 className={clsx(
                   'flex items-center gap-3 px-3 py-2.5 rounded-lg text-body-md transition-colors',
                   isActive
-                    ? 'bg-indigo/10 text-on-surface font-[500] border-l-2 border-indigo pl-[10px]'
-                    : 'text-outline hover:bg-surface-container hover:text-on-surface',
+                    ? 'bg-indigo/10 text-text font-[500] border-l-2 border-indigo pl-[10px]'
+                    : 'text-sec hover:bg-panel hover:text-text',
                 )}
               >
                 <Icon size={17} className="flex-shrink-0" />
@@ -105,15 +105,15 @@ export function AppShell({ children, rightPanel, currentPage = 'dashboard', onNe
         </nav>
 
         {/* Bottom links */}
-        <div className="border-t border-outline-variant p-3 space-y-0.5">
+        <div className="border-t border-hair p-3 space-y-0.5">
           <Link href="/docs"
-            className="flex items-center gap-3 px-3 py-2 rounded-lg text-outline hover:bg-surface-container hover:text-on-surface transition-colors text-body-md">
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sec hover:bg-panel hover:text-text transition-colors text-body-md">
             <BookMarked size={16} />
             <span>Documentation</span>
           </Link>
           <button
             onClick={() => signOut({ callbackUrl: '/' })}
-            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-outline hover:bg-surface-container hover:text-on-surface transition-colors text-body-md"
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sec hover:bg-panel hover:text-text transition-colors text-body-md"
           >
             <LogOut size={16} />
             <span>Sign Out</span>
@@ -121,16 +121,16 @@ export function AppShell({ children, rightPanel, currentPage = 'dashboard', onNe
         </div>
 
         {/* User profile strip */}
-        <div className="border-t border-outline-variant p-3">
+        <div className="border-t border-hair p-3">
           <div className="flex items-center gap-3 px-2 py-2">
             <div className="w-7 h-7 rounded-full bg-indigo/20 border border-indigo/30 flex items-center justify-center flex-shrink-0">
-              <span className="text-xs font-[700] text-secondary">A</span>
+              <span className="text-xs font-[700] text-acc-text">A</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-body-md font-[500] text-on-surface truncate">Alex Developer</p>
-              <p className="text-xs text-outline truncate">Pro Plan</p>
+              <p className="text-body-md font-[500] text-text truncate">Alex Developer</p>
+              <p className="text-xs text-sec truncate">Pro Plan</p>
             </div>
-            <ChevronRight size={14} className="text-outline-variant flex-shrink-0" />
+            <ChevronRight size={14} className="text-sec flex-shrink-0" />
           </div>
         </div>
       </aside>
@@ -138,15 +138,15 @@ export function AppShell({ children, rightPanel, currentPage = 'dashboard', onNe
       {/* ── Main ── */}
       <div className="flex-1 flex flex-col md:ml-60 overflow-hidden">
         {/* Mobile header */}
-        <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-outline-variant bg-surface-container-lowest">
+        <header className="md:hidden flex items-center justify-between px-4 py-3 border-b border-hair bg-surface-2">
           <div className="flex items-center gap-2">
-            <ShieldCheck size={18} className="text-secondary" />
-            <span className="font-fraunces text-sm font-[600] text-on-surface">Sentri</span>
+            <ShieldCheck size={18} className="text-acc-text" />
+            <span className="font-display text-sm font-[600] text-text">Sentri</span>
           </div>
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
             aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
-            className="p-2 hover:bg-surface-container rounded-lg text-outline transition-colors"
+            className="p-2 hover:bg-panel rounded-lg text-sec transition-colors"
           >
             {sidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
@@ -156,7 +156,7 @@ export function AppShell({ children, rightPanel, currentPage = 'dashboard', onNe
         <div className="flex-1 flex overflow-hidden">
           <main className="flex-1 overflow-y-auto">{children}</main>
           {rightPanel && (
-            <div className="hidden lg:block w-72 border-l border-outline-variant bg-surface-container-lowest overflow-y-auto">
+            <div className="hidden lg:block w-72 border-l border-hair bg-surface-2 overflow-y-auto">
               {rightPanel}
             </div>
           )}

@@ -176,18 +176,18 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="scan-modal-title"
-        className="bg-surface rounded-xl shadow-2xl w-full max-w-2xl"
+        className="bg-bg rounded-card shadow-2xl w-full max-w-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex justify-between items-center px-6 py-4 border-b border-outline-variant">
-          <h2 id="scan-modal-title" className="text-xl font-bold text-on-surface">Start New Scan</h2>
+        <div className="flex justify-between items-center px-6 py-4 border-b border-hair">
+          <h2 id="scan-modal-title" className="text-xl font-bold text-text">Start New Scan</h2>
           <button
             onClick={handleClose}
             aria-label="Close dialog"
-            className="p-2 hover:bg-outline-variant rounded-lg transition"
+            className="p-2 hover:bg-panel rounded-lg transition"
           >
-            <X className="w-5 h-5 text-on-surface" />
+            <X className="w-5 h-5 text-text" />
           </button>
         </div>
 
@@ -201,22 +201,22 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                   className={`flex-1 p-4 rounded-lg border-2 transition ${
                     scanMode === 'github'
                       ? 'bg-indigo-container border-indigo'
-                      : 'bg-surface-container-low border-outline-variant hover:border-indigo'
+                      : 'bg-panel border-hair hover:border-indigo'
                   }`}
                 >
-                  <Github className="w-5 h-5 mx-auto mb-2 text-on-surface" />
-                  <p className="text-sm font-[600] text-on-surface">GitHub Repository</p>
+                  <Github className="w-5 h-5 mx-auto mb-2 text-text" />
+                  <p className="text-sm font-[600] text-text">GitHub Repository</p>
                 </button>
                 <button
                   onClick={() => setScanMode('upload')}
                   className={`flex-1 p-4 rounded-lg border-2 transition ${
                     scanMode === 'upload'
                       ? 'bg-indigo-container border-indigo'
-                      : 'bg-surface-container-low border-outline-variant hover:border-indigo'
+                      : 'bg-panel border-hair hover:border-indigo'
                   }`}
                 >
-                  <FolderOpen className="w-5 h-5 mx-auto mb-2 text-on-surface" />
-                  <p className="text-sm font-[600] text-on-surface">Upload Folder</p>
+                  <FolderOpen className="w-5 h-5 mx-auto mb-2 text-text" />
+                  <p className="text-sm font-[600] text-text">Upload Folder</p>
                 </button>
               </div>
 
@@ -230,7 +230,7 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
               {scanMode === 'github' && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-on-surface mb-2">
+                    <label className="block text-sm font-medium text-text mb-2">
                       Repository URL
                     </label>
                     <input
@@ -238,9 +238,9 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                       value={githubUrl}
                       onChange={(e) => setGithubUrl(e.target.value)}
                       placeholder="https://github.com/user/repo"
-                      className="w-full px-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface placeholder-on-surface-variant focus:outline-none focus:border-indigo transition"
+                      className="w-full px-4 py-2.5 bg-surface-2 border border-hair rounded-lg text-text placeholder-on-surface-variant focus:outline-none focus:border-indigo transition"
                     />
-                    <p className="text-xs text-on-surface-variant mt-2">
+                    <p className="text-xs text-sec mt-2">
                       Enter the GitHub repository URL to scan. We&apos;ll clone the repository and analyze all smart contracts.
                     </p>
                   </div>
@@ -261,7 +261,7 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
               {scanMode === 'upload' && (
                 <div className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-on-surface mb-3">
+                    <label className="block text-sm font-medium text-text mb-3">
                       Upload Smart Contract Folder
                     </label>
                     <div className="relative">
@@ -272,12 +272,12 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                         className="absolute inset-0 opacity-0 cursor-pointer"
                         {...({ webkitdirectory: '', directory: '' } as any)}
                       />
-                      <div className="px-4 py-6 bg-surface-container-lowest border-2 border-dashed border-outline-variant rounded-lg text-center hover:border-indigo transition">
-                        <Upload className="w-8 h-8 mx-auto mb-2 text-on-surface-variant" />
-                        <p className="text-sm text-on-surface font-[600] mb-1">
+                      <div className="px-4 py-6 bg-surface-2 border-2 border-dashed border-hair rounded-lg text-center hover:border-indigo transition">
+                        <Upload className="w-8 h-8 mx-auto mb-2 text-sec" />
+                        <p className="text-sm text-text font-[600] mb-1">
                           Click to upload or drag and drop
                         </p>
-                        <p className="text-xs text-on-surface-variant">
+                        <p className="text-xs text-sec">
                           {uploadedFile ? uploadedFile.name : 'Select folder containing .sol or .rs files'}
                         </p>
                       </div>
@@ -304,12 +304,12 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
             <div className="space-y-4">
               <div>
                 <div className="flex justify-between items-center mb-2">
-                  <p className="text-sm font-[600] text-on-surface">
+                  <p className="text-sm font-[600] text-text">
                     {scanStatus === 'uploading' ? 'Uploading' : 'Scanning'}...
                   </p>
-                  <p className="text-sm text-on-surface-variant">{progress}%</p>
+                  <p className="text-sm text-sec">{progress}%</p>
                 </div>
-                <div className="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+                <div className="w-full h-2 bg-panel rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-indigo to-secondary transition-all"
                     style={{ width: `${progress}%` }}
@@ -317,7 +317,7 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 text-sm text-on-surface-variant">
+              <div className="flex items-center gap-2 text-sm text-sec">
                 <Loader className="w-4 h-4 animate-spin" />
                 {scanStatus === 'uploading'
                   ? 'Uploading your code to our secure servers...'
@@ -332,15 +332,15 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
               <div className="bg-medium/10 border border-medium rounded-lg p-4 flex items-center gap-3">
                 <CheckCircle className="w-6 h-6 text-medium flex-shrink-0" />
                 <div>
-                  <p className="font-[600] text-on-surface">Scan Complete!</p>
-                  <p className="text-sm text-on-surface-variant">
+                  <p className="font-[600] text-text">Scan Complete!</p>
+                  <p className="text-sm text-sec">
                     {findings.reduce((acc, f) => acc + f.count, 0)} findings detected
                   </p>
                 </div>
               </div>
 
               {/* Findings Summary */}
-              <div className="grid grid-cols-4 gap-2 bg-surface-container rounded-lg p-4">
+              <div className="grid grid-cols-4 gap-2 bg-panel rounded-lg p-4">
                 {[
                   { label: 'CRITICAL', key: 'critical' },
                   { label: 'HIGH', key: 'high' },
@@ -351,7 +351,7 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                   return (
                     <div key={severity.key} className="text-center">
                       <div
-                        className={`font-fraunces text-2xl font-[700] mb-1 ${
+                        className={`font-display text-2xl font-[700] mb-1 ${
                           severity.key === 'critical'
                             ? 'text-critical'
                             : severity.key === 'high'
@@ -363,13 +363,13 @@ export function ScanModal({ isOpen, onClose }: ScanModalProps) {
                       >
                         {finding?.count || 0}
                       </div>
-                      <p className="text-xs text-on-surface-variant">{severity.label}</p>
+                      <p className="text-xs text-sec">{severity.label}</p>
                     </div>
                   )
                 })}
               </div>
 
-              <div className="flex gap-3 pt-2 border-t border-outline-variant">
+              <div className="flex gap-3 pt-2 border-t border-hair">
                 <Button variant="secondary" fullWidth onClick={handleReset}>
                   Scan Another
                 </Button>

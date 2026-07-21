@@ -105,17 +105,17 @@ export default function ScanPage() {
       <div className="max-w-6xl mx-auto p-6 space-y-8">
         {/* Header */}
         <div className="space-y-3">
-          <h1 className="text-4xl font-[700] text-on-surface font-fraunces">
+          <h1 className="text-4xl font-[700] text-text font-display">
             Smart Contract Analyzer
           </h1>
-          <p className="text-body-lg text-outline">
+          <p className="text-body-lg text-sec">
             Submit your code for comprehensive security analysis powered by AI and our invariant library.
           </p>
         </div>
 
         {/* Method Selection */}
-        <div className="bg-surface-container-low border border-outline-variant rounded-lg p-6">
-          <h2 className="text-lg font-[600] text-on-surface mb-4">Choose Submission Method</h2>
+        <div className="bg-panel border border-hair rounded-lg p-6">
+          <h2 className="text-lg font-[600] text-text mb-4">Choose Submission Method</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {/* Direct Code Input */}
             <button
@@ -123,12 +123,12 @@ export default function ScanPage() {
               className={`p-4 rounded-lg border-2 transition ${
                 method === 'code'
                   ? 'border-indigo bg-indigo/10'
-                  : 'border-outline-variant hover:border-indigo'
+                  : 'border-hair hover:border-indigo'
               }`}
             >
-              <Code className="w-8 h-8 text-secondary mb-2" />
-              <h3 className="font-[600] text-on-surface mb-1">Direct Input</h3>
-              <p className="text-sm text-outline">Paste code directly</p>
+              <Code className="w-8 h-8 text-acc-text mb-2" />
+              <h3 className="font-[600] text-text mb-1">Direct Input</h3>
+              <p className="text-sm text-sec">Paste code directly</p>
             </button>
 
             {/* File Upload */}
@@ -137,12 +137,12 @@ export default function ScanPage() {
               className={`p-4 rounded-lg border-2 transition ${
                 method === 'file'
                   ? 'border-indigo bg-indigo/10'
-                  : 'border-outline-variant hover:border-indigo'
+                  : 'border-hair hover:border-indigo'
               }`}
             >
-              <Upload className="w-8 h-8 text-secondary mb-2" />
-              <h3 className="font-[600] text-on-surface mb-1">Upload File</h3>
-              <p className="text-sm text-outline">Upload contract files</p>
+              <Upload className="w-8 h-8 text-acc-text mb-2" />
+              <h3 className="font-[600] text-text mb-1">Upload File</h3>
+              <p className="text-sm text-sec">Upload contract files</p>
             </button>
 
             {/* GitHub Integration */}
@@ -151,18 +151,18 @@ export default function ScanPage() {
               className={`p-4 rounded-lg border-2 transition ${
                 method === 'github'
                   ? 'border-indigo bg-indigo/10'
-                  : 'border-outline-variant hover:border-indigo'
+                  : 'border-hair hover:border-indigo'
               }`}
             >
-              <Github className="w-8 h-8 text-secondary mb-2" />
-              <h3 className="font-[600] text-on-surface mb-1">GitHub Link</h3>
-              <p className="text-sm text-outline">Connect GitHub repo</p>
+              <Github className="w-8 h-8 text-acc-text mb-2" />
+              <h3 className="font-[600] text-text mb-1">GitHub Link</h3>
+              <p className="text-sm text-sec">Connect GitHub repo</p>
             </button>
           </div>
         </div>
 
         {/* Input Area */}
-        <div className="bg-surface-container-low border border-outline-variant rounded-lg p-6 space-y-4">
+        <div className="bg-panel border border-hair rounded-lg p-6 space-y-4">
           {formError && (
             <div className="flex items-center gap-2 p-3 bg-critical-bg border border-critical-border rounded-lg">
               <AlertCircle size={16} className="text-critical flex-shrink-0" />
@@ -172,14 +172,14 @@ export default function ScanPage() {
           {method === 'code' && (
             <>
               <div>
-                <label htmlFor="scan-language-code" className="block text-sm font-medium text-on-surface mb-2">
+                <label htmlFor="scan-language-code" className="block text-sm font-medium text-text mb-2">
                   Language
                 </label>
                 <select
                   id="scan-language-code"
                   value={language}
                   onChange={(e) => setLanguage(e.target.value)}
-                  className="w-full px-4 py-2 bg-surface-container-lowest text-on-surface rounded-lg border border-outline-variant focus:outline-none focus:border-indigo"
+                  className="w-full px-4 py-2 bg-surface-2 text-text rounded-lg border border-hair focus:outline-none focus:border-indigo"
                 >
                   <option value="solidity">Solidity</option>
                   <option value="rust">Rust (Move, Anchor)</option>
@@ -187,7 +187,7 @@ export default function ScanPage() {
                 </select>
               </div>
               <div>
-                <label htmlFor="scan-code-input" className="block text-sm font-medium text-on-surface mb-2">
+                <label htmlFor="scan-code-input" className="block text-sm font-medium text-text mb-2">
                   Smart Contract Code
                 </label>
                 <textarea
@@ -195,10 +195,10 @@ export default function ScanPage() {
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
                   placeholder="Paste your smart contract code here..."
-                  className="w-full h-96 px-4 py-3 bg-surface-container-lowest text-on-surface placeholder-on-surface-variant rounded-lg border border-outline-variant focus:outline-none focus:border-indigo font-mono text-sm resize-none"
+                  className="w-full h-96 px-4 py-3 bg-surface-2 text-text placeholder-on-surface-variant rounded-lg border border-hair focus:outline-none focus:border-indigo font-mono text-sm resize-none"
                   maxLength={100000}
                 />
-                <p className="text-xs text-outline mt-1">
+                <p className="text-xs text-sec mt-1">
                   {code.length.toLocaleString()} / 100,000 characters
                 </p>
               </div>
@@ -208,14 +208,14 @@ export default function ScanPage() {
           {method === 'file' && (
             <>
               <div>
-                <label htmlFor="scan-language-file" className="block text-sm font-medium text-on-surface mb-2">
+                <label htmlFor="scan-language-file" className="block text-sm font-medium text-text mb-2">
                   Language
                 </label>
                 <select
                   id="scan-language-file"
                   value={language}
                   onChange={(e) => setLanguage(e.target.value)}
-                  className="w-full px-4 py-2 bg-surface-container-lowest text-on-surface rounded-lg border border-outline-variant focus:outline-none focus:border-indigo"
+                  className="w-full px-4 py-2 bg-surface-2 text-text rounded-lg border border-hair focus:outline-none focus:border-indigo"
                 >
                   <option value="solidity">Solidity</option>
                   <option value="rust">Rust</option>
@@ -223,10 +223,10 @@ export default function ScanPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-on-surface mb-2">
+                <label className="block text-sm font-medium text-text mb-2">
                   Upload File
                 </label>
-                <div className="border-2 border-dashed border-outline-variant rounded-lg p-8 text-center hover:border-indigo transition">
+                <div className="border-2 border-dashed border-hair rounded-lg p-8 text-center hover:border-indigo transition">
                   <input
                     type="file"
                     onChange={handleFileUpload}
@@ -235,11 +235,11 @@ export default function ScanPage() {
                     accept=".sol,.rs,.cairo,.txt"
                   />
                   <label htmlFor="file-upload" className="cursor-pointer">
-                    <Upload className="w-8 h-8 text-secondary mx-auto mb-2" />
-                    <p className="text-on-surface font-medium">
+                    <Upload className="w-8 h-8 text-acc-text mx-auto mb-2" />
+                    <p className="text-text font-medium">
                       {fileName || 'Click to upload or drag and drop'}
                     </p>
-                    <p className="text-sm text-outline mt-1">
+                    <p className="text-sm text-sec mt-1">
                       .sol, .rs, .cairo, or .txt files up to 10 MB
                     </p>
                   </label>
@@ -251,7 +251,7 @@ export default function ScanPage() {
           {method === 'github' && (
             <>
               <div>
-                <label htmlFor="scan-github-url" className="block text-sm font-medium text-on-surface mb-2">
+                <label htmlFor="scan-github-url" className="block text-sm font-medium text-text mb-2">
                   GitHub Repository URL
                 </label>
                 <input
@@ -260,18 +260,18 @@ export default function ScanPage() {
                   value={githubUrl}
                   onChange={(e) => setGithubUrl(e.target.value)}
                   placeholder="https://github.com/username/repository"
-                  className="w-full px-4 py-2 bg-surface-container-lowest text-on-surface placeholder-on-surface-variant rounded-lg border border-outline-variant focus:outline-none focus:border-indigo"
+                  className="w-full px-4 py-2 bg-surface-2 text-text placeholder-on-surface-variant rounded-lg border border-hair focus:outline-none focus:border-indigo"
                 />
               </div>
               <div>
-                <label htmlFor="scan-github-branch" className="block text-sm font-medium text-on-surface mb-2">
+                <label htmlFor="scan-github-branch" className="block text-sm font-medium text-text mb-2">
                   Target Branch or Tag
                 </label>
                 <input
                   id="scan-github-branch"
                   type="text"
                   placeholder="main (default: main)"
-                  className="w-full px-4 py-2 bg-surface-container-lowest text-on-surface placeholder-on-surface-variant rounded-lg border border-outline-variant focus:outline-none focus:border-indigo"
+                  className="w-full px-4 py-2 bg-surface-2 text-text placeholder-on-surface-variant rounded-lg border border-hair focus:outline-none focus:border-indigo"
                 />
               </div>
             </>
@@ -289,8 +289,8 @@ export default function ScanPage() {
 
         {/* Scan Results */}
         {scanResult && (
-          <div className="bg-surface-container-low border border-outline-variant rounded-lg p-6 space-y-6">
-            <h2 className="text-2xl font-[700] text-on-surface font-fraunces">
+          <div className="bg-panel border border-hair rounded-lg p-6 space-y-6">
+            <h2 className="text-2xl font-[700] text-text font-display">
               Scan Results
             </h2>
 
@@ -304,12 +304,12 @@ export default function ScanPage() {
               ].map((item) => (
                 <div
                   key={item.label}
-                  className="bg-surface-container border border-outline-variant rounded-lg p-4 text-center"
+                  className="bg-panel border border-hair rounded-lg p-4 text-center"
                 >
-                  <div className={`text-4xl font-[700] mb-2 text-on-surface`}>
+                  <div className={`text-4xl font-[700] mb-2 text-text`}>
                     {item.count}
                   </div>
-                  <div className="text-sm text-outline">{item.label}</div>
+                  <div className="text-sm text-sec">{item.label}</div>
                 </div>
               ))}
             </div>
@@ -317,18 +317,18 @@ export default function ScanPage() {
             {/* Findings List */}
             {scanResult.findings.length > 0 && (
               <div className="space-y-3">
-                <h3 className="text-lg font-[600] text-on-surface">Detailed Findings</h3>
+                <h3 className="text-lg font-[600] text-text">Detailed Findings</h3>
                 {scanResult.findings.map((finding, idx) => (
                   <div
                     key={idx}
-                    className="bg-surface-container border border-outline-variant rounded-lg p-4 flex gap-4 items-start"
+                    className="bg-panel border border-hair rounded-lg p-4 flex gap-4 items-start"
                   >
                     <SeverityBadge level={finding.severity as any} />
                     <div className="flex-1">
-                      <h4 className="font-[600] text-on-surface">{finding.title}</h4>
-                      <p className="text-sm text-outline mt-1">{finding.description}</p>
+                      <h4 className="font-[600] text-text">{finding.title}</h4>
+                      <p className="text-sm text-sec mt-1">{finding.description}</p>
                       {finding.line && (
-                        <p className="text-xs text-on-surface-variant mt-2">Line {finding.line}</p>
+                        <p className="text-xs text-sec mt-2">Line {finding.line}</p>
                       )}
                     </div>
                   </div>
@@ -339,8 +339,8 @@ export default function ScanPage() {
             {scanResult.findings.length === 0 && (
               <div className="text-center py-8">
                 <Check className="w-12 h-12 text-low mx-auto mb-3" />
-                <p className="text-on-surface font-[600]">No vulnerabilities detected!</p>
-                <p className="text-outline text-sm mt-1">
+                <p className="text-text font-[600]">No vulnerabilities detected!</p>
+                <p className="text-sec text-sm mt-1">
                   Your contract passed all security checks.
                 </p>
               </div>
@@ -356,28 +356,28 @@ export default function ScanPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[
             {
-              icon: <Zap size={20} className="text-secondary" />,
+              icon: <Zap size={20} className="text-acc-text" />,
               title: 'AI-Powered Analysis',
               description: 'Advanced AI model works with our library for accurate detection',
             },
             {
-              icon: <Check size={20} className="text-secondary" />,
+              icon: <Check size={20} className="text-acc-text" />,
               title: '50+ Invariants',
               description: 'Access our comprehensive invariant library for detailed checks',
             },
             {
-              icon: <Code size={20} className="text-secondary" />,
+              icon: <Code size={20} className="text-acc-text" />,
               title: 'Multiple Chains',
               description: 'Support for EVM, Solana, Move, and Cairo smart contracts',
             },
           ].map((feature, idx) => (
             <div
               key={idx}
-              className="bg-surface-container-low border border-outline-variant rounded-lg p-4"
+              className="bg-panel border border-hair rounded-lg p-4"
             >
               {feature.icon}
-              <h3 className="font-[600] text-on-surface mt-3 mb-1">{feature.title}</h3>
-              <p className="text-sm text-outline">{feature.description}</p>
+              <h3 className="font-[600] text-text mt-3 mb-1">{feature.title}</h3>
+              <p className="text-sm text-sec">{feature.description}</p>
             </div>
           ))}
         </div>

@@ -75,37 +75,37 @@ export function DocsShell({
     : sections
 
   return (
-    <div className="flex h-screen bg-surface overflow-hidden">
+    <div className="flex h-screen bg-bg overflow-hidden">
       {/* Left Sidebar */}
       <aside
         className={clsx(
-          'fixed inset-y-0 left-0 z-40 w-64 bg-surface-container-lowest border-r border-outline-variant flex flex-col',
+          'fixed inset-y-0 left-0 z-40 w-64 bg-surface-2 border-r border-hair flex flex-col',
           'transform transition-transform duration-300',
           sidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0',
         )}
       >
         {/* Sidebar header */}
-        <div className="flex-shrink-0 p-4 border-b border-outline-variant">
+        <div className="flex-shrink-0 p-4 border-b border-hair">
           <Link href="/" className="flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity">
-            <ShieldCheck size={18} className="text-secondary" />
-            <span className="font-mono font-[600] text-on-surface text-sm">Sentri</span>
-            <span className="text-label-sm text-outline ml-1">Docs</span>
+            <ShieldCheck size={18} className="text-acc-text" />
+            <span className="font-mono font-[600] text-text text-sm">Sentri</span>
+            <span className="text-label-sm text-sec ml-1">Docs</span>
           </Link>
           {/* Sidebar search */}
           <div className="relative">
-            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-outline" />
+            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-sec" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search docs…"
-              className="w-full bg-surface-container border border-outline-variant rounded-md px-3 pl-8 py-1.5 text-xs text-on-surface placeholder-outline-variant focus:outline-none focus:border-indigo transition-colors"
+              className="w-full bg-panel border border-hair rounded-md px-3 pl-8 py-1.5 text-xs text-text placeholder-outline-variant focus:outline-none focus:border-indigo transition-colors"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
                 aria-label="Clear search"
-                className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-outline hover:text-on-surface"
+                className="absolute right-1 top-1/2 -translate-y-1/2 p-1.5 text-sec hover:text-text"
               >
                 <X size={12} />
               </button>
@@ -117,7 +117,7 @@ export function DocsShell({
         <nav className="flex-1 overflow-y-auto p-4 space-y-6">
           {filteredSections.map((section, idx) => (
             <div key={idx}>
-              <p className="text-label-sm text-outline mb-2 px-2">{section.title}</p>
+              <p className="text-label-sm text-sec mb-2 px-2">{section.title}</p>
               <ul className="space-y-0.5">
                 {section.items.map((item) => (
                   <li key={item.href}>
@@ -127,13 +127,13 @@ export function DocsShell({
                       className={clsx(
                         'flex items-center justify-between px-3 py-2 rounded-lg text-body-md transition-colors',
                         isActive(item.href)
-                          ? 'bg-indigo/10 text-on-surface font-[500] border-l-2 border-indigo pl-[10px]'
-                          : 'text-outline hover:bg-surface-container hover:text-on-surface',
+                          ? 'bg-indigo/10 text-text font-[500] border-l-2 border-indigo pl-[10px]'
+                          : 'text-sec hover:bg-panel hover:text-text',
                       )}
                     >
                       <span>{item.label}</span>
                       {item.badge && (
-                        <span className="text-xs text-on-secondary-container bg-indigo/15 border border-indigo/20 px-1.5 py-0.5 rounded font-[600]">
+                        <span className="text-xs text-acc-text bg-indigo/15 border border-indigo/20 px-1.5 py-0.5 rounded font-[600]">
                           {item.badge}
                         </span>
                       )}
@@ -146,13 +146,13 @@ export function DocsShell({
         </nav>
 
         {/* Sidebar footer */}
-        <div className="flex-shrink-0 p-4 border-t border-outline-variant space-y-2">
+        <div className="flex-shrink-0 p-4 border-t border-hair space-y-2">
           <Link href="https://github.com/geekstrancend/Sentri" target="_blank" rel="noopener"
-            className="flex items-center gap-2 px-3 py-2 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container transition-colors text-body-md">
+            className="flex items-center gap-2 px-3 py-2 rounded-lg text-sec hover:text-text hover:bg-panel transition-colors text-body-md">
             <Github size={14} />
             <span>GitHub</span>
           </Link>
-          <Link href="/" className="flex items-center gap-2 px-3 py-2 rounded-lg text-outline hover:text-on-surface hover:bg-surface-container transition-colors text-body-md">
+          <Link href="/" className="flex items-center gap-2 px-3 py-2 rounded-lg text-sec hover:text-text hover:bg-panel transition-colors text-body-md">
             <ArrowLeft size={14} />
             <span>Back to home</span>
           </Link>
@@ -162,22 +162,22 @@ export function DocsShell({
       {/* Main content */}
       <div className="flex-1 flex flex-col md:ml-64 overflow-hidden">
         {/* Top bar */}
-        <header className="flex-shrink-0 border-b border-outline-variant bg-surface-container-lowest/95 backdrop-blur-sm sticky top-0 z-20">
+        <header className="flex-shrink-0 border-b border-hair bg-surface-2/95 backdrop-blur-sm sticky top-0 z-20">
           <div className="px-6 py-3 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <button
                 onClick={() => setSidebarOpen(!sidebarOpen)}
                 aria-label={sidebarOpen ? 'Close menu' : 'Open menu'}
-                className="md:hidden p-1.5 hover:bg-surface-container rounded-lg text-outline transition-colors"
+                className="md:hidden p-1.5 hover:bg-panel rounded-lg text-sec transition-colors"
               >
                 {sidebarOpen ? <X size={18} /> : <Menu size={18} />}
               </button>
-              <div className="hidden md:flex items-center gap-2 text-outline text-body-md">
-                <Link href="/docs" className="hover:text-on-surface transition-colors">Docs</Link>
+              <div className="hidden md:flex items-center gap-2 text-sec text-body-md">
+                <Link href="/docs" className="hover:text-text transition-colors">Docs</Link>
                 {pathname !== '/docs' && (
                   <>
                     <span>/</span>
-                    <span className="text-on-surface">{pageTitle}</span>
+                    <span className="text-text">{pageTitle}</span>
                   </>
                 )}
               </div>
@@ -186,12 +186,12 @@ export function DocsShell({
             <div className="flex items-center gap-3">
               {editPath && (
                 <Link href={editPath} target="_blank" rel="noopener"
-                  className="hidden md:inline-flex items-center gap-1.5 text-xs text-outline hover:text-on-surface transition-colors border border-outline-variant rounded-md px-2.5 py-1">
+                  className="hidden md:inline-flex items-center gap-1.5 text-xs text-sec hover:text-text transition-colors border border-hair rounded-md px-2.5 py-1">
                   Edit on GitHub
                 </Link>
               )}
               <Link href="/dashboard"
-                className="text-xs font-[600] bg-secondary-container border border-indigo text-on-secondary-container px-3 py-1.5 rounded-lg hover:bg-indigo/90 transition-colors">
+                className="text-xs font-[600] bg-acc/15 border border-indigo text-acc-text px-3 py-1.5 rounded-lg hover:bg-indigo/90 transition-colors">
                 Dashboard →
               </Link>
             </div>
@@ -209,11 +209,11 @@ export function DocsShell({
             {tableOfContents && tableOfContents.length > 0 && (
               <aside className="hidden xl:block w-52 flex-shrink-0 py-12 pr-6">
                 <nav className="sticky top-8">
-                  <p className="text-label-sm text-outline mb-4">ON THIS PAGE</p>
+                  <p className="text-label-sm text-sec mb-4">ON THIS PAGE</p>
                   <ul className="space-y-2.5">
                     {tableOfContents.map((item, idx) => (
                       <li key={idx}>
-                        <Link href={item.href} className="text-body-sm text-outline hover:text-on-surface transition-colors block">
+                        <Link href={item.href} className="text-body-sm text-sec hover:text-text transition-colors block">
                           {item.label}
                         </Link>
                       </li>

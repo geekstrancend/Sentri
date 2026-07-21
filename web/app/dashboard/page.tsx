@@ -44,10 +44,10 @@ const ACTIVITY: Activity[] = [
 ]
 
 const METRICS = [
-  { label: 'Total Scans', value: '43', delta: '+8 this month', icon: <BarChart3 size={18} className="text-secondary" />, positive: true },
+  { label: 'Total Scans', value: '43', delta: '+8 this month', icon: <BarChart3 size={18} className="text-acc-text" />, positive: true },
   { label: 'Critical Findings', value: '8', delta: '-3 resolved', icon: <AlertTriangle size={18} className="text-critical" />, positive: true },
-  { label: 'Protocols Monitored', value: '12', delta: '+2 this month', icon: <Shield size={18} className="text-secondary" />, positive: true },
-  { label: 'Avg Scan Time', value: '4m 20s', delta: '↓ 18% faster', icon: <Zap size={18} className="text-secondary" />, positive: true },
+  { label: 'Protocols Monitored', value: '12', delta: '+2 this month', icon: <Shield size={18} className="text-acc-text" />, positive: true },
+  { label: 'Avg Scan Time', value: '4m 20s', delta: '↓ 18% faster', icon: <Zap size={18} className="text-acc-text" />, positive: true },
 ]
 
 function ActivityIcon({ type }: { type: Activity['type'] }) {
@@ -75,8 +75,8 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="font-fraunces text-3xl font-[600] text-on-surface mb-1">Dashboard</h1>
-            <p className="text-body-md text-outline">Welcome back, Alex. Here&apos;s your security overview.</p>
+            <h1 className="font-display text-3xl font-[600] text-text mb-1">Dashboard</h1>
+            <p className="text-body-md text-sec">Welcome back, Alex. Here&apos;s your security overview.</p>
           </div>
           <Button variant="primary" size="sm" icon={<Plus size={16} />} onClick={() => setShowScanModal(true)}>
             New Scan
@@ -86,12 +86,12 @@ export default function DashboardPage() {
         {/* Metrics row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           {METRICS.map((m, i) => (
-            <div key={i} className="bg-surface-container-low border border-outline-variant rounded-xl p-5">
+            <div key={i} className="bg-panel border border-hair rounded-card p-5">
               <div className="flex items-center justify-between mb-3">
-                <span className="text-body-md text-outline">{m.label}</span>
-                <div className="w-8 h-8 rounded-lg bg-surface-container flex items-center justify-center">{m.icon}</div>
+                <span className="text-body-md text-sec">{m.label}</span>
+                <div className="w-8 h-8 rounded-lg bg-panel flex items-center justify-center">{m.icon}</div>
               </div>
-              <div className="font-fraunces text-3xl font-[600] text-on-surface mb-1">{m.value}</div>
+              <div className="font-display text-3xl font-[600] text-text mb-1">{m.value}</div>
               <div className={clsx('text-xs font-[600]', m.positive ? 'text-low' : 'text-critical')}>{m.delta}</div>
             </div>
           ))}
@@ -100,10 +100,10 @@ export default function DashboardPage() {
         {/* Main content + Activity side */}
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Scans table */}
-          <div className="xl:col-span-2 bg-surface-container-low border border-outline-variant rounded-xl overflow-hidden">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-outline-variant">
-              <h2 className="font-fraunces text-lg font-[600] text-on-surface">Recent Scans</h2>
-              <Link href="/dashboard" className="text-secondary text-sm font-[600] hover:text-secondary/80 flex items-center gap-1 transition-colors">
+          <div className="xl:col-span-2 bg-panel border border-hair rounded-card overflow-hidden">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-hair">
+              <h2 className="font-display text-lg font-[600] text-text">Recent Scans</h2>
+              <Link href="/dashboard" className="text-acc-text text-sm font-[600] hover:text-acc-text/80 flex items-center gap-1 transition-colors">
                 View all <ArrowUpRight size={14} />
               </Link>
             </div>
@@ -111,27 +111,27 @@ export default function DashboardPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="border-b border-outline-variant">
+                  <tr className="border-b border-hair">
                     {['Project', 'Chain', 'Findings', 'Date', 'Status', 'Actions'].map((h) => (
-                      <th key={h} scope="col" className={clsx('text-left text-label-sm text-outline px-6 py-3 font-[600]', h === 'Actions' && 'sr-only')}>{h}</th>
+                      <th key={h} scope="col" className={clsx('text-left text-label-sm text-sec px-6 py-3 font-[600]', h === 'Actions' && 'sr-only')}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {SCANS.map((scan) => (
-                    <tr key={scan.id} className="border-b border-outline-variant/50 hover:bg-surface-container/50 transition-colors group">
+                    <tr key={scan.id} className="border-b border-hair/50 hover:bg-panel/50 transition-colors group">
                       <td className="px-6 py-4">
                         <div>
-                          <p className="text-body-md font-[600] text-on-surface">{scan.project}</p>
-                          <p className="text-xs text-outline font-mono">{scan.id}</p>
+                          <p className="text-body-md font-[600] text-text">{scan.project}</p>
+                          <p className="text-xs text-sec font-mono">{scan.id}</p>
                         </div>
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-xs text-outline bg-surface-container border border-outline-variant px-2 py-0.5 rounded font-mono">{scan.chain}</span>
+                        <span className="text-xs text-sec bg-panel border border-hair px-2 py-0.5 rounded font-mono">{scan.chain}</span>
                       </td>
                       <td className="px-6 py-4">
                         {scan.status === 'scanning' ? (
-                          <span className="text-outline text-body-md">—</span>
+                          <span className="text-sec text-body-md">—</span>
                         ) : (
                           <div className="flex items-center gap-1.5">
                             {scan.findings.critical > 0 && <span className="text-xs font-[700] text-critical">{scan.findings.critical}C</span>}
@@ -143,7 +143,7 @@ export default function DashboardPage() {
                         )}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="text-body-md text-outline whitespace-nowrap">{scan.date}</span>
+                        <span className="text-body-md text-sec whitespace-nowrap">{scan.date}</span>
                       </td>
                       <td className="px-6 py-4">
                         {scan.status === 'scanning' ? (
@@ -164,7 +164,7 @@ export default function DashboardPage() {
                         {scan.status === 'complete' && (
                           <Link
                             href={`/reports/${scan.id}`}
-                            className="text-secondary text-xs font-[600] hover:text-secondary/80 flex items-center gap-1 whitespace-nowrap"
+                            className="text-acc-text text-xs font-[600] hover:text-acc-text/80 flex items-center gap-1 whitespace-nowrap"
                           >
                             View report <ArrowUpRight size={12} />
                           </Link>
@@ -178,18 +178,18 @@ export default function DashboardPage() {
           </div>
 
           {/* Activity feed */}
-          <div className="bg-surface-container-low border border-outline-variant rounded-xl overflow-hidden">
-            <div className="px-5 py-4 border-b border-outline-variant">
-              <h2 className="font-fraunces text-lg font-[600] text-on-surface">Activity</h2>
+          <div className="bg-panel border border-hair rounded-card overflow-hidden">
+            <div className="px-5 py-4 border-b border-hair">
+              <h2 className="font-display text-lg font-[600] text-text">Activity</h2>
             </div>
-            <div className="divide-y divide-outline-variant/50">
+            <div className="divide-y divide-hair/50">
               {ACTIVITY.map((item, i) => (
-                <div key={i} className="flex gap-3 px-5 py-4 hover:bg-surface-container/40 transition-colors">
+                <div key={i} className="flex gap-3 px-5 py-4 hover:bg-panel/40 transition-colors">
                   <ActivityIcon type={item.type} />
                   <div className="flex-1 min-w-0">
-                    <p className="text-body-md font-[600] text-on-surface">{item.title}</p>
-                    <p className="text-xs text-outline mt-0.5 leading-4">{item.description}</p>
-                    <p className="text-xs text-outline mt-1">{item.time}</p>
+                    <p className="text-body-md font-[600] text-text">{item.title}</p>
+                    <p className="text-xs text-sec mt-0.5 leading-4">{item.description}</p>
+                    <p className="text-xs text-sec mt-1">{item.time}</p>
                   </div>
                 </div>
               ))}

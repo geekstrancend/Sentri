@@ -147,32 +147,32 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'signin' }: AuthModalP
         role="dialog"
         aria-modal="true"
         aria-labelledby="auth-modal-title"
-        className="bg-surface rounded-xl shadow-2xl w-full max-w-md relative"
+        className="bg-bg rounded-card shadow-2xl w-full max-w-md relative"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Close button */}
         <button
           onClick={onClose}
           aria-label="Close dialog"
-          className="absolute top-3 right-3 p-2 hover:bg-outline-variant rounded-lg transition"
+          className="absolute top-3 right-3 p-2 hover:bg-panel rounded-lg transition"
         >
-          <X className="w-5 h-5 text-on-surface" />
+          <X className="w-5 h-5 text-text" />
         </button>
 
         {/* Logo / Header */}
         <div className="px-6 pt-6 pb-2">
-          <h2 id="auth-modal-title" className="text-2xl font-bold text-on-surface mb-1">Sentri</h2>
-          <p className="text-sm text-on-surface-variant">Smart contract invariant checking</p>
+          <h2 id="auth-modal-title" className="text-2xl font-bold text-text mb-1">Sentri</h2>
+          <p className="text-sm text-sec">Smart contract invariant checking</p>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-outline-variant px-6">
+        <div className="flex border-b border-hair px-6">
           <button
             onClick={() => setTab('signin')}
             className={`flex-1 py-4 text-sm font-medium transition ${
               tab === 'signin'
-                ? 'text-secondary border-b-2 border-indigo'
-                : 'text-on-surface-variant hover:text-on-surface'
+                ? 'text-acc-text border-b-2 border-indigo'
+                : 'text-sec hover:text-text'
             }`}
           >
             Sign In
@@ -181,8 +181,8 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'signin' }: AuthModalP
             onClick={() => setTab('signup')}
             className={`flex-1 py-4 text-sm font-medium transition ${
               tab === 'signup'
-                ? 'text-secondary border-b-2 border-indigo'
-                : 'text-on-surface-variant hover:text-on-surface'
+                ? 'text-acc-text border-b-2 border-indigo'
+                : 'text-sec hover:text-text'
             }`}
           >
             Sign Up
@@ -193,7 +193,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'signin' }: AuthModalP
         <div className="px-6 py-6 space-y-4">
           {/* OAuth Buttons */}
           <div className="space-y-2">
-            <p className="text-xs text-on-surface-variant text-center mb-3">
+            <p className="text-xs text-sec text-center mb-3">
               Quick sign in
             </p>
             <Button
@@ -234,10 +234,10 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'signin' }: AuthModalP
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-outline-variant"></div>
+              <div className="w-full border-t border-hair"></div>
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-surface text-on-surface-variant">or</span>
+              <span className="px-2 bg-bg text-sec">or</span>
             </div>
           </div>
 
@@ -245,60 +245,60 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'signin' }: AuthModalP
           <div className="space-y-4">
             {tab === 'signup' && (
               <div>
-                <label htmlFor="auth-fullname" className="block text-sm font-medium text-on-surface mb-2">
+                <label htmlFor="auth-fullname" className="block text-sm font-medium text-text mb-2">
                   Full Name
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-sec" />
                   <input
                     id="auth-fullname"
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     placeholder="John Doe"
-                    className="w-full pl-10 pr-4 py-2.5 bg-surface-container-lowest text-on-surface placeholder-on-surface-variant rounded-lg border border-outline-variant focus:outline-none focus:border-indigo transition"
+                    className="w-full pl-10 pr-4 py-2.5 bg-surface-2 text-text placeholder-on-surface-variant rounded-lg border border-hair focus:outline-none focus:border-indigo transition"
                   />
                 </div>
               </div>
             )}
 
             <div>
-              <label htmlFor="auth-email" className="block text-sm font-medium text-on-surface mb-2">
+              <label htmlFor="auth-email" className="block text-sm font-medium text-text mb-2">
                 Email Address
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-sec" />
                 <input
                   id="auth-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="you@example.com"
-                  className="w-full pl-10 pr-4 py-2.5 bg-surface-container-lowest text-on-surface placeholder-on-surface-variant rounded-lg border border-outline-variant focus:outline-none focus:border-indigo transition"
+                  className="w-full pl-10 pr-4 py-2.5 bg-surface-2 text-text placeholder-on-surface-variant rounded-lg border border-hair focus:outline-none focus:border-indigo transition"
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="auth-password" className="block text-sm font-medium text-on-surface mb-2">
+              <label htmlFor="auth-password" className="block text-sm font-medium text-text mb-2">
                 Password
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-on-surface-variant" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-sec" />
                 <input
                   id="auth-password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="w-full pl-10 pr-10 py-2.5 bg-surface-container-lowest text-on-surface placeholder-on-surface-variant rounded-lg border border-outline-variant focus:outline-none focus:border-indigo transition"
+                  className="w-full pl-10 pr-10 py-2.5 bg-surface-2 text-text placeholder-on-surface-variant rounded-lg border border-hair focus:outline-none focus:border-indigo transition"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                   aria-pressed={showPassword}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sec hover:text-text transition"
                 >
                   {showPassword ? (
                     <EyeOff className="w-4 h-4" />
@@ -313,7 +313,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'signin' }: AuthModalP
           {/* Forgot Password / Links */}
           {tab === 'signin' && (
             <div className="text-right">
-              <button className="text-sm text-secondary hover:text-on-surface transition">
+              <button className="text-sm text-acc-text hover:text-text transition">
                 Forgot password?
               </button>
             </div>
@@ -339,7 +339,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'signin' }: AuthModalP
           </Button>
 
           {/* Trial Disclaimer */}
-          <p className="text-xs text-on-surface-variant text-center">
+          <p className="text-xs text-sec text-center">
             {tab === 'signup' ? (
               <>
                 Start your free 14-day trial.
@@ -351,7 +351,7 @@ export function AuthModal({ isOpen, onClose, defaultTab = 'signin' }: AuthModalP
                 Don&apos;t have an account?{' '}
                 <button
                   onClick={() => setTab('signup')}
-                  className="text-secondary hover:text-on-surface transition"
+                  className="text-acc-text hover:text-text transition"
                 >
                   Sign up
                 </button>

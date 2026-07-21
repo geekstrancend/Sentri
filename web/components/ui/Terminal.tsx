@@ -39,7 +39,7 @@ export function Terminal({ title = 'sentri-cli --scan ./contracts/Vault.sol', sh
       case 'scan':
       case 'info':
       case 'done':
-        return 'text-outline'
+        return 'text-sec'
       default:
         return ''
     }
@@ -50,20 +50,20 @@ export function Terminal({ title = 'sentri-cli --scan ./contracts/Vault.sol', sh
       case 'done':
         return 'text-low'
       default:
-        return 'text-outline'
+        return 'text-sec'
     }
   }
 
   return (
-    <div className="bg-surface-container-lowest border border-outline-variant rounded-lg overflow-hidden">
+    <div className="bg-surface-2 border border-hair rounded-lg overflow-hidden">
       {/* Title Bar */}
-      <div className="bg-surface-container-low h-8 px-4 flex items-center justify-between border-b border-outline-variant">
+      <div className="bg-panel h-8 px-4 flex items-center justify-between border-b border-hair">
         <div className="flex gap-1.5">
           <div className="w-1.5 h-1.5 rounded-full bg-critical" />
           <div className="w-1.5 h-1.5 rounded-full bg-high" />
           <div className="w-1.5 h-1.5 rounded-full bg-low" />
         </div>
-        <span className="text-outline text-label-sm text-center flex-1">{title}</span>
+        <span className="text-sec text-label-sm text-center flex-1">{title}</span>
         <div className="w-12" />
       </div>
 
@@ -71,14 +71,14 @@ export function Terminal({ title = 'sentri-cli --scan ./contracts/Vault.sol', sh
       <div className="p-5 font-mono text-code-block leading-5">
         {showBanner && (
           <pre className="font-mono text-[8px] sm:text-[10px] leading-tight
-                           text-secondary mb-3 select-none whitespace-pre">
+                           text-acc-text mb-3 select-none whitespace-pre">
 {`  ███████╗███████╗███╗   ██╗████████╗██████╗ ██╗
   ██╔════╝██╔════╝████╗  ██║╚══██╔══╝██╔══██╗██║
   ███████╗█████╗  ██╔██╗ ██║   ██║   ██████╔╝██║
   ╚════██║██╔══╝  ██║╚██╗██║   ██║   ██╔══██╗██║
   ███████║███████╗██║ ╚████║   ██║   ██║  ██║██║
   ╚══════╝╚══════╝╚═╝  ╚═══╝   ╚═╝   ╚═╝  ╚═╝╚═╝`}
-            <span className="block text-outline text-[9px] sm:text-[11px] mt-1
+            <span className="block text-sec text-[9px] sm:text-[11px] mt-1
                               normal-case font-normal">
               Multi-chain Smart Contract Invariant Checker · v0.2.1
             </span>

@@ -15,21 +15,21 @@ export default function APIReferencePage() {
     <DocsShell pageTitle="API Reference" tableOfContents={toc}>
       <article className="space-y-12">
         <div>
-          <h1 className="font-fraunces text-5xl font-[600] text-on-surface mb-4">
+          <h1 className="font-display text-5xl font-[600] text-text mb-4">
             REST API Reference
           </h1>
-          <p className="text-body-lg text-outline max-w-2xl">
+          <p className="text-body-lg text-sec max-w-2xl">
             Integrate Sentri programmatically with the REST API for headless security scanning and report generation.
           </p>
         </div>
 
         {/* Authentication */}
         <section id="authentication">
-          <h2 className="font-fraunces text-2xl font-[600] text-on-surface mt-12 mb-4 scroll-mt-24">
+          <h2 className="font-display text-2xl font-[600] text-text mt-12 mb-4 scroll-mt-24">
             Authentication
           </h2>
-          <p className="text-body-md text-on-surface-variant mb-4 leading-relaxed">
-            All API requests require authentication using an API key passed in the <code className="bg-surface-container border border-outline-variant px-1.5 py-0.5 rounded font-mono text-xs">Authorization</code> header:
+          <p className="text-body-md text-sec mb-4 leading-relaxed">
+            All API requests require authentication using an API key passed in the <code className="bg-panel border border-hair px-1.5 py-0.5 rounded font-mono text-xs">Authorization</code> header:
           </p>
 
           <CodeBlock
@@ -37,24 +37,24 @@ export default function APIReferencePage() {
             code={`Authorization: Bearer YOUR_API_KEY`}
           />
 
-          <h3 className="font-fraunces text-lg font-[600] text-on-surface mt-6 mb-3">
+          <h3 className="font-display text-lg font-[600] text-text mt-6 mb-3">
             Obtaining an API Key
           </h3>
-          <p className="text-body-md text-on-surface-variant mb-4 leading-relaxed">
+          <p className="text-body-md text-sec mb-4 leading-relaxed">
             Generate API keys in your Sentri dashboard under Settings → API Keys. Keep them secure and rotate regularly.
           </p>
         </section>
 
         {/* POST /v1/scans */}
         <section id="post-scans">
-          <h2 className="font-fraunces text-2xl font-[600] text-on-surface mt-12 mb-4 scroll-mt-24">
+          <h2 className="font-display text-2xl font-[600] text-text mt-12 mb-4 scroll-mt-24">
             POST /v1/scans
           </h2>
-          <p className="text-body-md text-on-surface-variant mb-4 leading-relaxed">
+          <p className="text-body-md text-sec mb-4 leading-relaxed">
             Submit a smart contract for security scanning.
           </p>
 
-          <h3 className="font-fraunces text-lg font-[600] text-on-surface mt-6 mb-3">
+          <h3 className="font-display text-lg font-[600] text-text mt-6 mb-3">
             Request
           </h3>
           <CodeBlock
@@ -71,44 +71,44 @@ Content-Type: application/json
 }`}
           />
 
-          <h3 className="font-fraunces text-lg font-[600] text-on-surface mt-6 mb-3">
+          <h3 className="font-display text-lg font-[600] text-text mt-6 mb-3">
             Request Fields
           </h3>
           <div className="overflow-x-auto mt-4">
-            <table className="w-full border border-outline-variant rounded text-body-md">
+            <table className="w-full border border-hair rounded text-body-md">
               <thead>
-                <tr className="border-b border-outline-variant">
-                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Field</th>
-                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Type</th>
-                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Description</th>
+                <tr className="border-b border-hair">
+                  <th className="text-left p-3 bg-panel font-[600] text-text">Field</th>
+                  <th className="text-left p-3 bg-panel font-[600] text-text">Type</th>
+                  <th className="text-left p-3 bg-panel font-[600] text-text">Description</th>
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-b border-outline-variant">
+                <tr className="border-b border-hair">
                   <td className="p-3"><code className="font-mono text-xs">name</code></td>
                   <td className="p-3"><code className="font-mono text-xs">string</code></td>
-                  <td className="p-3 text-on-surface-variant">Human-readable scan name</td>
+                  <td className="p-3 text-sec">Human-readable scan name</td>
                 </tr>
-                <tr className="border-b border-outline-variant">
+                <tr className="border-b border-hair">
                   <td className="p-3"><code className="font-mono text-xs">chain</code></td>
                   <td className="p-3"><code className="font-mono text-xs">string</code></td>
-                  <td className="p-3 text-on-surface-variant">evm, solana, or move</td>
+                  <td className="p-3 text-sec">evm, solana, or move</td>
                 </tr>
-                <tr className="border-b border-outline-variant">
+                <tr className="border-b border-hair">
                   <td className="p-3"><code className="font-mono text-xs">contract_code</code></td>
                   <td className="p-3"><code className="font-mono text-xs">string</code></td>
-                  <td className="p-3 text-on-surface-variant">Full source code of contract</td>
+                  <td className="p-3 text-sec">Full source code of contract</td>
                 </tr>
                 <tr>
                   <td className="p-3"><code className="font-mono text-xs">format</code></td>
                   <td className="p-3"><code className="font-mono text-xs">string</code></td>
-                  <td className="p-3 text-on-surface-variant">json, html, or pdf (default: json)</td>
+                  <td className="p-3 text-sec">json, html, or pdf (default: json)</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          <h3 className="font-fraunces text-lg font-[600] text-on-surface mt-6 mb-3">
+          <h3 className="font-display text-lg font-[600] text-text mt-6 mb-3">
             Response (202 Accepted)
           </h3>
           <CodeBlock
@@ -124,14 +124,14 @@ Content-Type: application/json
 
         {/* GET /v1/scans/:id */}
         <section id="get-scan">
-          <h2 className="font-fraunces text-2xl font-[600] text-on-surface mt-12 mb-4 scroll-mt-24">
+          <h2 className="font-display text-2xl font-[600] text-text mt-12 mb-4 scroll-mt-24">
             GET /v1/scans/:id
           </h2>
-          <p className="text-body-md text-on-surface-variant mb-4 leading-relaxed">
+          <p className="text-body-md text-sec mb-4 leading-relaxed">
             Poll for scan results. Use this to check if the scan is complete and retrieve the report.
           </p>
 
-          <h3 className="font-fraunces text-lg font-[600] text-on-surface mt-6 mb-3">
+          <h3 className="font-display text-lg font-[600] text-text mt-6 mb-3">
             Request
           </h3>
           <CodeBlock
@@ -140,7 +140,7 @@ Content-Type: application/json
 Authorization: Bearer YOUR_API_KEY`}
           />
 
-          <h3 className="font-fraunces text-lg font-[600] text-on-surface mt-6 mb-3">
+          <h3 className="font-display text-lg font-[600] text-text mt-6 mb-3">
             Response — In Progress (200 OK)
           </h3>
           <CodeBlock
@@ -153,7 +153,7 @@ Authorization: Bearer YOUR_API_KEY`}
 }`}
           />
 
-          <h3 className="font-fraunces text-lg font-[600] text-on-surface mt-6 mb-3">
+          <h3 className="font-display text-lg font-[600] text-text mt-6 mb-3">
             Response — Complete (200 OK)
           </h3>
           <CodeBlock
@@ -175,7 +175,7 @@ Authorization: Bearer YOUR_API_KEY`}
 }`}
           />
 
-          <h3 className="font-fraunces text-lg font-[600] text-on-surface mt-6 mb-3">
+          <h3 className="font-display text-lg font-[600] text-text mt-6 mb-3">
             Response — Error (400/500)
           </h3>
           <CodeBlock
@@ -188,10 +188,10 @@ Authorization: Bearer YOUR_API_KEY`}
 }`}
           />
 
-          <h3 className="font-fraunces text-lg font-[600] text-on-surface mt-6 mb-3">
+          <h3 className="font-display text-lg font-[600] text-text mt-6 mb-3">
             Polling Recommendations
           </h3>
-          <ul className="list-disc list-inside space-y-2 text-body-md text-on-surface-variant">
+          <ul className="list-disc list-inside space-y-2 text-body-md text-sec">
             <li>Poll every 2-3 seconds for typical scans (5-15 minutes)</li>
             <li>Implement exponential backoff after 10 failed polls</li>
             <li>Set a maximum timeout of 30 minutes per scan</li>
@@ -201,46 +201,46 @@ Authorization: Bearer YOUR_API_KEY`}
 
         {/* Rate Limits */}
         <section id="rate-limits">
-          <h2 className="font-fraunces text-2xl font-[600] text-on-surface mt-12 mb-4 scroll-mt-24">
+          <h2 className="font-display text-2xl font-[600] text-text mt-12 mb-4 scroll-mt-24">
             Rate Limits
           </h2>
-          <p className="text-body-md text-on-surface-variant mb-4 leading-relaxed">
+          <p className="text-body-md text-sec mb-4 leading-relaxed">
             API requests are rate limited per API key to ensure fair service availability:
           </p>
 
           <div className="overflow-x-auto mt-4">
-            <table className="w-full border border-outline-variant rounded text-body-md">
+            <table className="w-full border border-hair rounded text-body-md">
               <thead>
-                <tr className="border-b border-outline-variant">
-                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Plan</th>
-                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Requests/Hour</th>
-                  <th className="text-left p-3 bg-surface-container-low font-[600] text-on-surface">Concurrent Scans</th>
+                <tr className="border-b border-hair">
+                  <th className="text-left p-3 bg-panel font-[600] text-text">Plan</th>
+                  <th className="text-left p-3 bg-panel font-[600] text-text">Requests/Hour</th>
+                  <th className="text-left p-3 bg-panel font-[600] text-text">Concurrent Scans</th>
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-b border-outline-variant">
+                <tr className="border-b border-hair">
                   <td className="p-3">Starter</td>
-                  <td className="p-3 text-on-surface-variant">10</td>
-                  <td className="p-3 text-on-surface-variant">1</td>
+                  <td className="p-3 text-sec">10</td>
+                  <td className="p-3 text-sec">1</td>
                 </tr>
-                <tr className="border-b border-outline-variant">
+                <tr className="border-b border-hair">
                   <td className="p-3">Pro</td>
-                  <td className="p-3 text-on-surface-variant">100</td>
-                  <td className="p-3 text-on-surface-variant">5</td>
+                  <td className="p-3 text-sec">100</td>
+                  <td className="p-3 text-sec">5</td>
                 </tr>
                 <tr>
                   <td className="p-3">Enterprise</td>
-                  <td className="p-3 text-on-surface-variant">Unlimited</td>
-                  <td className="p-3 text-on-surface-variant">Unlimited</td>
+                  <td className="p-3 text-sec">Unlimited</td>
+                  <td className="p-3 text-sec">Unlimited</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          <h3 className="font-fraunces text-lg font-[600] text-on-surface mt-6 mb-3">
+          <h3 className="font-display text-lg font-[600] text-text mt-6 mb-3">
             Rate Limit Headers
           </h3>
-          <p className="text-body-md text-on-surface-variant mb-4 leading-relaxed">
+          <p className="text-body-md text-sec mb-4 leading-relaxed">
             Every response includes rate limit information:
           </p>
           <CodeBlock

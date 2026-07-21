@@ -32,23 +32,23 @@ export default function SettingsPage() {
   return (
     <AppShell currentPage="settings">
       <div className="p-8 max-w-4xl">
-        <h1 className="font-fraunces text-4xl font-[600] text-on-surface mb-2">
+        <h1 className="font-display text-4xl font-[600] text-text mb-2">
           Settings
         </h1>
-        <p className="text-body-lg text-on-surface-variant mb-8">
+        <p className="text-body-lg text-sec mb-8">
           Manage your account preferences, API keys, and subscription.
         </p>
 
         {/* Profile Section */}
-        <div className="bg-surface-container-low border border-outline-variant rounded-lg p-8 mb-6">
-          <h2 className="font-fraunces text-2xl font-[600] text-on-surface mb-6">
+        <div className="bg-panel border border-hair rounded-lg p-8 mb-6">
+          <h2 className="font-display text-2xl font-[600] text-text mb-6">
             Profile
           </h2>
 
           <div className="space-y-6">
             {/* Full Name */}
             <div>
-              <label htmlFor="settings-fullname" className="block text-sm font-medium text-on-surface mb-2">
+              <label htmlFor="settings-fullname" className="block text-sm font-medium text-text mb-2">
                 Full Name
               </label>
               <input
@@ -56,13 +56,13 @@ export default function SettingsPage() {
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                className="w-full px-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface placeholder-on-surface-variant focus:outline-none focus:border-indigo transition"
+                className="w-full px-4 py-2.5 bg-surface-2 border border-hair rounded-lg text-text placeholder-on-surface-variant focus:outline-none focus:border-indigo transition"
               />
             </div>
 
             {/* Email */}
             <div>
-              <label htmlFor="settings-email" className="block text-sm font-medium text-on-surface mb-2">
+              <label htmlFor="settings-email" className="block text-sm font-medium text-text mb-2">
                 Email Address
               </label>
               <input
@@ -70,9 +70,9 @@ export default function SettingsPage() {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full px-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface placeholder-on-surface-variant focus:outline-none focus:border-indigo transition"
+                className="w-full px-4 py-2.5 bg-surface-2 border border-hair rounded-lg text-text placeholder-on-surface-variant focus:outline-none focus:border-indigo transition"
               />
-              <p className="text-xs text-on-surface-variant mt-2">
+              <p className="text-xs text-sec mt-2">
                 Your email is used for account recovery and important notifications.
               </p>
             </div>
@@ -81,7 +81,7 @@ export default function SettingsPage() {
             {saveSuccess && (
               <div className="flex items-center gap-2 p-3 bg-medium/10 border border-medium rounded-lg">
                 <Check className="w-5 h-5 text-medium" />
-                <span className="text-sm text-on-surface">Profile updated successfully</span>
+                <span className="text-sm text-text">Profile updated successfully</span>
               </div>
             )}
 
@@ -92,14 +92,14 @@ export default function SettingsPage() {
         </div>
 
         {/* API Keys Section */}
-        <div className="bg-surface-container-low border border-outline-variant rounded-lg p-8 mb-6">
-          <h2 className="font-fraunces text-2xl font-[600] text-on-surface mb-6">
+        <div className="bg-panel border border-hair rounded-lg p-8 mb-6">
+          <h2 className="font-display text-2xl font-[600] text-text mb-6">
             API Keys
           </h2>
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-on-surface mb-2">
+              <label className="block text-sm font-medium text-text mb-2">
                 Secret Key
               </label>
               <div className="flex gap-2">
@@ -108,13 +108,13 @@ export default function SettingsPage() {
                     type={showApiKey ? 'text' : 'password'}
                     value={apiKey}
                     readOnly
-                    className="w-full px-4 py-2.5 bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface font-mono text-sm focus:outline-none focus:border-indigo transition"
+                    className="w-full px-4 py-2.5 bg-surface-2 border border-hair rounded-lg text-text font-mono text-sm focus:outline-none focus:border-indigo transition"
                   />
                   <button
                     onClick={() => setShowApiKey(!showApiKey)}
                     aria-label={showApiKey ? 'Hide API key' : 'Show API key'}
                     aria-pressed={showApiKey}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-on-surface-variant hover:text-on-surface transition"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-sec hover:text-text transition"
                   >
                     {showApiKey ? (
                       <EyeOff className="w-4 h-4" />
@@ -133,19 +133,19 @@ export default function SettingsPage() {
                   {copiedApiKey ? 'Copied' : 'Copy'}
                 </Button>
               </div>
-              <p className="text-xs text-on-surface-variant mt-2">
+              <p className="text-xs text-sec mt-2">
                 Keep this key secure. Don&apos;t share it with anyone or commit it to version control.
               </p>
             </div>
 
-            <div className="border-t border-outline-variant pt-4">
+            <div className="border-t border-hair pt-4">
               <Button
                 variant="secondary"
                 onClick={handleRegenerateApiKey}
               >
                 Regenerate Key
               </Button>
-              <p className="text-xs text-on-surface-variant mt-2">
+              <p className="text-xs text-sec mt-2">
                 Regenerating your key will invalidate the current one. Update your applications immediately.
               </p>
             </div>
@@ -153,29 +153,29 @@ export default function SettingsPage() {
         </div>
 
         {/* Subscription Section */}
-        <div className="bg-surface-container-low border border-outline-variant rounded-lg p-8">
-          <h2 className="font-fraunces text-2xl font-[600] text-on-surface mb-6">
+        <div className="bg-panel border border-hair rounded-lg p-8">
+          <h2 className="font-display text-2xl font-[600] text-text mb-6">
             Subscription
           </h2>
 
           <div className="space-y-6">
             {/* Current Plan */}
             <div className="bg-indigo-container border border-indigo rounded-lg p-4">
-              <p className="text-sm text-on-surface-variant mb-1">Current Plan</p>
-              <h3 className="font-fraunces text-2xl font-[700] text-on-surface mb-2">
+              <p className="text-sm text-sec mb-1">Current Plan</p>
+              <h3 className="font-display text-2xl font-[700] text-text mb-2">
                 Professional
               </h3>
-              <p className="text-body-sm text-on-surface-variant mb-4">
+              <p className="text-body-sm text-sec mb-4">
                 $499/month • Unlimited scans • Priority support
               </p>
-              <p className="text-xs text-on-surface-variant">
+              <p className="text-xs text-sec">
                 Billing date: Jun 15, 2026 • Next renewal: Aug 15, 2026
               </p>
             </div>
 
             {/* Features */}
             <div>
-              <h4 className="text-sm font-[600] text-on-surface mb-3">Included Features</h4>
+              <h4 className="text-sm font-[600] text-text mb-3">Included Features</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 {[
                   'Unlimited Scans',
@@ -185,16 +185,16 @@ export default function SettingsPage() {
                   'Team Management',
                   'API Access',
                 ].map((feature) => (
-                  <div key={feature} className="flex items-center gap-2 p-2 rounded bg-surface-container">
+                  <div key={feature} className="flex items-center gap-2 p-2 rounded bg-panel">
                     <Check className="w-4 h-4 text-medium flex-shrink-0" />
-                    <span className="text-sm text-on-surface-variant">{feature}</span>
+                    <span className="text-sm text-sec">{feature}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Actions */}
-            <div className="flex gap-3 pt-4 border-t border-outline-variant">
+            <div className="flex gap-3 pt-4 border-t border-hair">
               <Button variant="secondary" disabled title="Coming soon">
                 View Invoice History
               </Button>
@@ -207,11 +207,11 @@ export default function SettingsPage() {
 
         {/* Danger Zone */}
         <div className="bg-critical/5 border border-critical rounded-lg p-8 mt-6">
-          <h2 className="font-fraunces text-2xl font-[600] text-critical mb-4 flex items-center gap-2">
+          <h2 className="font-display text-2xl font-[600] text-critical mb-4 flex items-center gap-2">
             <AlertCircle className="w-6 h-6" />
             Danger Zone
           </h2>
-          <p className="text-body-md text-on-surface-variant mb-4">
+          <p className="text-body-md text-sec mb-4">
             These actions cannot be undone. Please proceed with caution.
           </p>
           <Button variant="secondary" disabled title="Coming soon" className="text-critical border-critical hover:bg-critical/10">

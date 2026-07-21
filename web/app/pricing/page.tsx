@@ -130,8 +130,8 @@ const FAQS = [
 
 function CellValue({ value }: { value: string | boolean }) {
   if (value === true) return <Check size={16} className="text-low mx-auto" />
-  if (value === false) return <X size={14} className="text-outline mx-auto" />
-  return <span className="text-body-md text-on-surface-variant">{value}</span>
+  if (value === false) return <X size={14} className="text-sec mx-auto" />
+  return <span className="text-body-md text-sec">{value}</span>
 }
 
 export default function PricingPage() {
@@ -151,29 +151,29 @@ export default function PricingPage() {
   }
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col">
+    <div className="min-h-screen bg-bg flex flex-col">
       <MarketingNav />
 
       <main className="flex-1">
         {/* Hero */}
         <section className="px-6 py-20 max-w-5xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo/8 border border-indigo/20 mb-6">
-            <span className="text-label-sm text-on-secondary-container">SIMPLE, TRANSPARENT PRICING</span>
+            <span className="text-label-sm text-acc-text">SIMPLE, TRANSPARENT PRICING</span>
           </div>
-          <h1 className="font-fraunces text-5xl font-[700] text-on-surface mb-4 leading-[64px]">
+          <h1 className="font-display text-5xl font-[700] text-text mb-4 leading-[64px]">
             Plans for every stage
           </h1>
-          <p className="text-body-lg text-outline max-w-xl mx-auto mb-10">
+          <p className="text-body-lg text-sec max-w-xl mx-auto mb-10">
             Start free. Scale when you&apos;re ready. No hidden fees.
           </p>
 
           {/* Billing toggle */}
-          <div className="inline-flex items-center gap-1 p-1 bg-surface-container-low border border-outline-variant rounded-lg">
+          <div className="inline-flex items-center gap-1 p-1 bg-panel border border-hair rounded-lg">
             <button
               onClick={() => setBilling('monthly')}
               className={clsx(
                 'px-4 py-1.5 rounded text-sm font-[600] transition-colors',
-                billing === 'monthly' ? 'bg-surface-container text-on-surface' : 'text-outline hover:text-on-surface',
+                billing === 'monthly' ? 'bg-panel text-text' : 'text-sec hover:text-text',
               )}
             >
               Monthly
@@ -182,7 +182,7 @@ export default function PricingPage() {
               onClick={() => setBilling('annual')}
               className={clsx(
                 'px-4 py-1.5 rounded text-sm font-[600] transition-colors flex items-center gap-2',
-                billing === 'annual' ? 'bg-surface-container text-on-surface' : 'text-outline hover:text-on-surface',
+                billing === 'annual' ? 'bg-panel text-text' : 'text-sec hover:text-text',
               )}
             >
               Annual
@@ -200,35 +200,35 @@ export default function PricingPage() {
                 <div
                   key={plan.id}
                   className={clsx(
-                    'relative rounded-xl p-8 flex flex-col',
+                    'relative rounded-card p-8 flex flex-col',
                     plan.featured
                       ? 'bg-indigo/5 border-2 border-indigo animate-border-glow'
-                      : 'bg-surface-container-low border border-outline-variant lift-on-hover',
+                      : 'bg-panel border border-hair lift-on-hover',
                   )}
                 >
                   {plan.badge && (
-                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-secondary-container border border-indigo text-on-secondary-container px-3 py-1 rounded-full text-label-sm whitespace-nowrap">
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-acc/15 border border-indigo text-acc-text px-3 py-1 rounded-full text-label-sm whitespace-nowrap">
                       {plan.badge}
                     </div>
                   )}
                   <div className="mb-6">
-                    <span className={clsx('text-label-sm block mb-2', plan.featured ? 'text-on-secondary-container' : 'text-outline')}>{plan.name}</span>
+                    <span className={clsx('text-label-sm block mb-2', plan.featured ? 'text-acc-text' : 'text-sec')}>{plan.name}</span>
                     <div className="flex items-end gap-1 mb-2">
                       {price === null ? (
-                        <span className="font-fraunces text-4xl font-[700] text-on-surface">Custom</span>
+                        <span className="font-display text-4xl font-[700] text-text">Custom</span>
                       ) : (
                         <>
-                          <span className="font-fraunces text-5xl font-[700] text-on-surface">${price}</span>
-                          <span className="text-outline text-body-md mb-1.5">/mo</span>
+                          <span className="font-display text-5xl font-[700] text-text">${price}</span>
+                          <span className="text-sec text-body-md mb-1.5">/mo</span>
                         </>
                       )}
                     </div>
                     {billing === 'annual' && price !== null && price > 0 && (
                       <p className="text-xs text-low">Billed ${price * 12}/year</p>
                     )}
-                    <p className="text-body-md text-outline mt-2">{plan.description}</p>
+                    <p className="text-body-md text-sec mt-2">{plan.description}</p>
                   </div>
-                  <div className={clsx('border-t mb-6', plan.featured ? 'border-indigo/30' : 'border-outline-variant')} />
+                  <div className={clsx('border-t mb-6', plan.featured ? 'border-indigo/30' : 'border-hair')} />
                   <div className="flex-1" />
                   {plan.id === 'starter' ? (
                     <Button variant={plan.ctaVariant} fullWidth onClick={() => { setAuthTab('signup'); setAuthOpen(true) }}>
@@ -241,7 +241,7 @@ export default function PricingPage() {
                   ) : (
                     <Link href="/contact"><Button variant={plan.ctaVariant} fullWidth>{plan.cta}</Button></Link>
                   )}
-                  <p className="text-center text-xs text-outline mt-3">
+                  <p className="text-center text-xs text-sec mt-3">
                     {plan.id === 'starter' ? 'No credit card required' : plan.id === 'pro' ? '14-day free trial included' : 'Custom contract & SLA'}
                   </p>
                 </div>
@@ -251,38 +251,38 @@ export default function PricingPage() {
         </section>
 
         {/* Feature comparison table */}
-        <section className="px-6 py-24 bg-surface-container-lowest border-y border-outline-variant">
+        <section className="px-6 py-24 bg-surface-2 border-y border-hair">
           <div className="max-w-5xl mx-auto">
             <div className="text-center mb-12">
-              <h2 className="font-fraunces text-3xl font-[600] text-on-surface mb-3">Full Feature Comparison</h2>
-              <p className="text-body-md text-outline">See exactly what&apos;s included at each tier</p>
+              <h2 className="font-display text-3xl font-[600] text-text mb-3">Full Feature Comparison</h2>
+              <p className="text-body-md text-sec">See exactly what&apos;s included at each tier</p>
             </div>
             <div ref={tableRef} className="reveal">
               {/* Header */}
-              <div className="grid grid-cols-4 gap-4 mb-4 sticky top-[73px] bg-surface-container-lowest py-4 z-10">
+              <div className="grid grid-cols-4 gap-4 mb-4 sticky top-[73px] bg-surface-2 py-4 z-10">
                 <div />
                 {PLANS.map((plan) => (
                   <div key={plan.id} className={clsx('text-center py-2 rounded-lg', plan.featured && 'bg-indigo/5 border border-indigo/20')}>
-                    <span className={clsx('text-label-sm block', plan.featured ? 'text-on-secondary-container' : 'text-on-surface')}>{plan.name}</span>
+                    <span className={clsx('text-label-sm block', plan.featured ? 'text-acc-text' : 'text-text')}>{plan.name}</span>
                   </div>
                 ))}
               </div>
 
               {COMPARISON_ROWS.map((group) => (
                 <div key={group.category} className="mb-6">
-                  <div className="text-label-sm text-outline bg-surface-container-low border border-outline-variant rounded-t-lg px-4 py-2.5">
+                  <div className="text-label-sm text-sec bg-panel border border-hair rounded-t-lg px-4 py-2.5">
                     {group.category}
                   </div>
                   {group.rows.map((row, i) => (
                     <div
                       key={row.feature}
                       className={clsx(
-                        'grid grid-cols-4 gap-4 px-4 py-3 border-x border-b border-outline-variant',
+                        'grid grid-cols-4 gap-4 px-4 py-3 border-x border-b border-hair',
                         i === group.rows.length - 1 && 'rounded-b-lg',
-                        i % 2 === 0 ? 'bg-surface-container-lowest' : 'bg-surface-container-low/40',
+                        i % 2 === 0 ? 'bg-surface-2' : 'bg-panel/40',
                       )}
                     >
-                      <span className="text-body-md text-on-surface-variant">{row.feature}</span>
+                      <span className="text-body-md text-sec">{row.feature}</span>
                       <div className="text-center"><CellValue value={row.starter} /></div>
                       <div className="text-center"><CellValue value={row.pro} /></div>
                       <div className="text-center"><CellValue value={row.enterprise} /></div>
@@ -297,25 +297,25 @@ export default function PricingPage() {
         {/* FAQ */}
         <section className="px-6 py-24 max-w-3xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="font-fraunces text-3xl font-[600] text-on-surface mb-3">Frequently Asked Questions</h2>
-            <p className="text-body-md text-outline">Everything you need to know about Sentri&apos;s plans</p>
+            <h2 className="font-display text-3xl font-[600] text-text mb-3">Frequently Asked Questions</h2>
+            <p className="text-body-md text-sec">Everything you need to know about Sentri&apos;s plans</p>
           </div>
           <div ref={faqRef} className="space-y-3 reveal">
             {FAQS.map((faq, i) => (
-              <div key={i} className="bg-surface-container-low border border-outline-variant rounded-xl overflow-hidden">
+              <div key={i} className="bg-panel border border-hair rounded-card overflow-hidden">
                 <button
                   onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                  className="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-surface-container transition-colors"
+                  className="w-full flex items-center justify-between px-6 py-5 text-left hover:bg-panel transition-colors"
                 >
-                  <span className="font-fraunces text-base font-[600] text-on-surface pr-4">{faq.q}</span>
+                  <span className="font-display text-base font-[600] text-text pr-4">{faq.q}</span>
                   <ChevronDown
                     size={18}
-                    className={clsx('text-outline flex-shrink-0 transition-transform duration-200', openFaq === i && 'rotate-180')}
+                    className={clsx('text-sec flex-shrink-0 transition-transform duration-200', openFaq === i && 'rotate-180')}
                   />
                 </button>
                 {openFaq === i && (
                   <div className="px-6 pb-5">
-                    <p className="text-body-md text-outline leading-6">{faq.a}</p>
+                    <p className="text-body-md text-sec leading-6">{faq.a}</p>
                   </div>
                 )}
               </div>
@@ -325,10 +325,10 @@ export default function PricingPage() {
 
         {/* Bottom CTA */}
         <section className="px-6 pb-24">
-          <div className="max-w-3xl mx-auto text-center bg-indigo/5 border border-indigo/20 rounded-2xl p-12">
-            <ShieldCheck size={32} className="text-secondary mx-auto mb-4" />
-            <h2 className="font-fraunces text-3xl font-[600] text-on-surface mb-4">Still have questions?</h2>
-            <p className="text-body-lg text-outline mb-8">
+          <div className="max-w-3xl mx-auto text-center bg-indigo/5 border border-indigo/20 rounded-card p-12">
+            <ShieldCheck size={32} className="text-acc-text mx-auto mb-4" />
+            <h2 className="font-display text-3xl font-[600] text-text mb-4">Still have questions?</h2>
+            <p className="text-body-lg text-sec mb-8">
               Talk to our security team and we&apos;ll help you find the right plan for your protocol.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">

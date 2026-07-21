@@ -73,7 +73,7 @@ export default function AIScanPage() {
       case 'low':
         return 'text-low'
       default:
-        return 'text-on-surface'
+        return 'text-text'
     }
   }
 
@@ -85,15 +85,15 @@ export default function AIScanPage() {
 
   return (
     <AppShell currentPage="audits" onNewScan={handleReset}>
-      <div className="p-8 max-w-7xl mx-auto">
+      <div className="p-8 max-w-site mx-auto">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-4">
             <Brain className="w-8 h-8 text-indigo" />
-            <h1 className="font-fraunces text-4xl font-[600] text-on-surface">
+            <h1 className="font-display text-4xl font-[600] text-text">
               AI-Powered Code Analysis
             </h1>
           </div>
-          <p className="text-body-lg text-on-surface-variant max-w-2xl">
+          <p className="text-body-lg text-sec max-w-2xl">
             Leverage Claude Haiku to analyze your smart contracts for vulnerabilities, best practices, and security improvements.
           </p>
         </div>
@@ -103,10 +103,10 @@ export default function AIScanPage() {
           <div className="space-y-4">
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label className="text-sm font-[600] text-on-surface">Smart Contract Code</label>
+                <label className="text-sm font-[600] text-text">Smart Contract Code</label>
                 <button
                   onClick={handleCopyCode}
-                  className="text-xs text-outline hover:text-on-surface transition flex items-center gap-1"
+                  className="text-xs text-sec hover:text-text transition flex items-center gap-1"
                 >
                   {copiedCode ? (
                     <>
@@ -125,7 +125,7 @@ export default function AIScanPage() {
                 value={contractCode}
                 onChange={(e) => setContractCode(e.target.value)}
                 placeholder="Paste your Solidity, Rust, or Move smart contract code here..."
-                className="w-full h-[500px] px-4 py-3 bg-surface-container-lowest border border-outline-variant rounded-lg text-on-surface font-mono text-sm placeholder-on-surface-variant focus:outline-none focus:border-indigo transition resize-none"
+                className="w-full h-[500px] px-4 py-3 bg-surface-2 border border-hair rounded-lg text-text font-mono text-sm placeholder-on-surface-variant focus:outline-none focus:border-indigo transition resize-none"
               />
             </div>
 
@@ -156,8 +156,8 @@ export default function AIScanPage() {
               )}
             </Button>
 
-            <div className="p-3 bg-indigo/10 border border-indigo rounded-lg text-xs text-on-surface-variant">
-              <p className="font-[600] text-on-surface mb-1">Model: Claude Haiku 4.5</p>
+            <div className="p-3 bg-indigo/10 border border-indigo rounded-lg text-xs text-sec">
+              <p className="font-[600] text-text mb-1">Model: Claude Haiku 4.5</p>
               <p>Fast and efficient AI analysis powered by Anthropic&apos;s Claude Haiku model.</p>
             </div>
           </div>
@@ -167,7 +167,7 @@ export default function AIScanPage() {
             {analysis ? (
               <div className="space-y-4">
                 {/* Risk Badge */}
-                <div className={`p-4 bg-surface-container rounded-lg border-l-4 ${
+                <div className={`p-4 bg-panel rounded-lg border-l-4 ${
                   analysis.riskLevel === 'critical'
                     ? 'border-critical bg-critical/5'
                     : analysis.riskLevel === 'high'
@@ -176,23 +176,23 @@ export default function AIScanPage() {
                         ? 'border-medium bg-medium/5'
                         : 'border-low bg-low/5'
                 }`}>
-                  <p className="text-xs text-on-surface-variant mb-1">RISK LEVEL</p>
-                  <p className={`font-fraunces text-2xl font-[700] capitalize ${getRiskColor(analysis.riskLevel)}`}>
+                  <p className="text-xs text-sec mb-1">RISK LEVEL</p>
+                  <p className={`font-display text-2xl font-[700] capitalize ${getRiskColor(analysis.riskLevel)}`}>
                     {analysis.riskLevel}
                   </p>
                 </div>
 
                 {/* Summary */}
-                <div className="bg-surface-container rounded-lg p-4">
-                  <h3 className="text-sm font-[600] text-on-surface mb-2">Analysis Summary</h3>
-                  <p className="text-body-sm text-on-surface-variant leading-6">
+                <div className="bg-panel rounded-lg p-4">
+                  <h3 className="text-sm font-[600] text-text mb-2">Analysis Summary</h3>
+                  <p className="text-body-sm text-sec leading-6">
                     {analysis.summary}
                   </p>
                 </div>
 
                 {/* Vulnerabilities */}
                 {analysis.vulnerabilities.length > 0 && (
-                  <div className="bg-surface-container rounded-lg p-4">
+                  <div className="bg-panel rounded-lg p-4">
                     <h3 className="text-sm font-[600] text-critical mb-3">
                       Potential Vulnerabilities ({analysis.vulnerabilities.length})
                     </h3>
@@ -200,7 +200,7 @@ export default function AIScanPage() {
                       {analysis.vulnerabilities.map((vuln, idx) => (
                         <li key={idx} className="flex gap-2 text-sm">
                           <span className="text-critical flex-shrink-0">•</span>
-                          <span className="text-on-surface-variant">{vuln}</span>
+                          <span className="text-sec">{vuln}</span>
                         </li>
                       ))}
                     </ul>
@@ -209,7 +209,7 @@ export default function AIScanPage() {
 
                 {/* Recommendations */}
                 {analysis.recommendations.length > 0 && (
-                  <div className="bg-surface-container rounded-lg p-4">
+                  <div className="bg-panel rounded-lg p-4">
                     <h3 className="text-sm font-[600] text-medium mb-3">
                       Recommendations ({analysis.recommendations.length})
                     </h3>
@@ -217,7 +217,7 @@ export default function AIScanPage() {
                       {analysis.recommendations.map((rec, idx) => (
                         <li key={idx} className="flex gap-2 text-sm">
                           <span className="text-medium flex-shrink-0">✓</span>
-                          <span className="text-on-surface-variant">{rec}</span>
+                          <span className="text-sec">{rec}</span>
                         </li>
                       ))}
                     </ul>
@@ -225,9 +225,9 @@ export default function AIScanPage() {
                 )}
               </div>
             ) : (
-              <div className="h-[500px] flex flex-col items-center justify-center bg-surface-container rounded-lg border border-dashed border-outline-variant">
-                <Brain className="w-12 h-12 text-on-surface-variant mb-4 opacity-50" />
-                <p className="text-center text-on-surface-variant">
+              <div className="h-[500px] flex flex-col items-center justify-center bg-panel rounded-lg border border-dashed border-hair">
+                <Brain className="w-12 h-12 text-sec mb-4 opacity-50" />
+                <p className="text-center text-sec">
                   <span className="block font-[600] mb-1">Paste your code to get started</span>
                   <span className="text-sm">Claude Haiku will analyze your smart contract</span>
                 </p>
@@ -237,18 +237,18 @@ export default function AIScanPage() {
         </div>
 
         {/* Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-12 pt-8 border-t border-outline-variant">
-          <div className="bg-surface-container rounded-lg p-4">
-            <h4 className="text-sm font-[600] text-on-surface mb-2">Supported Languages</h4>
-            <p className="text-xs text-on-surface-variant">Solidity, Rust, Move, and Vyper</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-12 pt-8 border-t border-hair">
+          <div className="bg-panel rounded-lg p-4">
+            <h4 className="text-sm font-[600] text-text mb-2">Supported Languages</h4>
+            <p className="text-xs text-sec">Solidity, Rust, Move, and Vyper</p>
           </div>
-          <div className="bg-surface-container rounded-lg p-4">
-            <h4 className="text-sm font-[600] text-on-surface mb-2">AI Model</h4>
-            <p className="text-xs text-on-surface-variant">Claude Haiku 4.5 - Fast and efficient</p>
+          <div className="bg-panel rounded-lg p-4">
+            <h4 className="text-sm font-[600] text-text mb-2">AI Model</h4>
+            <p className="text-xs text-sec">Claude Haiku 4.5 - Fast and efficient</p>
           </div>
-          <div className="bg-surface-container rounded-lg p-4">
-            <h4 className="text-sm font-[600] text-on-surface mb-2">Privacy</h4>
-            <p className="text-xs text-on-surface-variant">Your code is processed securely and never stored</p>
+          <div className="bg-panel rounded-lg p-4">
+            <h4 className="text-sm font-[600] text-text mb-2">Privacy</h4>
+            <p className="text-xs text-sec">Your code is processed securely and never stored</p>
           </div>
         </div>
       </div>

@@ -132,8 +132,8 @@ function FindingCard({ finding }: { finding: Finding }) {
 
   return (
     <div className={clsx(
-      'bg-surface-container-low border rounded-xl overflow-hidden transition-all',
-      finding.status === 'resolved' ? 'border-outline-variant opacity-70' : 'border-outline-variant',
+      'bg-panel border rounded-card overflow-hidden transition-all',
+      finding.status === 'resolved' ? 'border-hair opacity-70' : 'border-hair',
     )}>
       {/* Severity bar */}
       <div className={clsx('h-0.5', {
@@ -146,45 +146,45 @@ function FindingCard({ finding }: { finding: Finding }) {
       {/* Header */}
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-surface-container/40 transition-colors"
+        className="w-full flex items-center justify-between px-6 py-4 text-left hover:bg-panel/40 transition-colors"
       >
         <div className="flex items-center gap-4 flex-1 min-w-0">
           <SeverityBadge level={finding.severity} />
           <div className="flex-1 min-w-0">
-            <p className="text-body-md font-[600] text-on-surface">{finding.title}</p>
-            <p className="text-xs text-outline mt-0.5 font-mono">{finding.location}</p>
+            <p className="text-body-md font-[600] text-text">{finding.title}</p>
+            <p className="text-xs text-sec mt-0.5 font-mono">{finding.location}</p>
           </div>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0 ml-4">
           <span className={clsx('inline-flex items-center gap-1 text-xs font-[600] px-2 py-0.5 rounded border', status.cls)}>
             {status.icon} {status.label}
           </span>
-          <code className="text-xs text-outline font-mono">{finding.id}</code>
-          {expanded ? <ChevronUp size={16} className="text-outline" /> : <ChevronDown size={16} className="text-outline" />}
+          <code className="text-xs text-sec font-mono">{finding.id}</code>
+          {expanded ? <ChevronUp size={16} className="text-sec" /> : <ChevronDown size={16} className="text-sec" />}
         </div>
       </button>
 
       {/* Expanded content */}
       {expanded && (
-        <div className="px-6 pb-6 border-t border-outline-variant/50 pt-5 space-y-5">
+        <div className="px-6 pb-6 border-t border-hair/50 pt-5 space-y-5">
           <div>
-            <p className="text-label-sm text-outline mb-2">DESCRIPTION</p>
-            <p className="text-body-md text-on-surface-variant leading-6">{finding.description}</p>
+            <p className="text-label-sm text-sec mb-2">DESCRIPTION</p>
+            <p className="text-body-md text-sec leading-6">{finding.description}</p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div>
-              <p className="text-label-sm text-outline mb-2">IMPACT</p>
-              <p className="text-body-md text-on-surface-variant leading-6">{finding.impact}</p>
+              <p className="text-label-sm text-sec mb-2">IMPACT</p>
+              <p className="text-body-md text-sec leading-6">{finding.impact}</p>
             </div>
             <div>
-              <p className="text-label-sm text-outline mb-2">RECOMMENDATION</p>
-              <p className="text-body-md text-on-surface-variant leading-6">{finding.recommendation}</p>
+              <p className="text-label-sm text-sec mb-2">RECOMMENDATION</p>
+              <p className="text-body-md text-sec leading-6">{finding.recommendation}</p>
             </div>
           </div>
           {finding.codeSnippet && (
             <div>
-              <p className="text-label-sm text-outline mb-2">CODE</p>
-              <pre className="bg-surface-container-lowest border border-outline-variant rounded-lg p-4 text-xs font-mono text-on-surface-variant overflow-x-auto leading-5 whitespace-pre">
+              <p className="text-label-sm text-sec mb-2">CODE</p>
+              <pre className="bg-surface-2 border border-hair rounded-lg p-4 text-xs font-mono text-sec overflow-x-auto leading-5 whitespace-pre">
                 {finding.codeSnippet}
               </pre>
             </div>
@@ -216,7 +216,7 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
       <div className="max-w-4xl mx-auto p-6 lg:p-8 space-y-8">
 
         {/* Back link */}
-        <Link href="/dashboard" className="inline-flex items-center gap-2 text-outline hover:text-on-surface text-body-md transition-colors">
+        <Link href="/dashboard" className="inline-flex items-center gap-2 text-sec hover:text-text text-body-md transition-colors">
           <ArrowLeft size={16} /> Back to Dashboard
         </Link>
 
@@ -224,11 +224,11 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
         <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <span className="text-label-sm text-outline bg-surface-container border border-outline-variant px-2 py-0.5 rounded font-mono">{reportId}</span>
+              <span className="text-label-sm text-sec bg-panel border border-hair px-2 py-0.5 rounded font-mono">{reportId}</span>
               <span className="text-xs text-low bg-low/10 border border-low/20 px-2 py-0.5 rounded font-mono">COMPLETE</span>
             </div>
-            <h1 className="font-fraunces text-3xl font-[600] text-on-surface mb-2">Security Audit Report</h1>
-            <p className="text-body-md text-outline">Generated {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+            <h1 className="font-display text-3xl font-[600] text-text mb-2">Security Audit Report</h1>
+            <p className="text-body-md text-sec">Generated {new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
           </div>
           <div className="flex gap-2 flex-shrink-0">
             <Button variant="secondary" size="sm" icon={<Share2 size={14} />} disabled title="Coming soon">Share</Button>
@@ -237,7 +237,7 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
         </div>
 
         {/* Summary stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-outline-variant rounded-xl overflow-hidden">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-px bg-hair rounded-card overflow-hidden">
           {[
             { label: 'CRITICAL', count: stats.critical, color: 'text-critical', bg: 'bg-critical/5' },
             { label: 'HIGH',     count: stats.high,     color: 'text-high',     bg: 'bg-high/5' },
@@ -250,22 +250,22 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
               className={clsx(
                 'p-5 text-center transition-colors',
                 item.bg,
-                filter === item.label.toLowerCase() ? 'ring-1 ring-inset ring-outline' : 'hover:bg-surface-container',
+                filter === item.label.toLowerCase() ? 'ring-1 ring-inset ring-outline' : 'hover:bg-panel',
               )}
             >
-              <div className={clsx('font-fraunces text-4xl font-[700] mb-1', item.color)}>{item.count}</div>
-              <div className="text-label-sm text-outline">{item.label}</div>
+              <div className={clsx('font-display text-4xl font-[700] mb-1', item.color)}>{item.count}</div>
+              <div className="text-label-sm text-sec">{item.label}</div>
             </button>
           ))}
         </div>
 
         {/* Status bar */}
-        <div className="bg-surface-container-low border border-outline-variant rounded-xl p-5">
+        <div className="bg-panel border border-hair rounded-card p-5">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-body-md text-outline">Remediation Progress</span>
-            <span className="text-body-md text-on-surface font-[600]">{resolved}/{FINDINGS.length} resolved</span>
+            <span className="text-body-md text-sec">Remediation Progress</span>
+            <span className="text-body-md text-text font-[600]">{resolved}/{FINDINGS.length} resolved</span>
           </div>
-          <div className="w-full h-2 bg-surface-container rounded-full overflow-hidden">
+          <div className="w-full h-2 bg-panel rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-medium to-low rounded-full transition-all duration-700"
               style={{ width: `${(resolved / FINDINGS.length) * 100}%` }}
@@ -286,7 +286,7 @@ export default function ReportDetailPage({ params }: { params: { id: string } })
               onClick={() => setFilter(f)}
               className={clsx(
                 'px-4 py-1.5 rounded-lg text-sm font-[600] transition-colors capitalize',
-                filter === f ? 'bg-surface-container text-on-surface' : 'text-outline hover:text-on-surface',
+                filter === f ? 'bg-panel text-text' : 'text-sec hover:text-text',
               )}
             >
               {f === 'all' ? `All (${FINDINGS.length})` : `${f.charAt(0).toUpperCase() + f.slice(1)} (${stats[f]})`}

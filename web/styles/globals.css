@@ -108,11 +108,11 @@
   }
 
   ::-webkit-scrollbar-track {
-    @apply bg-surface-container-low;
+    @apply bg-surface-2;
   }
 
   ::-webkit-scrollbar-thumb {
-    @apply bg-outline-variant rounded-full hover:bg-outline;
+    @apply bg-hair-strong rounded-full hover:bg-sec;
   }
 
   /* Respect reduced-motion preference: neutralize decorative animation */
@@ -199,11 +199,11 @@
     @apply p-6;
   }
 
-  /* Border utilities - use Tailwind's border-outline-variant utility directly */
+  /* Border utilities - use the border-hair utility directly */
 
   /* Common component styles */
   .card-base {
-    @apply bg-surface-container-low border border-outline-variant rounded-lg;
+    @apply bg-panel border border-hair rounded-card;
   }
 
   .button-base {
@@ -211,15 +211,15 @@
   }
 
   .button-primary {
-    @apply button-base bg-secondary-container border border-indigo text-on-background hover:bg-indigo/90;
+    @apply button-base bg-acc/15 border border-indigo text-text hover:bg-indigo/90;
   }
 
   .button-secondary {
-    @apply button-base bg-transparent border border-outline-variant text-on-surface-variant hover:border-indigo hover:text-on-surface;
+    @apply button-base bg-transparent border border-hair text-sec hover:border-indigo hover:text-text;
   }
 
   .button-ghost {
-    @apply button-base bg-transparent border-0 text-outline hover:text-on-surface;
+    @apply button-base bg-transparent border-0 text-sec hover:text-text;
   }
 }
 
@@ -319,17 +319,17 @@
 /* Grid pattern background utility */
 .bg-grid-pattern {
   background-image:
-    linear-gradient(to right, var(--outline-variant) 1px, transparent 1px),
-    linear-gradient(to bottom, var(--outline-variant) 1px, transparent 1px);
+    linear-gradient(to right, var(--hair) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--hair) 1px, transparent 1px);
   background-size: 48px 48px;
   opacity: 0.15;
 }
 
 /* Glass panel: frosted glass effect */
 .glass-panel {
-  background: color-mix(in srgb, var(--surface-container-low) 70%, transparent);
+  background: color-mix(in srgb, var(--panel) 70%, transparent);
   backdrop-filter: blur(12px);
-  border: 1px solid var(--outline-variant);
+  border: 1px solid var(--hair);
 }
 
 /* Spotlight movement animation */
@@ -418,7 +418,7 @@
 
 /* ─── Gradient text utility ─── */
 .gradient-text {
-  background: linear-gradient(135deg, var(--on-surface) 0%, var(--secondary) 60%);
+  background: linear-gradient(135deg, var(--text) 0%, var(--acc-text) 60%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -451,7 +451,7 @@
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, var(--surface-container-low) 25%, var(--surface-container) 50%, var(--surface-container-low) 75%);
+  background: linear-gradient(90deg, var(--panel) 25%, var(--surface-2) 50%, var(--panel) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
@@ -496,5 +496,5 @@
 /* ─── Section divider gradient ─── */
 .section-divider {
   height: 1px;
-  background: linear-gradient(90deg, transparent, var(--outline-variant), transparent);
+  background: linear-gradient(90deg, transparent, var(--hair), transparent);
 }
