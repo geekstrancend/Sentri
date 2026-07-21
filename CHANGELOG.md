@@ -7,17 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-
-- **Detection pipeline was completely disconnected from the CLI.** `sentri check`/`sentri scan` hardcoded an empty violation list regardless of input; the 35 EVM + 9 Solana + 6 Move detector functions existed and were tested in isolation but were never actually called from the command handlers. All 50 are now wired into `run_all_detectors()` per chain and reachable from the CLI.
-- **`sentri fuzz` was a no-op stub.** Now mutates real source files (line deletion/duplication/truncation/swap, seeded for reproducibility) and runs them through the live detectors looking for crashes, plus an optional precision/recall self-test against four detector-benchmark fuzzers that existed but were never wired to anything.
-- Fixed a bug where an absolute file path passed to the EVM analyzer's solc-staging step could overwrite that real file with whatever source was being compiled, due to `Path::join` discarding its base for absolute arguments.
-- Fixed a UTF-8 slice panic and an unbounded-recursion stack-overflow risk in the EVM bytecode/AST-walking code.
-- Fixed report-generation (JSON/CSV/HTML) escaping gaps that could be triggered by attacker-influenced contract names or messages.
-- Fixed the invariant library's built-in defaults, which stored a bare variable reference instead of a compiled expression; they now compile through the real DSL parser.
-- Fixed multiple bugs in `sentri-npm` (the `@dextonicx/cli` npm wrapper): its test suite had never actually run due to wrong import paths in all four test files; `detectPlatform()` never returned a `version` field, silently 404ing every checksum fetch; and a live bug where `.tar.gz` release archives (Linux/macOS) nest the binary in a subdirectory while `.zip` (Windows) doesn't, which the installer didn't account for.
+## [0.4.0] - 2026-07-21 — Dynamic Execution: findings proved by running the code
+The headline change is that a finding no longer has to be taken on trust. Sentri
+deploys the contract, drives adversarial sequences at it, and only reports a
+violation once it has actually made the bug fire — then shrinks the trace to the
+shortest sequence that reproduces it. Static analysis stays as the fast first
+pass; the engine is what settles it.
 
 ### Added
+
+- **Dynamic invariant fuzzing for EVM** (`sentri-dynamic-core`, `sentri-dynamic-evm`; `sentri fuzz --dynamic`). Deploys the contract into an in-memory `revm`, generates call sequences from its ABI, and checks auto-detected invariants after **every** call, shrinking any violation to a minimal proof-of-concept via delta debugging. Four property shapes are recognised without the user writing a harness: conservation (`totalSupply`/`balanceOf`), monotonicity (no-arg accumulator getters), access control (`owner`/`transferOwnership`), and reentrancy (call-stack inspection for a state write after an external call). Both crates are new to crates.io.
+- **Dynamic invariant fuzzing for Solana** (`sentri-dynamic-solana`). Solana's execution model is account-based — an instruction is a program id, an ordered list of `AccountMeta`s and an opaque data blob — not the EVM's flat single-caller calldata, so this is a native call model, invariant set, generator and shrink loop rather than the EVM types reused. Ships two oracles: token conservation (`sum(token account amounts) == mint supply`, which catches minting out of thin air) and account-owner integrity (unchecked ownership reassignment). The engine is proven against an in-memory mock program by default; a `litesvm-backend` feature runs real BPF bytecode.
+- **Anchor IDL front-end for Solana fuzzing** (`sentri fuzz <idl.json> --dynamic --chain solana --plan <plan.json>`). Reads both IDL layouts — 0.30+ with explicit discriminators, and legacy, where the discriminator is recomputed as `sha256("global:<snake_case>")[..8]` — and derives the instruction surface from it. The accompanying fuzz plan supplies what an IDL cannot: genesis accounts, the account pool, pinned account positions and the invariants to check. Instructions taking non-fixed-width Borsh arguments (`String`, `Vec`, structs) cannot be encoded correctly, so they are excluded **and reported**, because partial coverage must never read as full coverage. A plan declaring no invariants is rejected rather than silently reporting a clean run.
+- **Reentrancy detection by execution**, via a revm call-stack inspector that identifies a contract re-entering itself and writing state after an external call (a CEI violation), rather than pattern-matching for it.
+- **On-chain bytecode fuzzing** (`sentri fuzz --dynamic --address <addr> --rpc-url <url>`) for deployed contracts with no verified source, probing fetched bytecode against known ERC20/Ownable selectors.
+- **Claude Code skills** (`skills/`): `sentri-audit` (deterministic engine pass first, then LLM lenses, then engine verification of each candidate, reported as VERIFIED or REASONED), `sentri-recon` (git-history risk mining — fix candidates, churn hotspots, late changes, forked dependencies) and `sentri-fuzz` (emits Medusa/Echidna harnesses).
+- **`sentri-gate` GitHub Action**: a deterministic CI gate wrapping `sentri scan --fail-on <severity>` and converting findings to SARIF 2.1.0 for inline GitHub code-scanning annotations.
+
 
 - **Chain-agnostic detection rule** (`unauthorized_privileged_mutation`): flags privileged mutations (fund transfers, authority changes, upgrades, account closes) with no authorization check reaching them. Each chain's analyzer builds a shared `SemanticModel` from its own native syntax; the rule itself is written once and applies unmodified to all four chains.
 - **Real Move parsing** via a vendored Sui Move tree-sitter grammar (see `crates/analyzer/move/vendor/tree-sitter-move-sui/PROVENANCE.md`), replacing Move's previous regex-only extraction for the shared semantic model. Falls back to the regex heuristic if a file fails to parse.
@@ -27,6 +33,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - musl support for the npm installer (Alpine and other musl-based Linux systems now get the matching binary instead of a glibc build that won't start).
 - CI coverage for `web/` and `sentri-npm/` — neither had any automated checks before (which is exactly how several of the bugs above went uncaught).
 - Web app: session-checked/rate-limited `/api/analyze`, real crypto-payment verification, consolidated NextAuth config, zod validation on remaining API routes, a Prisma 7 driver adapter (required as of Prisma 7 — the app didn't build without one), and a large accessibility/consistency pass.
+
+### Changed
+
+- The marketing site was rebuilt on a flat, hairline-separated editorial layout with a scroll-scrubbed particle hero, and the landing page's figures now cite what the tool actually reports (71 detectors, 4 chains, 21 reproduced exploits, $1.76B of losses in the registry) instead of unverifiable marketing numbers.
+
+### Fixed
+
+- **The release workflow published an incomplete, unusable set of crates.** `sentri-dynamic-core`, `sentri-dynamic-evm`, `sentri-dynamic-solana` and `sentri-analyzer-soroban` were absent from every publish layer despite `sentri-cli` depending on all four; `sentri-simulator` was still listed after being removed from the workspace; and because each publish pipes to `tee` without `pipefail`, a failed publish took tee's exit status and was silently swallowed, letting the job report success while crates were missing from the registry. This is why `sentri-cli` 0.3.0 reached crates.io with unpublished dependencies and why npm never received 0.3.0.
+
+
+
+- **Detection pipeline was completely disconnected from the CLI.** `sentri check`/`sentri scan` hardcoded an empty violation list regardless of input; the 35 EVM + 9 Solana + 6 Move detector functions existed and were tested in isolation but were never actually called from the command handlers. All 50 are now wired into `run_all_detectors()` per chain and reachable from the CLI.
+- **`sentri fuzz` was a no-op stub.** Now mutates real source files (line deletion/duplication/truncation/swap, seeded for reproducibility) and runs them through the live detectors looking for crashes, plus an optional precision/recall self-test against four detector-benchmark fuzzers that existed but were never wired to anything.
+- Fixed a bug where an absolute file path passed to the EVM analyzer's solc-staging step could overwrite that real file with whatever source was being compiled, due to `Path::join` discarding its base for absolute arguments.
+- Fixed a UTF-8 slice panic and an unbounded-recursion stack-overflow risk in the EVM bytecode/AST-walking code.
+- Fixed report-generation (JSON/CSV/HTML) escaping gaps that could be triggered by attacker-influenced contract names or messages.
+- Fixed the invariant library's built-in defaults, which stored a bare variable reference instead of a compiled expression; they now compile through the real DSL parser.
+- Fixed multiple bugs in `sentri-npm` (the `@dextonicx/cli` npm wrapper): its test suite had never actually run due to wrong import paths in all four test files; `detectPlatform()` never returned a `version` field, silently 404ing every checksum fetch; and a live bug where `.tar.gz` release archives (Linux/macOS) nest the binary in a subdirectory while `.zip` (Windows) doesn't, which the installer didn't account for.
 
 ### Removed
 
