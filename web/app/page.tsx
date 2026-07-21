@@ -6,7 +6,7 @@ import { ShieldCheck, BookOpen, Brain, RefreshCw, ArrowRight, Check, Zap, GitBra
 import { useReveal } from '@/components/hooks/useReveal'
 import { AnimatedCounter } from '@/components/ui/AnimatedCounter'
 import { AsciiLogo } from '@/components/ui/AsciiLogo'
-import { ParticleField } from '@/components/ui/ParticleField'
+import { ParticleHero } from '@/components/ui/ParticleHero'
 import { MarketingNav } from '@/components/layout/MarketingNav'
 import { MarketingFooter } from '@/components/layout/MarketingFooter'
 import { Button } from '@/components/ui/Button'
@@ -34,80 +34,25 @@ export default function HomePage() {
     <div className="min-h-screen bg-bg">
       <MarketingNav />
 
-      {/* Sticky full-viewport hero. The wordmark assembles out of drifting
-          dust, then dissolves as the content layer below scrolls up over it.
-          Content sits at z-[1] on an opaque background so it occludes this. */}
-      <section className="sticky top-0 z-0 h-screen overflow-hidden bg-bg">
-        <div className="absolute inset-0 bg-grid-pattern opacity-30 pointer-events-none" />
-        <ParticleField className="absolute inset-0" />
-        <div className="absolute inset-x-0 bottom-[14vh] flex flex-col items-center gap-5 px-7">
-          <p className="font-mono text-xs uppercase tracking-[0.28em] text-sec animate-fade-in-up" style={{ animationDelay: '1.2s' }}>
-            Multi-chain invariant security
-          </p>
-          <p className="max-w-narrow text-center font-body text-lg leading-relaxed text-sec animate-fade-in-up" style={{ animationDelay: '1.35s' }}>
-            Audit faster. Find more. Miss nothing.
-          </p>
-        </div>
-        <div className="absolute inset-x-0 bottom-0 h-32 pointer-events-none bg-gradient-to-b from-transparent to-bg" />
-      </section>
+      <ParticleHero
+        wordmark="SENTRI"
+        eyebrow="Smart contract security intelligence"
+        headline="Don't get Hacked!"
+        subline={<>Audit faster. Find more. Miss nothing. <span className="text-acc-text">50+ invariants</span> across EVM, Solana, Move and Soroban.</>}
+        actions={
+          <>
+            <Button variant="primary" size="lg" icon={<ArrowRight size={18} />} iconPosition="right" onClick={() => { setAuthTab('signup'); setAuthOpen(true) }}>
+              Start free trial
+            </Button>
+            <Button variant="secondary" size="lg" onClick={() => setSampleReportOpen(true)}>
+              View a sample report
+            </Button>
+          </>
+        }
+      />
 
-      {/* ── Content layer: scrolls over the sticky hero ── */}
+      {/* ── Content layer: scrolls over the pinned hero ── */}
       <div className="relative z-[1] bg-bg">
-
-      {/* Hero Section - Two Column Layout */}
-      <section id="product" className="relative px-6 py-3 lg:py-4 max-w-site mx-auto overflow-hidden">
-        {/* Background layers */}
-        <div className="absolute inset-0 bg-grid-pattern pointer-events-none" />
-        <div className="absolute -top-20 -right-20 w-[600px] h-[600px] bg-indigo/8 rounded-full blur-3xl animate-spotlight pointer-events-none" />
-
-        {/* Two-column grid */}
-        <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
-          {/* Left: Copy */}
-          <div className="text-left">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-pill border border-hair bg-surface-2 mb-6 animate-fade-in-up">
-              <ShieldCheck size={14} className="text-acc-text" />
-              <span className="text-label-sm text-acc-text">
-                SMART CONTRACT SECURITY INTELLIGENCE
-              </span>
-            </div>
-
-            <h1 className="text-display-lg text-text mb-1 animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
-              Don&apos;t get Hacked!
-            </h1>
-            <h2 className="text-5xl font-[600] leading-[64px] tracking-[-0.02em] text-acc-text mb-6 animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
-              Audit faster. Find more. Miss nothing.
-            </h2>
-            <p className="text-body-lg text-sec mb-8 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-              Sentri combines a growing invariant library with advanced symbolic execution to secure the next generation of DeFi protocols before the first block is ever mined.
-            </p>
-
-            <div className="flex flex-col sm:flex-row gap-3 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-              <Button variant="primary" size="lg" icon={<ArrowRight size={18} />} iconPosition="right" onClick={() => { setAuthTab('signup'); setAuthOpen(true) }}>
-                Start free trial
-              </Button>
-              <Button variant="secondary" size="lg" onClick={() => setSampleReportOpen(true)}>
-                View a sample report
-              </Button>
-            </div>
-          </div>
-
-          {/* Right: Terminal */}
-          <div className="rounded-card border border-hair bg-panel p-2 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-            <Terminal
-              showBanner={true}
-              output={[
-                { prefix: 'INFO', text: 'Initializing Invariant Library: 50+ checks loaded...', type: 'info' },
-                { prefix: 'SCAN', text: 'Symbolic execution engine started on Vault.sol', type: 'scan' },
-                { text: '' },
-                { prefix: 'CRITICAL', text: 'Reentrancy vulnerability detected in `withdrawAll()`', type: 'critical' },
-                { prefix: 'HIGH', text: 'Unchecked return value in `transferFunds()`', type: 'high' },
-                { text: '' },
-                { prefix: 'DONE', text: 'Scan complete. 12 vulnerabilities found.', type: 'done' },
-              ]}
-            />
-          </div>
-        </div>
-      </section>
 
       {/* ─── Chain Ticker ─── */}
       <div className="border-y border-hair bg-surface-2/70 py-3 overflow-hidden w-full mt-8">
@@ -146,6 +91,41 @@ export default function HomePage() {
               <AnimatedCounter value={24} />h
             </div>
             <p className="text-body-sm text-sec">Avg Audit Time</p>
+          </div>
+        </div>
+      </section>
+
+
+      {/* ─── Live scan: the CLI doing the work ─── */}
+      <section className="mx-auto max-w-site px-7 py-20">
+        <div className="grid grid-cols-1 gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-center">
+          <div>
+            <span className="font-mono text-xs uppercase tracking-[0.2em] text-acc-text">See it run</span>
+            <h2 className="mt-4 font-display text-4xl font-[600] leading-tight tracking-[-0.02em] text-text">
+              One command. Every invariant.
+            </h2>
+            <p className="mt-4 text-body-md leading-relaxed text-sec">
+              Point Sentri at a contract and it deploys, drives adversarial call sequences,
+              and checks every invariant after every call — then shrinks any violation to a
+              minimal proof-of-concept you can run.
+            </p>
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+              <Link href="/docs/cli"><Button variant="secondary" size="lg">Read the CLI reference</Button></Link>
+            </div>
+          </div>
+          <div className="rounded-card border border-hair bg-panel p-2">
+            <Terminal
+              showBanner={true}
+              output={[
+                { prefix: 'INFO', text: 'Initializing Invariant Library: 50+ checks loaded...', type: 'info' },
+                { prefix: 'SCAN', text: 'Symbolic execution engine started on Vault.sol', type: 'scan' },
+                { text: '' },
+                { prefix: 'CRITICAL', text: 'Reentrancy vulnerability detected in `withdrawAll()`', type: 'critical' },
+                { prefix: 'HIGH', text: 'Unchecked return value in `transferFunds()`', type: 'high' },
+                { text: '' },
+                { prefix: 'DONE', text: 'Scan complete. 12 vulnerabilities found.', type: 'done' },
+              ]}
+            />
           </div>
         </div>
       </section>
