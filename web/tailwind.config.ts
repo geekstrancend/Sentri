@@ -9,10 +9,10 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        display: ['var(--font-display)', 'Bricolage Grotesque', 'system-ui', 'sans-serif'],
-        body: ['var(--font-body)', 'Hanken Grotesk', 'system-ui', 'sans-serif'],
-        fraunces: 'var(--font-fraunces), sans-serif',
-        mono: ['var(--font-mono)', 'IBM Plex Mono', 'monospace'],
+        display: ['var(--font-display)', 'serif'],
+        body: ['var(--font-body)', 'monospace'],
+        fraunces: 'var(--font-fraunces), serif',
+        mono: ['var(--font-mono)', 'monospace'],
       },
       maxWidth: {
         site: '1200px',
