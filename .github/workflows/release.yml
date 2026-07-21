@@ -581,6 +581,11 @@ jobs:
             exit 0
           fi
           
+          # `cargo publish ... | tee` takes tee's exit status, so without
+          # pipefail a failed publish is swallowed and this job reports success
+          # while crates are missing from the registry.
+          set -o pipefail
+
           echo "Publishing release to crates.io..."
           VERSION="${{ needs.validate-version.outputs.version }}"
           
@@ -626,7 +631,7 @@ jobs:
           done
           
           # Layer 5: Analyzers and macros (depend on core + ir)
-          for crate in "sentri-analyzer-evm" "sentri-analyzer-move" "sentri-analyzer-solana" "sentri-solana-macro"; do
+          for crate in "sentri-analyzer-evm" "sentri-analyzer-move" "sentri-analyzer-solana" "sentri-analyzer-soroban" "sentri-solana-macro"; do
             echo ""
             echo "Publishing analyzer: $crate v$VERSION..."
             cargo publish -p "$crate" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
@@ -636,7 +641,7 @@ jobs:
           done
           
           # Layer 6: Generators and simulator (depend on analyzers)
-          for crate in "sentri-generator-evm" "sentri-generator-move" "sentri-generator-solana" "sentri-simulator"; do
+          for crate in "sentri-generator-evm" "sentri-generator-move" "sentri-generator-solana"; do
             echo ""
             echo "Publishing generator: $crate v$VERSION..."
             cargo publish -p "$crate" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
@@ -645,6 +650,18 @@ jobs:
             fi
           done
           
+          # Layer 6b: Dynamic execution engines. sentri-cli depends on all
+          # three, so they must land before it or its publish is rejected.
+          # Order matters: evm and solana both build on core.
+          for crate in "sentri-dynamic-core" "sentri-dynamic-evm" "sentri-dynamic-solana"; do
+            echo ""
+            echo "Publishing dynamic engine: $crate v$VERSION..."
+            cargo publish -p "$crate" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
+            if ! grep -q "already uploaded" /tmp/publish.log; then
+              sleep 15
+            fi
+          done
+
           # Layer 7: CLI (depends on everything)
           echo ""
           echo "Publishing CLI: sentri-cli v$VERSION..."
