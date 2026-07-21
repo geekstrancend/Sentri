@@ -38,7 +38,7 @@ export default function HomePage() {
         wordmark="SENTRI"
         eyebrow="Smart contract security intelligence"
         headline="Don't get Hacked!"
-        subline={<>Audit faster. Find more. Miss nothing. <span className="text-acc-text">50+ invariants</span> across EVM, Solana, Move and Soroban.</>}
+        subline={<>Findings a fuzzer <span className="text-acc-text">proved by execution</span> — not a model&apos;s opinion. <span className="text-acc-text">71 detectors</span> across EVM, Solana, Move and Soroban.</>}
         actions={
           <>
             <Button variant="primary" size="lg" icon={<ArrowRight size={18} />} iconPosition="right" onClick={() => { setAuthTab('signup'); setAuthOpen(true) }}>
@@ -65,36 +65,42 @@ export default function HomePage() {
         </div>
       </div>
 
-      {/* ─── Stats ─── */}
+      {/* ─── Stats ───
+          Every figure here is checkable against the tool itself
+          (`sentri registry list`, `sentri scan --chain <c>`) rather than
+          being a marketing number. Keep it that way. */}
       <section className="mx-auto max-w-site px-7 py-20">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 gap-8 md:grid-cols-4">
           <div className="text-center">
-            <div className="text-display-md text-acc-text font-[600] mb-2 animate-count-glow">
-              <AnimatedCounter value={50} />+
+            <div className="text-display-md font-[600] text-acc-text mb-2">
+              <AnimatedCounter value={71} />
             </div>
-            <p className="text-body-sm text-sec">Security Invariants</p>
+            <p className="text-body-sm text-sec">Detectors shipping</p>
           </div>
           <div className="text-center">
-            <div className="text-display-md text-acc-text font-[600] mb-2 animate-count-glow">
-              <AnimatedCounter value={42} />
+            <div className="text-display-md font-[600] text-acc-text mb-2">
+              <AnimatedCounter value={4} />
             </div>
-            <p className="text-body-sm text-sec">Protocols Analyzed</p>
+            <p className="text-body-sm text-sec">Chains, one engine</p>
           </div>
           <div className="text-center">
-            <div className="text-display-md text-acc-text font-[600] mb-2 animate-count-glow">
-              $<AnimatedCounter value={190} />M+
+            <div className="text-display-md font-[600] text-acc-text mb-2">
+              <AnimatedCounter value={21} />
             </div>
-            <p className="text-body-sm text-sec">Losses Prevented</p>
+            <p className="text-body-sm text-sec">Exploits reproduced</p>
           </div>
           <div className="text-center">
-            <div className="text-display-md text-acc-text font-[600] mb-2 animate-count-glow">
-              <AnimatedCounter value={24} />h
+            <div className="text-display-md font-[600] text-acc-text mb-2">
+              $<AnimatedCounter value={1.76} decimals={2} />B
             </div>
-            <p className="text-body-sm text-sec">Avg Audit Time</p>
+            <p className="text-body-sm text-sec">Losses in the registry</p>
           </div>
         </div>
+        <p className="mt-10 text-center font-mono text-xs text-sec">
+          Verify any of these yourself:{' '}
+          <span className="text-acc-text">sentri registry list</span>
+        </p>
       </section>
-
 
       {/* ─── Live scan: the CLI doing the work ─── */}
       <section className="mx-auto max-w-site px-7 py-20">
@@ -117,13 +123,17 @@ export default function HomePage() {
             <Terminal
               showBanner={true}
               output={[
-                { prefix: 'INFO', text: 'Initializing Invariant Library: 50+ checks loaded...', type: 'info' },
-                { prefix: 'SCAN', text: 'Symbolic execution engine started on Vault.sol', type: 'scan' },
+                { prefix: 'INFO', text: '71 detectors loaded · chain=evm · dynamic engine armed', type: 'info' },
+                { prefix: 'SCAN', text: 'Deployed Vault.sol to in-memory EVM, driving call sequences...', type: 'scan' },
                 { text: '' },
-                { prefix: 'CRITICAL', text: 'Reentrancy vulnerability detected in `withdrawAll()`', type: 'critical' },
-                { prefix: 'HIGH', text: 'Unchecked return value in `transferFunds()`', type: 'high' },
+                { prefix: 'CRITICAL', text: 'Invariant violated: sum(balanceOf) == totalSupply()', type: 'critical' },
+                { text: '          sum(balanceOf) = 2000  !=  totalSupply() = 1000' },
                 { text: '' },
-                { prefix: 'DONE', text: 'Scan complete. 12 vulnerabilities found.', type: 'done' },
+                { text: '          Minimal reproduction (2 calls):' },
+                { text: '            1. airdrop(0x0101..., 1000)   [caller=0x1111...]' },
+                { text: '            2. airdrop(0x0101..., 1000)   [caller=0x1111...]' },
+                { text: '' },
+                { prefix: 'DONE', text: 'Reproduced and shrunk. Exit 1 — deploy blocked.', type: 'done' },
               ]}
             />
           </div>
@@ -137,8 +147,12 @@ export default function HomePage() {
             <span className="text-label-sm text-acc-text">CAPABILITIES</span>
           </div>
           <h2 className="font-display text-4xl font-[600] text-text leading-[48px]">
-            Every layer of security. One platform.
+            An engine that can prove it.
           </h2>
+          <p className="mx-auto mt-4 max-w-narrow text-body-md leading-relaxed text-sec">
+            Static analysis finds patterns. Language models find suspicions. Sentri runs the
+            code and settles it.
+          </p>
         </div>
         <div ref={featuresRef} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 reveal">
           {/* Invariant Library — spans 2 cols */}
@@ -149,9 +163,16 @@ export default function HomePage() {
             <div className="w-12 h-12 rounded-lg bg-indigo/10 border border-indigo/20 flex items-center justify-center mb-5 relative z-10">
               <BookOpen size={22} className="text-acc-text" />
             </div>
-            <h3 className="font-display text-xl font-[600] text-text mb-3 relative z-10">Invariant Library</h3>
+            <h3 className="font-display text-xl font-[600] text-text mb-3 relative z-10">Every finding is proved, not guessed</h3>
+            <p className="text-body-md text-sec leading-6 mb-4 max-w-xl relative z-10">
+              A prompt-only auditor stops at &ldquo;this looks like a bug.&rdquo; Sentri deploys your
+              contract in a real VM, drives adversarial sequences against it, and only reports a
+              finding once it has made the bug actually fire — then shrinks the trace to the
+              shortest sequence that reproduces it.
+            </p>
             <p className="text-body-md text-sec leading-6 mb-6 max-w-xl relative z-10">
-              50+ pre-written security invariants for ERC-4626, AMMs, Lending Protocols, and cross-chain bridges. Every check is mapped to a real-world exploit pattern.
+              You get a runnable proof-of-concept, so nothing lands in your report that
+              can&apos;t be reproduced.
             </p>
             <Link href="/library" className="inline-flex items-center gap-1.5 text-acc-text text-sm font-[600] hover:gap-3 transition-all duration-200 relative z-10">
               Browse the Library <ArrowRight size={14} />
@@ -162,9 +183,10 @@ export default function HomePage() {
             <div className="w-12 h-12 rounded-lg bg-indigo/10 border border-indigo/20 flex items-center justify-center mb-5">
               <Brain size={22} className="text-acc-text" />
             </div>
-            <h3 className="font-display text-xl font-[600] text-text mb-3">AI Co-Auditor</h3>
+            <h3 className="font-display text-xl font-[600] text-text mb-3">AI, held to account</h3>
             <p className="text-body-md text-sec leading-6">
-              Context-aware AI that understands your protocol logic and generates complex test vectors automatically.
+              The model proposes candidate bugs; the engine tries to fire each one. Anything it
+              can&apos;t reproduce is labelled as a lead, never as a finding.
             </p>
           </div>
           {/* Self-Improving */}

@@ -22,6 +22,12 @@ const PLANS = [
     ctaVariant: 'secondary' as const,
     featured: false,
     badge: null,
+    highlights: [
+      '5 scans per month',
+      'Public invariant library',
+      'PDF export & shareable links',
+      'Community support',
+    ],
   },
   {
     id: 'pro',
@@ -32,6 +38,14 @@ const PLANS = [
     ctaVariant: 'primary' as const,
     featured: true,
     badge: 'MOST POPULAR',
+    inherits: 'Everything in Starter, plus',
+    highlights: [
+      'Unlimited scans, 10 in parallel',
+      'Full invariant library + symbolic execution',
+      'AI Co-Auditor with engine-verified findings',
+      'CI/CD gate, REST API, Slack alerts',
+      'Formal verification proofs',
+    ],
   },
   {
     id: 'enterprise',
@@ -42,6 +56,13 @@ const PLANS = [
     ctaVariant: 'secondary' as const,
     featured: false,
     badge: null,
+    inherits: 'Everything in Professional, plus',
+    highlights: [
+      'Custom invariants & private repository',
+      'On-premises deployment',
+      'SSO / SAML, white-label reports',
+      '24/7 security advisor & SLA',
+    ],
   },
 ]
 
@@ -229,6 +250,17 @@ export default function PricingPage() {
                     <p className="text-body-md text-sec mt-2">{plan.description}</p>
                   </div>
                   <div className={clsx('border-t mb-6', plan.featured ? 'border-indigo/30' : 'border-hair')} />
+                  {plan.inherits && (
+                    <p className="mb-4 text-label-sm text-sec">{plan.inherits}</p>
+                  )}
+                  <ul className="mb-8 flex flex-col gap-3">
+                    {plan.highlights.map((h) => (
+                      <li key={h} className="flex items-start gap-3">
+                        <Check size={16} className="mt-0.5 shrink-0 text-acc-text" aria-hidden="true" />
+                        <span className="text-body-md leading-6 text-sec">{h}</span>
+                      </li>
+                    ))}
+                  </ul>
                   <div className="flex-1" />
                   {plan.id === 'starter' ? (
                     <Button variant={plan.ctaVariant} fullWidth onClick={() => { setAuthTab('signup'); setAuthOpen(true) }}>
