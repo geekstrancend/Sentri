@@ -63,8 +63,23 @@ cargo install --path crates/cli
 cargo install sentri-cli
 
 # Install specific version
-cargo install sentri-cli --version 0.3.0
+cargo install sentri-cli --version 0.4.0
 ```
+
+#### Optional: dynamic Solana fuzzing
+
+Running Solana programs under a real VM (`sentri fuzz <idl.json> --dynamic
+--chain solana --plan <plan.json>`) links `litesvm`, which more than doubles
+the build — 449 crates against 221 — so it is opt-in:
+
+```bash
+cargo install sentri-cli --features solana-dynamic
+```
+
+Nothing else changes: **static** Solana analysis (`sentri scan --chain solana`)
+is always available, and so is dynamic EVM fuzzing. The prebuilt binaries
+(GitHub releases and the npm package) already include the Solana backend, since
+those are downloaded rather than compiled.
 
 ## Verification
 

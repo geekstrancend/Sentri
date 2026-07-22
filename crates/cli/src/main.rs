@@ -2329,6 +2329,19 @@ fn run_detector_precision_fuzzers(iterations_per_fuzzer: usize) -> sentri_core::
 /// The IDL supplies the instruction surface; the plan supplies the world
 /// (genesis accounts, pool, pins, invariants). Both are needed: an IDL alone
 /// cannot say which account is the mint or what must stay true.
+#[cfg(not(feature = "solana-dynamic"))]
+fn cmd_dynamic_fuzz_solana(_args: FuzzArgs, _quiet: bool) -> Result<()> {
+    Err(anyhow::anyhow!(
+        "this build has no Solana execution backend.\n\n\
+         Dynamic Solana fuzzing runs real BPF bytecode, which needs a Solana VM \
+         linked in — it more than doubles the build, so it is opt-in:\n\n    \
+         cargo install sentri-cli --features solana-dynamic\n\n\
+         Static Solana analysis needs none of this and works in every build:\n\n    \
+         sentri scan <path> --chain solana"
+    ))
+}
+
+#[cfg(feature = "solana-dynamic")]
 fn cmd_dynamic_fuzz_solana(args: FuzzArgs, quiet: bool) -> Result<()> {
     use sentri_dynamic_solana::litesvm_backend::LiteSvmGenesis;
 

@@ -36,6 +36,7 @@ pass; the engine is what settles it.
 
 ### Changed
 
+- **Dynamic Solana fuzzing is opt-in when building from source.** It links a real Solana VM, which takes `sentri-cli` from 221 dependencies to 449, and the workflow it enables already requires a compiled `.so`, an Anchor IDL and a fuzz plan — so someone reaching for it can pass a flag, while someone scanning Solidity should not pay for it. Build it with `cargo install sentri-cli --features solana-dynamic`; without it the command exits with that exact instruction. Static Solana analysis and dynamic EVM fuzzing are unaffected. Prebuilt binaries (GitHub releases, npm) ship with the backend included, since those users download rather than compile.
 - The marketing site was rebuilt on a flat, hairline-separated editorial layout with a scroll-scrubbed particle hero, and the landing page's figures now cite what the tool actually reports (71 detectors, 4 chains, 21 reproduced exploits, $1.76B of losses in the registry) instead of unverifiable marketing numbers.
 
 ### Fixed
