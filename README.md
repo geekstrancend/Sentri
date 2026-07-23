@@ -95,7 +95,7 @@ cargo install sentri-cli
 npm install -g @dextonicx/cli
 
 # Verify installation
-sentri --version   # sentri 0.2.1
+sentri --version   # sentri 0.4.1
 sentri doctor
 ```
 
@@ -110,32 +110,75 @@ Or download a pre-built binary directly from
 
 ---
 
+## Use it on your codebase
+
+Three steps: install, point Sentri at your repo, gate your CI.
+
+**1. Install** (see above) — `cargo install sentri-cli` or `npm install -g @dextonicx/cli`.
+
+**2. Scan your code.** Run from your project root and point Sentri at the files
+you want checked. `--chain` defaults to `evm`; set it for other ecosystems:
+
+```bash
+sentri scan .                          # Solidity / EVM (the default)
+sentri scan ./programs  --chain solana
+sentri scan ./sources   --chain move
+sentri scan ./contracts --chain soroban
+```
+
+Each finding is printed with its severity, file and line, and the real-world
+exploit pattern it maps to. Want a report to share or feed into other tools?
+
+```bash
+sentri scan . --format html --output sentri-report.html   # styled, shareable
+sentri scan . --format json --output sentri-report.json   # machine-readable
+```
+
+**3. Gate your CI.** Make a risky change fail the build:
+
+```bash
+sentri scan . --chain evm --fail-on high   # exit non-zero on High/Critical
+```
+
+Drop that into GitHub Actions and you're done:
+
+```yaml
+- name: Sentri security scan
+  run: |
+    cargo install sentri-cli
+    sentri scan . --chain evm --fail-on high
+```
+
+`sentri scan --help` lists every option; `sentri doctor` verifies your install.
+
+---
+
 ## Quick start
 
 ```bash
 # Check a Solana program
-sentri check ./programs --chain solana
+sentri scan ./programs --chain solana
 
 # Check Solidity contracts
-sentri check ./contracts --chain evm
+sentri scan ./contracts --chain evm
 
 # Check Move modules
-sentri check ./sources --chain move
+sentri scan ./sources --chain move
 
 # Check Soroban contracts
-sentri check ./contracts --chain soroban
+sentri scan ./contracts --chain soroban
 
 # Output as JSON
-sentri check ./programs --chain solana --format json
+sentri scan ./programs --chain solana --format json
 
 # Output as HTML
-sentri check ./programs --chain solana --format html --output ./report.html
+sentri scan ./programs --chain solana --format html --output ./report.html
 
 # Reproducible analysis with fixed seed
-sentri check ./programs --chain solana --seed 42
+sentri scan ./programs --chain solana --seed 42
 
 # Fail CI if high or critical violations found
-sentri check ./programs --chain solana --fail-on high
+sentri scan ./programs --chain solana --fail-on high
 
 # Run health check
 sentri doctor
@@ -152,22 +195,22 @@ sentri init
 
 ```bash
 # Text report (default, human-readable)
-sentri check ./programs --chain solana --format text
+sentri scan ./programs --chain solana --format text
 
 # JSON report (machine-readable, for parsing/CI)
-sentri check ./programs --chain solana --format json
+sentri scan ./programs --chain solana --format json
 
 # HTML report (styled, shareable with team)
-sentri check ./programs --chain solana --format html
+sentri scan ./programs --chain solana --format html
 ```
 
 ### Saving reports to disk
 
 ```bash
 # Save any format to file
-sentri check ./programs --chain solana --format json --output ./report.json
-sentri check ./programs --chain solana --format html --output ./report.html
-sentri check ./programs --chain solana --format text --output ./report.txt
+sentri scan ./programs --chain solana --format json --output ./report.json
+sentri scan ./programs --chain solana --format html --output ./report.html
+sentri scan ./programs --chain solana --format text --output ./report.txt
 ```
 
 ### Reproducible analysis
@@ -176,10 +219,10 @@ For deterministic results (useful in CI or security audits), use `--seed`:
 
 ```bash
 # Always uses seed 42 by default
-sentri check ./programs --chain solana
+sentri scan ./programs --chain solana
 
 # Use a custom seed
-sentri check ./programs --chain solana --seed 12345
+sentri scan ./programs --chain solana --seed 12345
 
 # Results will be identical on the same code with the same seed
 ```
@@ -194,7 +237,7 @@ Add one step to your workflow:
 - name: Sentri security check
   run: |
     cargo install sentri-cli
-    sentri check ./programs --chain solana --fail-on high
+    sentri scan ./programs --chain solana --fail-on high
 ```
 
 CI fails automatically on high or critical violations. Zero additional
