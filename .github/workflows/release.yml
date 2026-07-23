@@ -662,6 +662,12 @@ jobs:
     runs-on: ubuntu-latest
     needs: [validate-version, generate-checksums, publish-crates]
     if: success()
+    # actions:write lets this job dispatch the npm publish workflow. A release
+    # created here with GITHUB_TOKEN does NOT fire `on: release` workflows
+    # (GitHub's recursion guard), so publish-npm must be triggered explicitly.
+    permissions:
+      contents: write
+      actions: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -715,6 +721,20 @@ jobs:
           prerelease: ${{ contains(needs.validate-version.outputs.version, '-') }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Trigger npm publish
+        # workflow_dispatch via GITHUB_TOKEN DOES start a run (unlike the
+        # `on: release` event), so this is how npm publishing gets kicked off.
+        # publish-npm waits for the crate to be on crates.io before building.
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${{ needs.validate-version.outputs.version }}"
+          echo "Dispatching npm publish for v$VERSION..."
+          gh workflow run publish-npm.yml \
+            --repo "${{ github.repository }}" \
+            --ref "${{ github.event.repository.default_branch }}" \
+            -f version="$VERSION"
 
   # Final Success
   release-success:
