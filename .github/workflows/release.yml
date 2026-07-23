@@ -582,92 +582,77 @@ jobs:
             exit 1
           fi
           
-          # `cargo publish ... | tee` takes tee's exit status, so without
-          # pipefail a failed publish is swallowed and this job reports success
-          # while crates are missing from the registry.
-          set -o pipefail
-
-          echo "Publishing release to crates.io..."
           VERSION="${{ needs.validate-version.outputs.version }}"
-          
-          # v0.1: Updated publish order to match new dependency graph
-          # Layer 1: Core library (no internal dependencies)
-          for crate in "sentri-core"; do
-            echo ""
-            echo "Publishing core: $crate v$VERSION..."
-            cargo publish -p "$crate" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
-            if ! grep -q "already uploaded" /tmp/publish.log; then
-              sleep 30
-            fi
-          done
-          
-          # Layer 2: Intermediate libraries (depend on core)
-          for crate in "sentri-ir" "sentri-utils"; do
-            echo ""
-            echo "Publishing utility: $crate v$VERSION..."
-            cargo publish -p "$crate" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
-            if ! grep -q "already uploaded" /tmp/publish.log; then
-              sleep 15
-            fi
-          done
-          
-          # Layer 3: DSL and report (depend on core + ir)
-          for crate in "sentri-dsl-parser" "sentri-report"; do
-            echo ""
-            echo "Publishing intermediate: $crate v$VERSION..."
-            cargo publish -p "$crate" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
-            if ! grep -q "already uploaded" /tmp/publish.log; then
-              sleep 15
-            fi
-          done
-          
-          # Layer 4: Invariant library (depends on core + utils)
-          for crate in "sentri-library"; do
-            echo ""
-            echo "Publishing library: $crate v$VERSION..."
-            cargo publish -p "$crate" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
-            if ! grep -q "already uploaded" /tmp/publish.log; then
-              sleep 15
-            fi
-          done
-          
-          # Layer 5: Analyzers and macros (depend on core + ir)
-          for crate in "sentri-analyzer-evm" "sentri-analyzer-move" "sentri-analyzer-solana" "sentri-analyzer-soroban" "sentri-solana-macro"; do
-            echo ""
-            echo "Publishing analyzer: $crate v$VERSION..."
-            cargo publish -p "$crate" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
-            if ! grep -q "already uploaded" /tmp/publish.log; then
-              sleep 10
-            fi
-          done
-          
-          # Layer 6: Generators and simulator (depend on analyzers)
-          for crate in "sentri-generator-evm" "sentri-generator-move" "sentri-generator-solana"; do
-            echo ""
-            echo "Publishing generator: $crate v$VERSION..."
-            cargo publish -p "$crate" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
-            if ! grep -q "already uploaded" /tmp/publish.log; then
-              sleep 10
-            fi
-          done
-          
-          # Layer 6b: Dynamic execution engines. sentri-cli depends on all
-          # three, so they must land before it or its publish is rejected.
-          # Order matters: evm and solana both build on core.
-          for crate in "sentri-dynamic-core" "sentri-dynamic-evm" "sentri-dynamic-solana"; do
-            echo ""
-            echo "Publishing dynamic engine: $crate v$VERSION..."
-            cargo publish -p "$crate" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
-            if ! grep -q "already uploaded" /tmp/publish.log; then
-              sleep 15
-            fi
+          echo "Publishing release v$VERSION to crates.io..."
+
+          # Publish one crate, idempotently and resiliently. This has to
+          # survive three realities of a multi-crate release:
+          #   - Re-runs: a crate already at this version must be treated as
+          #     success, not a hard error — otherwise recovery aborts at the
+          #     first already-published crate and can never reach the ones that
+          #     still need publishing.
+          #   - crates.io rate limits: publishing several brand-new crate names
+          #     in one release hits the new-crate throttle (a burst, then a
+          #     slow refill), returning 429. Wait and retry rather than fail.
+          #   - Index propagation: a crate whose just-published dependency is
+          #     not yet visible in the index fails to resolve; a short wait and
+          #     retry clears it.
+          # Anything else is a genuine failure and must stop the release.
+          publish_crate() {
+            local crate="$1" attempt=0 max=12
+            while :; do
+              attempt=$((attempt + 1))
+              echo ""
+              echo "→ $crate v$VERSION (attempt $attempt/$max)"
+              if cargo publish -p "$crate" --locked --token "$CRATES_IO_TOKEN" >/tmp/publish.log 2>&1; then
+                tail -n 2 /tmp/publish.log
+                echo "  ✓ published $crate"
+                sleep 10   # let the index propagate before dependents publish
+                return 0
+              fi
+              if grep -qiE "already (uploaded|exists)|is already uploaded" /tmp/publish.log; then
+                echo "  = $crate v$VERSION already on crates.io — skipping"
+                return 0
+              fi
+              if [ "$attempt" -ge "$max" ]; then
+                echo "::error::Failed to publish $crate v$VERSION after $attempt attempts"
+                cat /tmp/publish.log
+                return 1
+              fi
+              if grep -qiE "429|too many requests|rate.?limit" /tmp/publish.log; then
+                echo "  … rate limited by crates.io; waiting 90s before retry"
+                tail -n 3 /tmp/publish.log
+                sleep 90
+                continue
+              fi
+              if grep -qiE "no matching package|failed to select a version|not found in|no matching version" /tmp/publish.log; then
+                echo "  … a dependency isn't indexed yet; waiting 30s before retry"
+                sleep 30
+                continue
+              fi
+              echo "::error::Failed to publish $crate v$VERSION"
+              cat /tmp/publish.log
+              return 1
+            done
+          }
+
+          # Dependency order: each crate's internal deps must already be on
+          # crates.io before it publishes. sentri-cli depends on everything, so
+          # it is last.
+          CRATES="
+            sentri-core
+            sentri-ir sentri-utils
+            sentri-dsl-parser sentri-report
+            sentri-library
+            sentri-analyzer-evm sentri-analyzer-move sentri-analyzer-solana sentri-analyzer-soroban sentri-solana-macro
+            sentri-generator-evm sentri-generator-move sentri-generator-solana
+            sentri-dynamic-core sentri-dynamic-evm sentri-dynamic-solana
+            sentri-cli
+          "
+          for crate in $CRATES; do
+            publish_crate "$crate" || exit 1
           done
 
-          # Layer 7: CLI (depends on everything)
-          echo ""
-          echo "Publishing CLI: sentri-cli v$VERSION..."
-          cargo publish -p "sentri-cli" --locked --token "$CRATES_IO_TOKEN" 2>&1 | tee /tmp/publish.log
-          
           echo ""
           echo "✓ crates.io publication complete"
 
