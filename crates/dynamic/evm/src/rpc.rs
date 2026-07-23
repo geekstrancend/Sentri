@@ -104,6 +104,22 @@ mod tests {
     }
 
     #[test]
+    fn errors_when_response_has_neither_result_nor_error() {
+        // A well-formed JSON object that is neither a success nor an error
+        // must not be mistaken for "no code" — it is a protocol violation.
+        let body = r#"{"jsonrpc":"2.0","id":1}"#;
+        let err = parse_eth_get_code_response(body).unwrap_err();
+        assert!(err.to_string().contains("neither a result nor an error"));
+    }
+
+    #[test]
+    fn rejects_non_hex_in_the_result() {
+        let body = r#"{"jsonrpc":"2.0","id":1,"result":"0xZZ"}"#;
+        let err = parse_eth_get_code_response(body).unwrap_err();
+        assert!(err.to_string().contains("invalid hex"));
+    }
+
+    #[test]
     fn hex_address_encoding_is_lowercase_and_prefixed() {
         let addr = [0xABu8; 20];
         assert_eq!(to_hex_address(addr), format!("0x{}", "ab".repeat(20)));

@@ -309,3 +309,267 @@ impl Invariant for ReentrancyInvariant {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::backend::{CallOutcome, ParamKind};
+    use std::collections::{HashMap, VecDeque};
+
+    // ── fixtures ──
+
+    const OWNER: [u8; 20] = [0xAA; 20];
+    const ATTACKER: [u8; 20] = [0xBB; 20];
+    const CONTRACT: [u8; 20] = [0xCC; 20];
+
+    fn uint(n: u64) -> Vec<u8> {
+        let mut w = [0u8; 32];
+        w[24..32].copy_from_slice(&n.to_be_bytes());
+        w.to_vec()
+    }
+    fn addr_ret(a: [u8; 20]) -> Vec<u8> {
+        let mut w = [0u8; 32];
+        w[12..32].copy_from_slice(&a);
+        w.to_vec()
+    }
+    fn ok(data: Vec<u8>) -> CallOutcome {
+        CallOutcome {
+            reverted: false,
+            return_data: data,
+        }
+    }
+    fn reverted() -> CallOutcome {
+        CallOutcome {
+            reverted: true,
+            return_data: Vec::new(),
+        }
+    }
+    fn read_fn(name: &str, selector: [u8; 4], inputs: Vec<ParamKind>) -> FunctionSpec {
+        FunctionSpec::new(name, selector, inputs, false)
+    }
+    fn call_with(selector: [u8; 4], caller: [u8; 20]) -> EncodedCall {
+        EncodedCall {
+            function: FunctionSpec::new("x", selector, Vec::new(), true),
+            calldata: selector.to_vec(),
+            caller,
+            value: 0,
+        }
+    }
+
+    /// Backend that replays a scripted queue of outcomes per selector, so each
+    /// invariant branch (including the revert paths) can be driven exactly.
+    /// An exhausted or unknown selector reverts — the safe default.
+    #[derive(Default)]
+    struct MockBackend {
+        queues: HashMap<[u8; 4], VecDeque<CallOutcome>>,
+    }
+    impl MockBackend {
+        fn on(mut self, selector: [u8; 4], outcomes: Vec<CallOutcome>) -> Self {
+            self.queues.insert(selector, outcomes.into());
+            self
+        }
+    }
+    impl ExecutionBackend for MockBackend {
+        fn call(&mut self, call: &EncodedCall) -> CallOutcome {
+            self.queues
+                .get_mut(&call.function.selector)
+                .and_then(|q| q.pop_front())
+                .unwrap_or_else(reverted)
+        }
+        fn snapshot(&mut self) -> u64 {
+            0
+        }
+        fn revert_to(&mut self, _snapshot: u64) {}
+    }
+
+    fn ctx<'a>(last_call: &'a EncodedCall, trace: &'a [TraceEvent]) -> CheckContext<'a> {
+        CheckContext { last_call, trace }
+    }
+
+    // ── MonotonicInvariant ──
+
+    const READ: [u8; 4] = [0x11; 4];
+
+    #[test]
+    fn monotonic_flags_a_decrease_from_the_reset_baseline() {
+        let inv = MonotonicInvariant::new("supply", read_fn("s", READ, vec![]));
+        let mut b = MockBackend::default().on(READ, vec![ok(uint(100)), ok(uint(40))]);
+        inv.reset(&mut b); // baseline 100
+        let call = call_with(READ, OWNER);
+        let msg = inv
+            .check(&mut b, &ctx(&call, &[]))
+            .expect("decrease must fire");
+        assert!(msg.contains("100"));
+        assert!(msg.contains("40"));
+    }
+
+    #[test]
+    fn monotonic_increase_is_not_a_violation() {
+        let inv = MonotonicInvariant::new("supply", read_fn("s", READ, vec![]));
+        let mut b = MockBackend::default().on(READ, vec![ok(uint(10)), ok(uint(99))]);
+        inv.reset(&mut b);
+        let call = call_with(READ, OWNER);
+        assert!(inv.check(&mut b, &ctx(&call, &[])).is_none());
+    }
+
+    #[test]
+    fn monotonic_reverting_reads_are_ignored_in_reset_and_check() {
+        let inv = MonotonicInvariant::new("supply", read_fn("s", READ, vec![]));
+        // reset reverts (baseline stays None), then a later check also reverts.
+        let mut b = MockBackend::default().on(READ, vec![reverted(), reverted()]);
+        inv.reset(&mut b);
+        let call = call_with(READ, OWNER);
+        assert!(inv.check(&mut b, &ctx(&call, &[])).is_none());
+    }
+
+    // ── ConservationInvariant ──
+
+    const TOTAL: [u8; 4] = [0x22; 4];
+    const BAL: [u8; 4] = [0x33; 4];
+
+    fn conservation(actors: Vec<[u8; 20]>) -> ConservationInvariant {
+        ConservationInvariant::new(
+            "erc20",
+            read_fn("totalSupply", TOTAL, vec![]),
+            read_fn("balanceOf", BAL, vec![ParamKind::Address]),
+            actors,
+        )
+    }
+
+    #[test]
+    fn conservation_flags_a_supply_mismatch() {
+        let inv = conservation(vec![OWNER]);
+        let mut b = MockBackend::default()
+            .on(TOTAL, vec![ok(uint(100))])
+            .on(BAL, vec![ok(uint(40))]);
+        let call = call_with(READ, OWNER);
+        let msg = inv
+            .check(&mut b, &ctx(&call, &[]))
+            .expect("mismatch must fire");
+        assert!(msg.contains("40"));
+        assert!(msg.contains("100"));
+    }
+
+    #[test]
+    fn conservation_holds_when_balances_sum_to_supply() {
+        let inv = conservation(vec![OWNER, ATTACKER]);
+        let mut b = MockBackend::default()
+            .on(TOTAL, vec![ok(uint(100))])
+            .on(BAL, vec![ok(uint(60)), ok(uint(40))]);
+        let call = call_with(READ, OWNER);
+        assert!(inv.check(&mut b, &ctx(&call, &[])).is_none());
+    }
+
+    #[test]
+    fn conservation_is_a_noop_when_total_supply_reverts() {
+        let inv = conservation(vec![OWNER]);
+        let mut b = MockBackend::default().on(TOTAL, vec![reverted()]);
+        let call = call_with(READ, OWNER);
+        assert!(inv.check(&mut b, &ctx(&call, &[])).is_none());
+    }
+
+    #[test]
+    fn conservation_skips_actors_whose_balance_call_reverts() {
+        // First actor's balanceOf reverts (skipped); second returns the full
+        // supply, so the surviving sum still matches and nothing is flagged.
+        let inv = conservation(vec![ATTACKER, OWNER]);
+        let mut b = MockBackend::default()
+            .on(TOTAL, vec![ok(uint(50))])
+            .on(BAL, vec![reverted(), ok(uint(50))]);
+        let call = call_with(READ, OWNER);
+        assert!(inv.check(&mut b, &ctx(&call, &[])).is_none());
+    }
+
+    // ── AccessControlInvariant ──
+
+    const OWNER_FN: [u8; 4] = [0x44; 4];
+    const GUARDED: [u8; 4] = [0x55; 4];
+    const OTHER: [u8; 4] = [0x66; 4];
+
+    fn access_control() -> AccessControlInvariant {
+        AccessControlInvariant::new(
+            "ownable",
+            read_fn("owner", OWNER_FN, vec![]),
+            read_fn("transferOwnership", GUARDED, vec![ParamKind::Address]),
+        )
+    }
+
+    #[test]
+    fn access_control_flags_ownership_seized_by_a_non_owner() {
+        let inv = access_control();
+        // reset: owner is OWNER. Then a guarded call from ATTACKER leaves
+        // ATTACKER as owner.
+        let mut b =
+            MockBackend::default().on(OWNER_FN, vec![ok(addr_ret(OWNER)), ok(addr_ret(ATTACKER))]);
+        inv.reset(&mut b);
+        let call = call_with(GUARDED, ATTACKER);
+        let msg = inv
+            .check(&mut b, &ctx(&call, &[]))
+            .expect("unauthorized ownership change must fire");
+        assert!(msg.contains("non-owner"));
+    }
+
+    #[test]
+    fn access_control_allows_a_legitimate_transfer_by_the_owner() {
+        let inv = access_control();
+        // The owner themselves hands ownership to ATTACKER — authorized.
+        let mut b =
+            MockBackend::default().on(OWNER_FN, vec![ok(addr_ret(OWNER)), ok(addr_ret(ATTACKER))]);
+        inv.reset(&mut b);
+        let call = call_with(GUARDED, OWNER);
+        assert!(inv.check(&mut b, &ctx(&call, &[])).is_none());
+    }
+
+    #[test]
+    fn access_control_syncs_baseline_on_non_guarded_calls() {
+        let inv = access_control();
+        // A call to some other function just refreshes the tracked owner.
+        let mut b = MockBackend::default().on(OWNER_FN, vec![ok(addr_ret(OWNER))]);
+        let call = call_with(OTHER, ATTACKER);
+        assert!(inv.check(&mut b, &ctx(&call, &[])).is_none());
+    }
+
+    #[test]
+    fn access_control_ignores_a_reverting_owner_read() {
+        let inv = access_control();
+        // owner() reverts during the guarded-call check → nothing to compare.
+        let mut b = MockBackend::default().on(OWNER_FN, vec![reverted()]);
+        let call = call_with(GUARDED, ATTACKER);
+        assert!(inv.check(&mut b, &ctx(&call, &[])).is_none());
+    }
+
+    // ── ReentrancyInvariant ──
+
+    #[test]
+    fn reentrancy_flags_a_late_write_after_non_reverting_reentry() {
+        let inv = ReentrancyInvariant::new("reentrancy");
+        // Textbook write-after-external-call: the re-entered frame's storage
+        // write lands after control has already re-entered (see
+        // `trace::detect_reentrancy` — the late write is what makes it
+        // exploitable).
+        let trace = [
+            TraceEvent::CallBegin { address: CONTRACT }, // outer
+            TraceEvent::CallBegin { address: ATTACKER }, //   external call
+            TraceEvent::CallBegin { address: CONTRACT }, //     re-entry
+            TraceEvent::StorageWrite { address: CONTRACT },
+            TraceEvent::CallEnd { reverted: false }, //     inner returns
+            TraceEvent::CallEnd { reverted: false }, //   attacker returns
+            TraceEvent::StorageWrite { address: CONTRACT }, // outer writes too late
+            TraceEvent::CallEnd { reverted: false }, // outer returns
+        ];
+        let mut b = MockBackend::default();
+        let call = call_with(READ, ATTACKER);
+        let msg = inv
+            .check(&mut b, &ctx(&call, &trace))
+            .expect("exploitable reentrancy must fire");
+        assert!(msg.contains("re-entered"));
+    }
+
+    #[test]
+    fn reentrancy_is_a_noop_on_an_empty_trace() {
+        let inv = ReentrancyInvariant::new("reentrancy");
+        let mut b = MockBackend::default();
+        let call = call_with(READ, ATTACKER);
+        assert!(inv.check(&mut b, &ctx(&call, &[])).is_none());
+    }
+}
