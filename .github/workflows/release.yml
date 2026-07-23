@@ -575,10 +575,11 @@ jobs:
           CRATES_IO_TOKEN: ${{ secrets.CRATES_IO_TOKEN }}
         run: |
           if [ -z "$CRATES_IO_TOKEN" ]; then
-            echo "⚠ CRATES_IO_TOKEN not configured"
-            echo "Cannot publish to crates.io without token"
-            echo "Set CRATES_IO_TOKEN GitHub secret to enable publishing"
-            exit 0
+            echo "::error::CRATES_IO_TOKEN is not configured — cannot publish to crates.io."
+            echo "This workflow only runs on release tags, so a run that publishes"
+            echo "nothing must fail rather than report a green, misleading success."
+            echo "Set the CRATES_IO_TOKEN GitHub secret, then re-run this release."
+            exit 1
           fi
           
           # `cargo publish ... | tee` takes tee's exit status, so without

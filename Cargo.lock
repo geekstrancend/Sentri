@@ -2612,7 +2612,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-analyzer-evm"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "anyhow",
  "criterion",
@@ -2635,7 +2635,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-analyzer-move"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "anyhow",
  "cc",
@@ -2654,7 +2654,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-analyzer-solana"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "anyhow",
  "lazy_static",
@@ -2674,7 +2674,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-analyzer-soroban"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "anyhow",
  "lazy_static",
@@ -2694,7 +2694,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-cli"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "anyhow",
  "assert_cmd",
@@ -2732,7 +2732,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-core"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "anyhow",
  "once_cell",
@@ -2747,7 +2747,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-dsl-parser"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "anyhow",
  "pest",
@@ -2760,7 +2760,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-dynamic-core"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "rand 0.8.6",
  "serde",
@@ -2769,7 +2769,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-dynamic-evm"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "anyhow",
  "hex",
@@ -2786,7 +2786,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-dynamic-solana"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "bs58",
  "rand 0.8.6",
@@ -2799,7 +2799,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-generator-evm"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "anyhow",
  "sentri-analyzer-evm",
@@ -2814,7 +2814,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-generator-move"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "anyhow",
  "sentri-analyzer-move",
@@ -2829,7 +2829,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-generator-solana"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "anyhow",
  "proc-macro2",
@@ -2848,7 +2848,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-ir"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "anyhow",
  "sentri-core",
@@ -2858,7 +2858,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-library"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "anyhow",
  "sentri-core",
@@ -2872,7 +2872,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-report"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2885,7 +2885,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-solana-macro"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2894,7 +2894,7 @@ dependencies = [
 
 [[package]]
 name = "sentri-utils"
-version = "0.4.0"
+version = "0.4.1"
 dependencies = [
  "anyhow",
  "chrono",

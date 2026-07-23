@@ -85,9 +85,10 @@ jobs:
             fi
           done
           
-          echo "⚠ sentri-cli v$VERSION not found on crates.io after ${MAX_RETRIES} attempts"
-          echo "Continuing with npm publish anyway..."
-          exit 0
+          echo "::error::sentri-cli v$VERSION never appeared on crates.io after ${MAX_RETRIES} attempts."
+          echo "The npm wrapper resolves the published crate, so publishing it now would ship"
+          echo "a package pointing at a version that does not exist. Failing instead."
+          exit 1
 
   # Build npm package
   build-npm:
@@ -344,10 +345,10 @@ jobs:
           TARBALL="sentri-npm-${VERSION}.tgz"
           
           if [ -z "$NODE_AUTH_TOKEN" ]; then
-            echo "⚠ NPM_TOKEN not configured"
-            echo "Cannot publish to npm without token"
-            echo "Set NPM_TOKEN GitHub secret to enable publishing"
-            exit 0
+            echo "::error::NPM_TOKEN is not configured — cannot publish to npm."
+            echo "A release that publishes nothing must fail rather than report success."
+            echo "Set the NPM_TOKEN GitHub secret, then re-run this release."
+            exit 1
           fi
           
           echo "Publishing @dextonicx/cli@$VERSION to npm..."
