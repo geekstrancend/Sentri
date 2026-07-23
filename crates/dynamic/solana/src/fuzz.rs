@@ -3,10 +3,10 @@
 //! a violation shrink the sequence to a minimal reproduction. Same search +
 //! delta-debug shape as the EVM engine, expressed over the account model.
 
+use crate::backend::SvmBackend;
 use crate::generator::{random_instruction, AccountPool};
 use crate::invariant::{CheckContext, SolanaInvariant};
 use crate::model::{Instruction, Pubkey};
-use crate::backend::SvmBackend;
 use rand::rngs::SmallRng;
 use rand::SeedableRng;
 
@@ -182,10 +182,7 @@ pub fn format_poc(v: &Violation) -> String {
             signers.len(),
         ));
     }
-    out.push_str(&format!(
-        "\nFailing step: #{}\n",
-        v.failing_step + 1
-    ));
+    out.push_str(&format!("\nFailing step: #{}\n", v.failing_step + 1));
     out
 }
 

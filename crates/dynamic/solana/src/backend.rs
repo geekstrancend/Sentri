@@ -54,7 +54,10 @@ mod tests {
 
     #[test]
     fn decode_u64_le_reads_little_endian_and_is_bounds_safe() {
-        let data = vec![0u8; 8].into_iter().chain([0xFF, 0, 0, 0, 0, 0, 0, 0]).collect::<Vec<_>>();
+        let data = vec![0u8; 8]
+            .into_iter()
+            .chain([0xFF, 0, 0, 0, 0, 0, 0, 0])
+            .collect::<Vec<_>>();
         assert_eq!(decode_u64_le(&data, 8), 255);
         // offset past the end must not panic
         assert_eq!(decode_u64_le(&data, 100), 0);

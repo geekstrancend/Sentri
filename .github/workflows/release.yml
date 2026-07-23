@@ -184,7 +184,7 @@ jobs:
           key: linux-x86_64-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Build release binary
-        run: cargo build --release --locked --features solana-dynamic --target x86_64-unknown-linux-gnu
+        run: cargo build --release --locked --target x86_64-unknown-linux-gnu
 
       - name: Strip binary
         run: strip target/x86_64-unknown-linux-gnu/release/sentri
@@ -227,7 +227,7 @@ jobs:
           key: linux-musl-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Build release binary
-        run: cargo build --release --locked --features solana-dynamic --target x86_64-unknown-linux-musl
+        run: cargo build --release --locked --target x86_64-unknown-linux-musl
 
       - name: Strip binary
         run: strip target/x86_64-unknown-linux-musl/release/sentri
@@ -273,7 +273,7 @@ jobs:
         env:
           CARGO_TARGET_AARCH64_UNKNOWN_LINUX_GNU_LINKER: aarch64-linux-gnu-gcc
         run: |
-          cargo build --release --locked --features solana-dynamic --target aarch64-unknown-linux-gnu
+          cargo build --release --locked --target aarch64-unknown-linux-gnu
 
       - name: Strip binary
         run: aarch64-linux-gnu-strip target/aarch64-unknown-linux-gnu/release/sentri
@@ -310,7 +310,7 @@ jobs:
           key: macos-x86_64-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Build release binary
-        run: cargo build --release --locked --features solana-dynamic --target x86_64-apple-darwin
+        run: cargo build --release --locked --target x86_64-apple-darwin
 
       - name: Strip binary
         run: |
@@ -349,7 +349,7 @@ jobs:
           key: macos-aarch64-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Build release binary
-        run: cargo build --release --locked --features solana-dynamic --target aarch64-apple-darwin
+        run: cargo build --release --locked --target aarch64-apple-darwin
 
       - name: Strip binary
         run: strip target/aarch64-apple-darwin/release/sentri
@@ -386,7 +386,7 @@ jobs:
           key: windows-x86_64-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       - name: Build release binary
-        run: cargo build --release --locked --features solana-dynamic --target x86_64-pc-windows-msvc
+        run: cargo build --release --locked --target x86_64-pc-windows-msvc
 
       # v0.1: Smoke test binary on Windows
       - name: Smoke test binary
@@ -424,7 +424,7 @@ jobs:
       - name: First clean build
         run: |
           export SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)
-          cargo build --release --locked --features solana-dynamic --target x86_64-unknown-linux-gnu
+          cargo build --release --locked --target x86_64-unknown-linux-gnu
           sha256sum target/x86_64-unknown-linux-gnu/release/sentri > /tmp/build1.sha256
           cat /tmp/build1.sha256
 
@@ -434,7 +434,7 @@ jobs:
       - name: Second clean build
         run: |
           export SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)
-          cargo build --release --locked --features solana-dynamic --target x86_64-unknown-linux-gnu
+          cargo build --release --locked --target x86_64-unknown-linux-gnu
           sha256sum target/x86_64-unknown-linux-gnu/release/sentri > /tmp/build2.sha256
           cat /tmp/build2.sha256
 

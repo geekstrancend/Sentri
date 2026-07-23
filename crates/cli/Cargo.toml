@@ -17,18 +17,6 @@ documentation = "https://docs.rs/sentri-cli"
 name = "sentri"
 path = "src/main.rs"
 
-[features]
-# Off by default. Enabling it links a real Solana VM (litesvm), which more than
-# doubles the CLI's dependency graph — 449 crates against 221 — for a workflow
-# that already requires a compiled .so, an Anchor IDL and a fuzz plan. Someone
-# reaching for that can afford a flag; someone scanning Solidity should not pay
-# for it. Static Solana analysis is unaffected and always available.
-#
-# Prebuilt binaries (GitHub releases, npm) are built WITH this feature, since
-# those users download rather than compile.
-default = []
-solana-dynamic = ["sentri-dynamic-solana/litesvm-backend"]
-
 [dependencies]
 anyhow.workspace = true
 thiserror.workspace = true

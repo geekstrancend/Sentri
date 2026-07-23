@@ -250,8 +250,7 @@ pub fn parse_idl(json: &str) -> Result<IdlProgram, IdlError> {
         // is not worth spending sequence slots on.
         let mutates_state = ix.accounts.iter().any(|a| a.is_writable());
 
-        let account_names: Vec<String> =
-            ix.accounts.iter().map(|a| a.name.clone()).collect();
+        let account_names: Vec<String> = ix.accounts.iter().map(|a| a.name.clone()).collect();
 
         instructions.push(
             InstructionSpec::new(&ix.name, discriminator, args, account_roles, mutates_state)
@@ -310,7 +309,11 @@ mod tests {
         assert_eq!(ix.args, vec![ArgKind::U64]);
         assert_eq!(
             ix.account_roles,
-            vec![AccountRole::Signer, AccountRole::Writable, AccountRole::Readonly]
+            vec![
+                AccountRole::Signer,
+                AccountRole::Writable,
+                AccountRole::Readonly
+            ]
         );
         assert!(ix.mutates_state);
     }
@@ -428,16 +431,15 @@ mod tests {
 
     #[test]
     fn rejects_malformed_input() {
-        assert!(matches!(
-            parse_idl("not json"),
-            Err(IdlError::Json(_))
-        ));
+        assert!(matches!(parse_idl("not json"), Err(IdlError::Json(_))));
         assert!(matches!(
             parse_idl(r#"{"name":"p","instructions":[]}"#),
             Err(IdlError::NoInstructions)
         ));
         assert!(matches!(
-            parse_idl(r#"{"name":"p","address":"not-base58!!","instructions":[{"name":"i","accounts":[],"args":[]}]}"#),
+            parse_idl(
+                r#"{"name":"p","address":"not-base58!!","instructions":[{"name":"i","accounts":[],"args":[]}]}"#
+            ),
             Err(IdlError::BadAddress(_))
         ));
     }

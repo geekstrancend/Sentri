@@ -14,27 +14,19 @@ categories = ["development-tools", "development-tools::testing"]
 readme = "README.md"
 documentation = "https://docs.rs/sentri-dynamic-solana"
 
-[features]
-# Not on by default: the real execution backend pulls in a Solana SVM
-# (`litesvm`), a heavy dependency. The account-model call types, invariant
-# oracles, sequence generation, shrinking, and PoC formatting are all
-# chain-native and build/test without it — proven against an in-memory mock,
-# exactly like the EVM crate proved its engine before wiring revm.
-default = []
-# Pins the same granular solana-* 2.2 crates litesvm 0.6 uses, so the real
-# backend links against one coherent Solana version (the workspace meta-crate
-# is 1.x and would conflict).
-litesvm-backend = [
-    "dep:litesvm",
-    "dep:solana-account",
-    "dep:solana-instruction",
-    "dep:solana-message",
-    "dep:solana-pubkey",
-    "dep:solana-transaction",
-    "dep:solana-keypair",
-    "dep:solana-signer",
-    "dep:solana-hash",
-]
+# The real execution backend (feature `litesvm-backend`) is intentionally NOT
+# in 0.4.0. It links a Solana SVM via `litesvm 0.6`, whose transitive
+# dependencies carry unpatched RUSTSEC advisories (ed25519-dalek 1.0.1,
+# curve25519-dalek 3.2.0, rustls-webpki 0.101.7); litesvm 0.14 clears them but
+# doesn't yet build against a resolvable solana-keypair/bs58 combination. A
+# security tool must not ship known-vulnerable crypto, so the backend and its
+# deps are held out until that resolves (tracked for 0.5.0). The backend source
+# lives in git history at the 0.3.x line.
+#
+# Everything else — the account-model call types, invariant oracles, sequence
+# generation, shrinking, PoC formatting, the Anchor IDL front-end and the
+# fuzz-plan config — is chain-native pure Rust and ships here, proven against an
+# in-memory mock exactly as the EVM crate proved its engine before wiring revm.
 
 [dependencies]
 sentri-dynamic-core.workspace = true
@@ -44,14 +36,5 @@ serde_json.workspace = true
 thiserror.workspace = true
 sha2 = "0.10"
 bs58 = "0.5"
-litesvm = { version = "0.6", optional = true }
-solana-account = { version = "2.2", optional = true }
-solana-instruction = { version = "2.2", optional = true }
-solana-message = { version = "2.2", optional = true }
-solana-pubkey = { version = "2.2", optional = true }
-solana-transaction = { version = "2.2", optional = true }
-solana-keypair = { version = "2.2", optional = true }
-solana-signer = { version = "2.2", optional = true }
-solana-hash = { version = "2.2", optional = true }
 
 [dev-dependencies]

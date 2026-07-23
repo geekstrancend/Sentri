@@ -8,26 +8,24 @@
 //! crate defines its own call model (`model`), invariant oracles
 //! (`invariant`), instruction generator (`generator`), and fuzz/shrink loop
 //! (`fuzz`) rather than forcing the EVM types onto it. The engine logic is
-//! proven against an in-memory mock program (`testing`, `cfg(test)`); the real
-//! execution backend that runs Solana bytecode is behind the
-//! `litesvm-backend` feature.
+//! proven against an in-memory mock program (`testing`, `cfg(test)`).
+//!
+//! A real execution backend (running compiled BPF bytecode on an in-process
+//! Solana VM) is not part of this release: the VM's dependencies carry
+//! unpatched RUSTSEC advisories, and a security tool must not ship
+//! known-vulnerable crypto. It is tracked for a later version; the backend
+//! source lives in git history at the 0.3.x line.
 
 pub mod backend;
 pub mod config;
 pub mod fuzz;
-pub mod idl;
 pub mod generator;
+pub mod idl;
 pub mod invariant;
 pub mod model;
 
-#[cfg(feature = "litesvm-backend")]
-pub mod litesvm_backend;
-
 #[cfg(test)]
 mod testing;
-
-#[cfg(all(test, feature = "litesvm-backend"))]
-mod litesvm_e2e;
 
 pub use backend::SvmBackend;
 pub use config::{parse_plan, ConfigError, FuzzPlan, GenesisAccount};
@@ -139,8 +137,9 @@ mod tests {
             vec![AccountRole::Writable],
             true,
         )];
-        let invariants: Vec<Box<dyn SolanaInvariant>> =
-            vec![Box::new(AccountOwnerInvariant::track("owner integrity", TOKEN_ACCT_1))];
+        let invariants: Vec<Box<dyn SolanaInvariant>> = vec![Box::new(
+            AccountOwnerInvariant::track("owner integrity", TOKEN_ACCT_1),
+        )];
         let config = FuzzConfig {
             seed: 3,
             max_runs: 200,
@@ -151,11 +150,7 @@ mod tests {
             || Box::new(MockSvm::default()),
             TOKEN_PROGRAM,
             &specs,
-            &AccountPool::new(
-                vec![crate::testing::AUTHORITY],
-                vec![TOKEN_ACCT_1],
-                vec![],
-            ),
+            &AccountPool::new(vec![crate::testing::AUTHORITY], vec![TOKEN_ACCT_1], vec![]),
             invariants,
             config,
         )

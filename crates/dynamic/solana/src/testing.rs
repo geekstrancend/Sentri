@@ -5,9 +5,7 @@
 //! revm. The real backend (feature `litesvm-backend`) runs actual bytecode.
 
 use crate::backend::{decode_u64_le, SvmBackend};
-use crate::model::{
-    AccountRole, ArgKind, Instruction, InstructionSpec, IxOutcome, Pubkey,
-};
+use crate::model::{AccountRole, ArgKind, Instruction, InstructionSpec, IxOutcome, Pubkey};
 use std::collections::HashMap;
 
 // ── Program + account fixtures ──
@@ -38,7 +36,11 @@ pub fn token_functions_vulnerable() -> Vec<InstructionSpec> {
             "mint",
             vec![IX_MINT],
             vec![ArgKind::U64],
-            vec![AccountRole::Signer, AccountRole::Writable, AccountRole::Writable],
+            vec![
+                AccountRole::Signer,
+                AccountRole::Writable,
+                AccountRole::Writable,
+            ],
             true,
         ),
         InstructionSpec::new(
@@ -57,7 +59,11 @@ pub fn token_functions_safe() -> Vec<InstructionSpec> {
         "mint",
         vec![IX_MINT],
         vec![ArgKind::U64],
-        vec![AccountRole::Signer, AccountRole::Writable, AccountRole::Writable],
+        vec![
+            AccountRole::Signer,
+            AccountRole::Writable,
+            AccountRole::Writable,
+        ],
         true,
     )]
 }
@@ -215,7 +221,11 @@ impl SvmBackend for MockSvm {
     }
 
     fn lamports(&self, pubkey: &Pubkey) -> u64 {
-        self.state.accounts.get(pubkey).map(|a| a.lamports).unwrap_or(0)
+        self.state
+            .accounts
+            .get(pubkey)
+            .map(|a| a.lamports)
+            .unwrap_or(0)
     }
 
     fn account_data(&self, pubkey: &Pubkey) -> Vec<u8> {

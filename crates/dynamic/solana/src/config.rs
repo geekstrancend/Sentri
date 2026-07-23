@@ -160,7 +160,9 @@ fn decode_hex(name: &str, s: &str) -> Result<Vec<u8>, ConfigError> {
     }
     (0..s.len())
         .step_by(2)
-        .map(|i| u8::from_str_radix(&s[i..i + 2], 16).map_err(|_| ConfigError::BadHex(name.to_string())))
+        .map(|i| {
+            u8::from_str_radix(&s[i..i + 2], 16).map_err(|_| ConfigError::BadHex(name.to_string()))
+        })
         .collect()
 }
 
@@ -227,7 +229,9 @@ pub fn parse_plan(json: &str) -> Result<FuzzPlan, ConfigError> {
                 )));
             }
             RawInvariant::AccountOwner { name, account } => {
-                let label = name.clone().unwrap_or_else(|| "account owner integrity".into());
+                let label = name
+                    .clone()
+                    .unwrap_or_else(|| "account owner integrity".into());
                 invariants.push(Box::new(AccountOwnerInvariant::track(
                     &label,
                     pubkey("invariants[].account", account)?,
@@ -334,7 +338,10 @@ mod tests {
     #[test]
     fn rejects_bad_pubkeys_and_hex() {
         let bad = r#"{ "program_id": "0OIl", "invariants": [ { "type": "account_owner", "account": "x" } ] }"#;
-        assert!(matches!(parse_plan(bad), Err(ConfigError::BadPubkey { .. })));
+        assert!(matches!(
+            parse_plan(bad),
+            Err(ConfigError::BadPubkey { .. })
+        ));
 
         let json = format!(
             r#"{{ "accounts": [ {{ "name": "a", "pubkey": "{a}", "data_hex": "zz" }} ],

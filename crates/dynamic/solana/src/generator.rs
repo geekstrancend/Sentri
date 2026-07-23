@@ -187,7 +187,11 @@ mod tests {
             "mint_to",
             vec![0x10],
             vec![ArgKind::U64],
-            vec![AccountRole::Signer, AccountRole::Writable, AccountRole::Writable],
+            vec![
+                AccountRole::Signer,
+                AccountRole::Writable,
+                AccountRole::Writable,
+            ],
             true,
         )
         .with_account_names(vec![
@@ -202,15 +206,22 @@ mod tests {
         // Without pinning the `mint` slot is drawn from the writable pool and
         // can alias a token account — the false-positive source that pinning
         // exists to remove.
-        let pool = AccountPool::new(vec![AUTH], vec![ACCT_A, ACCT_B, MINT], vec![]).pin("mint", MINT);
+        let pool =
+            AccountPool::new(vec![AUTH], vec![ACCT_A, ACCT_B, MINT], vec![]).pin("mint", MINT);
         let mut rng = SmallRng::seed_from_u64(42);
 
         let mut saw_varied_token_account = false;
         for _ in 0..200 {
             let (ix, signers) = random_instruction(&mut rng, [0x70; 32], &spec(), &pool);
             // position 2 is `mint`, pinned
-            assert_eq!(ix.accounts[2].pubkey, MINT, "pinned mint slot must never vary");
-            assert!(ix.accounts[2].is_writable, "pinning must keep the role's flags");
+            assert_eq!(
+                ix.accounts[2].pubkey, MINT,
+                "pinned mint slot must never vary"
+            );
+            assert!(
+                ix.accounts[2].is_writable,
+                "pinning must keep the role's flags"
+            );
             // position 0 is the signer authority
             assert_eq!(ix.accounts[0].pubkey, AUTH);
             assert!(ix.accounts[0].is_signer);

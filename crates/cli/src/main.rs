@@ -2323,30 +2323,20 @@ fn run_detector_precision_fuzzers(iterations_per_fuzzer: usize) -> sentri_core::
 /// auto-detects invariants from its ABI (ERC20-shaped conservation,
 /// monotonic accumulator getters), generates random call sequences, and on
 /// the first violation, shrinks it to a minimal reproduction and prints a
-/// proof-of-concept call trace.
-/// Handle `sentri fuzz <idl.json> --dynamic --chain solana --plan <plan.json>`.
+/// Handle `sentri fuzz --dynamic --chain solana`.
 ///
-/// The IDL supplies the instruction surface; the plan supplies the world
-/// (genesis accounts, pool, pins, invariants). Both are needed: an IDL alone
-/// cannot say which account is the mint or what must stay true.
-#[cfg(not(feature = "solana-dynamic"))]
-fn cmd_dynamic_fuzz_solana(_args: FuzzArgs, _quiet: bool) -> Result<()> {
-    Err(anyhow::anyhow!(
-        "this build has no Solana execution backend.\n\n\
-         Dynamic Solana fuzzing runs real BPF bytecode, which needs a Solana VM \
-         linked in — it more than doubles the build, so it is opt-in:\n\n    \
-         cargo install sentri-cli --features solana-dynamic\n\n\
-         Static Solana analysis needs none of this and works in every build:\n\n    \
-         sentri scan <path> --chain solana"
-    ))
-}
-
-#[cfg(feature = "solana-dynamic")]
-fn cmd_dynamic_fuzz_solana(args: FuzzArgs, quiet: bool) -> Result<()> {
-    use sentri_dynamic_solana::litesvm_backend::LiteSvmGenesis;
-
+/// The Solana instruction-surface and fuzz-plan front-ends ship in this
+/// release, so a plan is parsed and validated here — but the execution backend
+/// that runs real BPF bytecode is held out of 0.4.0 (its Solana VM pulls
+/// dependencies with unpatched RUSTSEC advisories, and a security tool must not
+/// ship known-vulnerable crypto). So this validates inputs and then reports,
+/// clearly, that execution is not available in this build rather than silently
+/// doing nothing.
+fn cmd_dynamic_fuzz_solana(args: FuzzArgs, _quiet: bool) -> Result<()> {
     let idl_path = args.path.as_ref().ok_or_else(|| {
-        anyhow::anyhow!("--dynamic --chain solana needs the program's Anchor IDL as the path argument")
+        anyhow::anyhow!(
+            "--dynamic --chain solana needs the program's Anchor IDL as the path argument"
+        )
     })?;
     let plan_path = args.plan.as_ref().ok_or_else(|| {
         anyhow::anyhow!(
@@ -2355,77 +2345,26 @@ fn cmd_dynamic_fuzz_solana(args: FuzzArgs, quiet: bool) -> Result<()> {
         )
     })?;
 
+    // Validate what we can, so a broken IDL/plan is reported now rather than
+    // masked behind the "backend unavailable" notice.
     let idl_src = std::fs::read_to_string(idl_path)
         .with_context(|| format!("reading IDL {}", idl_path.display()))?;
     let program = sentri_dynamic_solana::parse_idl(&idl_src)
         .with_context(|| format!("parsing IDL {}", idl_path.display()))?;
-
     let plan_src = std::fs::read_to_string(plan_path)
         .with_context(|| format!("reading fuzz plan {}", plan_path.display()))?;
-    let plan = sentri_dynamic_solana::parse_plan(&plan_src)
+    sentri_dynamic_solana::parse_plan(&plan_src)
         .with_context(|| format!("parsing fuzz plan {}", plan_path.display()))?;
 
-    let program_id = plan.program_id.or(program.program_id).ok_or_else(|| {
-        anyhow::anyhow!(
-            "no program id: set `program_id` in the plan, or use an IDL carrying an `address`"
-        )
-    })?;
-
-    let so_path = plan.program_so.as_ref().ok_or_else(|| {
-        anyhow::anyhow!(
-            "the plan must set `program_so` to the compiled program (.so) — dynamic fuzzing \
-             executes real bytecode, it does not simulate it"
-        )
-    })?;
-    let program_bytes = std::fs::read(so_path)
-        .with_context(|| format!("reading program binary {so_path}"))?;
-
-    if program.instructions.is_empty() {
-        return Err(anyhow::anyhow!(
-            "no fuzzable instructions in the IDL (all {} were skipped as non-fixed-width)",
-            program.skipped.len()
-        ));
-    }
-
-    if !quiet {
-        println!(
-            "▶ Dynamically fuzzing {} ({} instructions, litesvm, {} runs, depth {})...",
-            program.name,
-            program.instructions.len(),
-            plan.config.max_runs,
-            plan.config.sequence_depth
-        );
-        // Never let a partial surface read as full coverage.
-        for s in &program.skipped {
-            eprintln!("  ! skipped {}: {}", s.name, s.reason);
-        }
-    }
-
-    let genesis = LiteSvmGenesis::from_plan(&plan, program_id, &program_bytes);
-    let specs = program.instructions.clone();
-
-    match sentri_dynamic_solana::fuzz(
-        || Box::new(genesis.build()),
-        program_id,
-        &specs,
-        &plan.pool,
-        plan.invariants,
-        plan.config.clone(),
-    ) {
-        Some(violation) => {
-            println!("{}", sentri_dynamic_solana::format_poc(&violation));
-            std::process::exit(1);
-        }
-        None => {
-            if !quiet {
-                println!(
-                    "✓ No invariant violations in {} runs (seed {})",
-                    plan.config.max_runs, plan.config.seed
-                );
-            }
-            Ok(())
-        }
-    }
+    Err(anyhow::anyhow!(
+        "IDL and plan are valid ({} fuzzable instruction(s)), but this release cannot execute \
+         them.\n\n\
+         Running real Solana bytecode needs an in-process Solana VM, whose dependencies \
+         currently carry unpatched security advisories. Sentri will not ship known-vulnerable \
+         crypto, so the dynamic Solana backend is deferred to a later version.\n\n\
+         Static Solana analysis is fully available:\n\n    sentri scan <path> --chain solana",
+        program.instructions.len(),
+    ))
 }
 
 fn cmd_dynamic_fuzz(args: FuzzArgs, quiet: bool, verbose: bool) -> Result<()> {

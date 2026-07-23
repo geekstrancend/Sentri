@@ -23,13 +23,25 @@ pub struct AccountMeta {
 
 impl AccountMeta {
     pub fn signer_writable(pubkey: Pubkey) -> Self {
-        Self { pubkey, is_signer: true, is_writable: true }
+        Self {
+            pubkey,
+            is_signer: true,
+            is_writable: true,
+        }
     }
     pub fn writable(pubkey: Pubkey) -> Self {
-        Self { pubkey, is_signer: false, is_writable: true }
+        Self {
+            pubkey,
+            is_signer: false,
+            is_writable: true,
+        }
     }
     pub fn readonly(pubkey: Pubkey) -> Self {
-        Self { pubkey, is_signer: false, is_writable: false }
+        Self {
+            pubkey,
+            is_signer: false,
+            is_writable: false,
+        }
     }
 }
 
